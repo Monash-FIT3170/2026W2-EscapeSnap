@@ -1,0 +1,25 @@
+# Meteor
+.meteor/local
+.meteor/meteorite
+
+# Node
+node_modules/
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+
+# Playwright
+e2e/test-results/
+e2e/playwright-report/
