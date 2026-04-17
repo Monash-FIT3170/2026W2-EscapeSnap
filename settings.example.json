@@ -1,0 +1,8 @@
+{
+  "public": {
+    "appName": "EscapeSnap"
+  },
+  "private": {
+    "comment": "Server-only keys — use Meteor.settings.private; do not put secrets in public."
+  }
+}
