@@ -1,2 +1,5 @@
 # Keep Playwright and other tooling out of the Meteor bundle (see SPIKE5 / e2e/).
 e2e/
+
+# Tooling configs (Meteor will try to bundle root files otherwise)
+eslint.config.js
