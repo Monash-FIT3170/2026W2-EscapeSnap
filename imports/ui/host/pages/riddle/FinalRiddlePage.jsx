@@ -3,6 +3,7 @@ import { useParams } from 'react-router';
 import { useFinalRiddle } from '/imports/ui/shared/hooks/useFinalRiddle.js';
 import GameNotFound from '/imports/ui/shared/components/GameNotFound.jsx';
 import FinalRiddle from '/imports/ui/host/components/riddle/FinalRiddle.jsx';
+import FinalRiddleInput from '/imports/ui/host/components/riddle/FinalRiddleInput.jsx';
 
 const FinalRiddlePage = () => {
   const { gameId } = useParams();
@@ -19,6 +20,7 @@ const FinalRiddlePage = () => {
     <div className='min-h-screen'>
       THIS IS THE FINAL RIDDLE PAGE
       <FinalRiddle finalRiddle={finalRiddle} />
+      <FinalRiddleInput gameId={gameId}/>
     </div>
   );
 };

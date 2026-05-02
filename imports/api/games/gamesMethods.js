@@ -3,21 +3,20 @@ import { Games } from './GamesCollection';
 import { FINAL_RIDDLE } from '../../lib/finalRiddle';
 
 Meteor.methods({
-  'games.create'() {
-    return Games.insert({
+  async 'games.create'() {
+    return Games.insertAsync({
       status: 'final_riddle',
       createdAt: new Date(),
       players: [
         { id: 'player1', name: 'Dylan', revealedLetters: ['M', '?', 'A'] },
-
       ],
       finalRiddle: FINAL_RIDDLE,
     });
   },
 
   // SCRUM-126, SCRUM-119
-  'games.submitFinalAnswer'(gameId, guess) {
-    const game = Games.findOne(gameId);
+  async 'games.submitFinalAnswer'(gameId, guess) {
+    const game = await Games.findOneAsync(gameId);
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
     if (game.status !== 'final_riddle')
       throw new Meteor.Error('invalid-state', 'Game is not in final riddle phase');
@@ -26,9 +25,9 @@ Meteor.methods({
     const isCorrect =
       guess.trim().toLowerCase() === game.finalRiddle.answer.toLowerCase();
 
-    Games.update(gameId, {
+    await Games.updateAsync(gameId, {
       $set: {
-        status: isCorrect ? 'won' : 'lost',
+        // status: isCorrect ? 'won' : 'lost',
         endedAt: new Date(),
       },
     });
