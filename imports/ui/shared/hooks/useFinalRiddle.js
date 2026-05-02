@@ -1,6 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
-import { Games } from '../../../api/games/GamesCollection';
+import { Games } from '/imports/api/games/GamesCollection';
 
 export function useFinalRiddle(gameId) {
   return useTracker(() => {
