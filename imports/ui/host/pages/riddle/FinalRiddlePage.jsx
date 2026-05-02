@@ -24,13 +24,12 @@ const FinalRiddlePage = () => {
   if (hasWon) return <WinScreen onPlayAgain={() => setHasWon(false)} />;
 
   return (
-    <div className='min-h-screen'>
-      THIS IS THE FINAL RIDDLE PAGE
-      <FinalRiddle finalRiddle={finalRiddle} />
-      <RevealedLetters letters={letters} />
-      <FinalRiddleInput gameId={gameId} onCorrect={() => setHasWon(true)} />
-    </div>
-  );
+      <div className='min-h-screen bg-gray-900'>
+        <FinalRiddle finalRiddle={finalRiddle} />
+          <RevealedLetters letters={letters} />
+          <FinalRiddleInput gameId={gameId} onCorrect={() => setHasWon(true)} />
+        </div>
+    );
 };
 
 export default FinalRiddlePage;
