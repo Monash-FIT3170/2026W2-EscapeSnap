@@ -22,8 +22,8 @@ const FinalRiddlePage = () => {
   return (
     <div className='min-h-screen'>
       THIS IS THE FINAL RIDDLE PAGE
-      <RevealedLetters letters={letters} />
       <FinalRiddle finalRiddle={finalRiddle} />
+      <RevealedLetters letters={letters} />
       <FinalRiddleInput gameId={gameId}/>
     </div>
   );
