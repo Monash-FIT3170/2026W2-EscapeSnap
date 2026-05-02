@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Meteor } from 'meteor/meteor';
 
-const FinalRiddleInput = ({ gameId }) => {
+const FinalRiddleInput = ({ gameId, onCorrect = () => {} }) => {
   const [guess, setGuess] = useState('');
-  const [result, setResult] = useState(null); // 'correct' | 'incorrect' | null
+  const [result, setResult] = useState(null);
 
   useEffect(() => {
     if (!result) return;
@@ -18,6 +18,7 @@ const FinalRiddleInput = ({ gameId }) => {
         return;
       }
       setResult(isCorrect ? 'correct' : 'incorrect');
+      if (isCorrect) onCorrect();
     });
   }
 
@@ -36,13 +37,6 @@ const FinalRiddleInput = ({ gameId }) => {
         Make Guess
       </button>
 
-      {result === 'correct' && (
-        <div className="toast toast-center toast-middle">
-          <div className="alert alert-success">
-            <span>YOU WIN!!!!</span>
-          </div>
-        </div>
-      )}
       {result === 'incorrect' && (
         <div className="toast toast-center toast-middle">
           <div className="alert alert-error">
