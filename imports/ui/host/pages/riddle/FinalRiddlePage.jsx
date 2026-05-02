@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useParams } from 'react-router';
 import { useFinalRiddle } from '/imports/ui/shared/hooks/useFinalRiddle.js';
 import { useRevealedLetters } from '/imports/ui/shared/hooks/useRevealedLetters.js';
+import { useNavigate } from 'react-router';
+
 import GameNotFound from '/imports/ui/shared/components/GameNotFound.jsx';
 import RevealedLetters from '/imports/ui/host/components/riddle/RevealedLetters.jsx';
 import FinalRiddle from '/imports/ui/host/components/riddle/FinalRiddle.jsx';
@@ -14,6 +16,8 @@ const FinalRiddlePage = () => {
   const { lettersLoading, letters } = useRevealedLetters(gameId);
   const [hasWon, setHasWon] = useState(false);
 
+  const navigate = useNavigate();
+
   if (loading || lettersLoading) return <div className='min-h-screen flex items-center justify-center'>
                             <span className="loading loading-spinner text-red-500"></span>
                         </div>;
@@ -21,7 +25,7 @@ const FinalRiddlePage = () => {
   if (gameStatus !== 'final_riddle')
     return <p className="text-red-500">Not in final riddle phase.</p>;
 
-  if (hasWon) return <WinScreen onPlayAgain={() => setHasWon(false)} />;
+  if (hasWon) return <WinScreen onPlayAgain={() => navigate('/game/create')} />;
 
   return (
       <div className='min-h-screen bg-gray-900'>
