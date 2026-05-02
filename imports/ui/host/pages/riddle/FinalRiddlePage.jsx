@@ -3,6 +3,7 @@ import { useParams } from 'react-router';
 import { useFinalRiddle } from '/imports/ui/shared/hooks/useFinalRiddle.js';
 import { useRevealedLetters } from '/imports/ui/shared/hooks/useRevealedLetters.js';
 import GameNotFound from '/imports/ui/shared/components/GameNotFound.jsx';
+import RevealedLetters from '/imports/ui/host/components/riddle/RevealedLetters.jsx';
 
 const FinalRiddlePage = () => {
   const { gameId } = useParams();
@@ -19,8 +20,7 @@ const FinalRiddlePage = () => {
   return (
     <div>
       THIS IS THE FINAL RIDDLE PAGE
-      <p></p>
-      {letters}
+      <RevealedLetters letters={letters} />
     </div>
   );
 };
