@@ -14,16 +14,18 @@
     "postcss-load-config": "^6.0.1",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "react-router": "^6.30.3",
+    "react-router-dom": "^6.30.3",
     "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.28.6",
     "@eslint/js": "^9.39.4",
     "eslint": "^9.39.4",
-    "globals": "^16.0.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-react": "^7.37.5",
+    "globals": "^16.0.0",
     "prettier": "^3.8.3"
   }
 }
