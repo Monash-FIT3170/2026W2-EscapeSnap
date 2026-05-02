@@ -2,7 +2,7 @@ import React from 'react';
 
 const RevealedLetters = ({ letters }) => {
   return (
-    <div className="flex flex-wrap justify-center gap-2 my-100">
+    <div className="flex flex-wrap justify-center gap-2 my-10">
       {letters.map((letter, index) => (
 
       
