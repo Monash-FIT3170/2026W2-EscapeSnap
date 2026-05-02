@@ -2,19 +2,23 @@ import React from 'react';
 import { useParams } from 'react-router';
 import { useFinalRiddle } from '/imports/ui/shared/hooks/useFinalRiddle.js';
 import GameNotFound from '/imports/ui/shared/components/GameNotFound.jsx';
+import FinalRiddle from '/imports/ui/host/components/riddle/FinalRiddle.jsx';
 
 const FinalRiddlePage = () => {
   const { gameId } = useParams();
   const { loading, finalRiddle, gameStatus } = useFinalRiddle(gameId);
 
-  if (loading) return <p className="text-white">Loading...</p>;
+  if (loading) return <div className='min-h-screen flex items-center justify-center'>
+                            <span className="loading loading-spinner text-red-500"></span>
+                        </div>;
   if (!finalRiddle) return <GameNotFound />;
   if (gameStatus !== 'final_riddle')
     return <p className="text-red-500">Not in final riddle phase.</p>;
 
   return (
-    <div>
+    <div className='min-h-screen'>
       THIS IS THE FINAL RIDDLE PAGE
+      <FinalRiddle finalRiddle={finalRiddle} />
     </div>
   );
 };

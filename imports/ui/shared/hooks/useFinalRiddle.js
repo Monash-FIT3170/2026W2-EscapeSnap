@@ -8,7 +8,7 @@ export function useFinalRiddle(gameId) {
     const game = Games.findOne(gameId);
     return {
       loading: !sub.ready(),
-      finalRiddle: game?.finalRiddle ?? null,
+      finalRiddle: game?.finalRiddle.riddle ?? null,
       gameStatus: game?.status ?? null,
     };
   }, [gameId]);
