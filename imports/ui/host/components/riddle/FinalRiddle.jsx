@@ -11,7 +11,7 @@ const FinalRiddle = ({ finalRiddle }) => {
             Riddle 
         </h2>
       </div>
-      <div className="bg-gray-800 border-l-8 border-red-600 p-2 mb-1">
+      <div className="bg-gray-800 border-l-8 border-red-600 p-12 mb-2">
         <p className="text-white font-extrabold text-2xl tracking-wide">{"\"" + finalRiddle + "\""}</p>
       </div>
     </div>
