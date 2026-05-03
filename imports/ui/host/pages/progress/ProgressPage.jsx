@@ -151,6 +151,7 @@ const Sidebar = ({ gameId, expanded, onToggle }) => {
 
 const ProgressPage = () => {
   const { gameId } = useParams();
+  const navigate = useNavigate();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [timeLeft, setTimeLeft] = useState(null);
 

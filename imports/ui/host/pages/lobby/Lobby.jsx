@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { useParams } from 'react-router';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Games } from '../../../../api/games/GamesCollection';
 
 const Lobby = () => {
   const { gameId } = useParams();
+  const navigate = useNavigate();
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -16,6 +17,12 @@ const Lobby = () => {
       game: Games.findOne(gameId),
     };
   }, [gameId]);
+
+  useEffect(() => {
+    if (game?.status === 'in_progress') {
+      navigate(`/game/${gameId}/progress`);
+    }
+  }, [game?.status]);
 
   const handleStartGame = async () => {
     setStarting(true);
