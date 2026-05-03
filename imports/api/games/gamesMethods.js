@@ -5,12 +5,23 @@ import { FINAL_RIDDLE } from '../../lib/finalRiddle';
 Meteor.methods({
   async 'games.create'() {
     return Games.insertAsync({
-      status: 'final_riddle',
+      status: 'lobby',
       createdAt: new Date(),
       players: [
         { id: 'player1', name: 'Dylan', revealedLetters: ['M', '?', 'A'] },
       ],
       finalRiddle: FINAL_RIDDLE,
+    });
+  },
+
+  // SCRUM-103
+  async 'games.start'(gameId) {
+    const game = await Games.findOneAsync(gameId);
+    if (!game) throw new Meteor.Error('not-found', 'Game not found');
+    if (game.status !== 'lobby')
+      throw new Meteor.Error('invalid-state', 'Game is not in lobby state');
+    await Games.updateAsync(gameId, {
+      $set: { status: 'in_progress', startedAt: new Date() },
     });
   },
 
