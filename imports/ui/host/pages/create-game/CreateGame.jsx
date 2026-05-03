@@ -22,7 +22,7 @@ const CreateGame = () => {
     setError(null);
     try {
       const gameId = await Meteor.callAsync('games.create');
-      navigate(`/game/${gameId}/final-riddle`);
+      navigate(`/game/${gameId}/lobby`);
     } catch (err) {
       setError(err.reason || err.message || 'INITIALIZATION FAILED');
       setLoading(false);
@@ -132,7 +132,7 @@ const CreateGame = () => {
               <p className="text-xs text-gray-600 tracking-wide">
                 SPRINT_1 // PRESET PLAYER: DYLAN ·
                 STATUS WILL BE SET TO{' '}
-                <span className="text-gray-500">FINAL_RIDDLE</span>
+                <span className="text-gray-500">LOBBY</span>
               </p>
             </div>
 
