@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
@@ -65,9 +65,11 @@ const RiddleIcon = ({ color }) => (
   </svg>
 );
 
-const ChevronIcon = ({ expanded }) => (
-  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ transition: 'transform 0.25s', transform: expanded ? 'rotate(0deg)' : 'rotate(180deg)', flexShrink: 0 }}>
-    <path d="M10 5L7 8L4 5" stroke="#aa8984" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+const HamburgerIcon = () => (
+  <svg width="18" height="14" viewBox="0 0 18 14" fill="none" style={{ flexShrink: 0 }}>
+    <line x1="0" y1="1" x2="18" y2="1" stroke="#aa8984" strokeWidth="1.5" strokeLinecap="round" />
+    <line x1="0" y1="7" x2="18" y2="7" stroke="#aa8984" strokeWidth="1.5" strokeLinecap="round" />
+    <line x1="0" y1="13" x2="18" y2="13" stroke="#aa8984" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );
 
@@ -94,16 +96,21 @@ const Sidebar = ({ gameId, expanded, onToggle }) => {
         flexShrink: 0,
       }}
     >
-      {/* Logo area */}
-      <div style={{ padding: expanded ? '32px 24px 16px' : '32px 0 16px', display: 'flex', flexDirection: 'column', alignItems: expanded ? 'flex-start' : 'center', transition: 'padding 0.25s' }}>
-        {expanded ? (
-          <>
+      {/* Toggle button + Logo area */}
+      <div style={{ borderBottom: '1px solid #1c1b1b', display: 'flex', alignItems: 'center', justifyContent: expanded ? 'space-between' : 'center', padding: expanded ? '20px 16px 20px 24px' : '20px 0' }}>
+        {expanded && (
+          <div>
             <div style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: '#e5e2e1', whiteSpace: 'nowrap' }}>GAME</div>
             <div style={{ fontWeight: 500, fontSize: 10, letterSpacing: '0.5px', color: '#8b0000', marginTop: 2, whiteSpace: 'nowrap' }}>LOBBY</div>
-          </>
-        ) : (
-          <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: '1px', color: '#8b0000' }}>G</div>
+          </div>
         )}
+        <button
+          onClick={onToggle}
+          title={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
+          style={{ background: 'transparent', cursor: 'pointer', opacity: 0.5, padding: 4, display: 'flex', alignItems: 'center' }}
+        >
+          <HamburgerIcon />
+        </button>
       </div>
 
       {/* Nav items */}
@@ -138,24 +145,6 @@ const Sidebar = ({ gameId, expanded, onToggle }) => {
         ))}
       </nav>
 
-      {/* Toggle button */}
-      <button
-        onClick={onToggle}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: expanded ? 'flex-end' : 'center',
-          padding: expanded ? '12px 16px' : '12px 0',
-          background: 'transparent',
-          cursor: 'pointer',
-          borderTop: '1px solid #1c1b1b',
-          opacity: 0.5,
-          width: '100%',
-        }}
-        title={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
-      >
-        <ChevronIcon expanded={expanded} />
-      </button>
     </aside>
   );
 };
@@ -163,6 +152,7 @@ const Sidebar = ({ gameId, expanded, onToggle }) => {
 const ProgressPage = () => {
   const { gameId } = useParams();
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [timeLeft, setTimeLeft] = useState(null);
 
   const { game, loading } = useTracker(() => {
     const sub = Meteor.subscribe('games.current', gameId);
@@ -171,6 +161,21 @@ const ProgressPage = () => {
       game: Games.findOne(gameId),
     };
   }, [gameId]);
+
+  useEffect(() => {
+    if (!game?.startedAt || !game?.timerMinutes) {
+      setTimeLeft(null);
+      return;
+    }
+    const tick = () => {
+      const elapsed = Date.now() - new Date(game.startedAt).getTime();
+      const remaining = Math.max(0, game.timerMinutes * 60 * 1000 - elapsed);
+      setTimeLeft(remaining);
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [game?.startedAt, game?.timerMinutes]);
 
   if (loading) {
     return (
@@ -191,6 +196,16 @@ const ProgressPage = () => {
   const players = game.players || [];
   const pinRaw = gameId.slice(-6).toUpperCase();
   const pin = pinRaw.slice(0, 3) + '-' + pinRaw.slice(3);
+
+  const formatTime = (ms) => {
+    if (ms === null) return '--:--';
+    const total = Math.floor(ms / 1000);
+    const m = Math.floor(total / 60);
+    const s = total % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
+
+  const isExpired = timeLeft === 0;
 
   return (
     <main className="flex min-h-screen" style={{ background: '#131313', color: '#e5e2e1', fontFamily: "'Space Grotesk', Helvetica, sans-serif" }}>
@@ -233,9 +248,14 @@ const ProgressPage = () => {
 
           {/* Stats row */}
           <div className="grid grid-cols-4" style={{ height: 160 }}>
-            <div className="flex flex-col justify-between p-6" style={{ background: '#0e0e0e', borderLeft: '2px solid #8b0000' }}>
+            <div className="flex flex-col justify-between p-6" style={{ background: '#0e0e0e', borderLeft: `2px solid ${isExpired ? '#ff0000' : '#8b0000'}` }}>
               <span style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>TIME REMAINING</span>
-              <span style={{ fontWeight: 300, fontSize: 60, letterSpacing: '-3px', lineHeight: '60px', color: '#e5e2e1' }}>42:18</span>
+              <span style={{ fontWeight: 300, fontSize: 60, letterSpacing: '-3px', lineHeight: '60px', color: isExpired ? '#ff4444' : '#e5e2e1' }}>
+                {game.startedAt ? formatTime(timeLeft) : '--:--'}
+              </span>
+              {!game.startedAt && (
+                <span style={{ fontSize: 9, color: '#aa8984', opacity: 0.6, letterSpacing: '0.5px' }}>GAME NOT STARTED</span>
+              )}
             </div>
 
             <div className="flex flex-col justify-between p-6" style={{ background: '#1c1b1b' }}>
