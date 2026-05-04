@@ -30,18 +30,31 @@ Meteor.methods({
     const game = await Games.findOneAsync(gameId);
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
     if (game.status !== 'final_riddle')
-      throw new Meteor.Error('invalid-state', 'Game is not in final riddle phase');
+      throw new Meteor.Error(
+        'invalid-state',
+        'Game is not in final riddle phase'
+      );
 
-    // Sprint 3: move answer validation server-side only so answer is never sent to client
+    const submittedAnswer = typeof guess === 'string' ? guess.trim() : '';
+    if (!submittedAnswer)
+      throw new Meteor.Error('invalid-answer', 'Answer cannot be blank');
+    if (typeof game.finalRiddle?.answer !== 'string')
+      throw new Meteor.Error(
+        'invalid-state',
+        'Final riddle answer is unavailable'
+      );
+
     const isCorrect =
-      guess.trim().toLowerCase() === game.finalRiddle.answer.toLowerCase();
+      submittedAnswer.toLowerCase() ===
+      game.finalRiddle.answer.trim().toLowerCase();
 
-    await Games.updateAsync(gameId, {
-      $set: {
-        // status: isCorrect ? 'won' : 'lost',
-        endedAt: new Date(),
-      },
-    });
+    if (isCorrect) {
+      await Games.updateAsync(gameId, {
+        $set: {
+          endedAt: new Date(),
+        },
+      });
+    }
 
     return isCorrect;
   },
