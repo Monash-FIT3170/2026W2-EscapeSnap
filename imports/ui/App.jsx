@@ -10,7 +10,6 @@ export function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
-      <Route path="/" element={<Dashboard />} />
       <Route path="/game/create" element={<CreateGame />} />
       <Route path="/game/:gameId/lobby" element={<Lobby />} />
       <Route path="/game/:gameId/final-riddle" element={<FinalRiddlePage />} />
