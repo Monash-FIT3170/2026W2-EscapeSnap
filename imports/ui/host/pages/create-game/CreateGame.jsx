@@ -21,7 +21,7 @@ const CreateGame = () => {
     setLoading(true);
     setError(null);
     try {
-      const gameId = await Meteor.callAsync('games.create');
+      const gameId = await Meteor.callAsync('games.create', { timerMinutes: timer, capacity, difficulty });
       navigate(`/game/${gameId}/lobby`);
     } catch (err) {
       setError(err.reason || err.message || 'INITIALIZATION FAILED');

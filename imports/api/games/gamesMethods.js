@@ -3,10 +3,13 @@ import { Games } from './GamesCollection';
 import { FINAL_RIDDLE } from '../../lib/finalRiddle';
 
 Meteor.methods({
-  async 'games.create'() {
+  async 'games.create'({ timerMinutes = 30, capacity = 4, difficulty = 'medium' } = {}) {
     return Games.insertAsync({
       status: 'lobby',
       createdAt: new Date(),
+      timerMinutes,
+      capacity,
+      difficulty,
       players: [
         { id: 'player1', name: 'Dylan', revealedLetters: ['M', '?', 'A'] },
       ],
