@@ -1,5 +1,6 @@
 import { Mongo } from 'meteor/mongo';
-import SimpleSchema from 'meteor/aldeed:simple-schema';
+import SimpleSchema from 'simpl-schema';
+import 'meteor/aldeed:collection2/static';
 
 export const Games = new Mongo.Collection('games');
 
@@ -50,7 +51,7 @@ Games.attachSchema(new SimpleSchema({
   'finalRiddle': {
     type: Object,
   },
-  'finalRiddle.text': {
+  'finalRiddle.riddle': {
     type: String,
   },
   'finalRiddle.answer': {

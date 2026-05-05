@@ -17,6 +17,7 @@
     "react-dom": "^19.2.5",
     "react-router": "^6.30.3",
     "react-router-dom": "^6.30.3",
+    "simpl-schema": "^3.4.7",
     "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
