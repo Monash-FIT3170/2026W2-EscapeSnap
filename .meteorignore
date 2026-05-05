@@ -3,3 +3,6 @@ e2e/
 
 # Tooling configs (Meteor will try to bundle root files otherwise)
 eslint.config.js
+
+# Local UI preview (dev-only, not part of the Meteor app)
+preview/

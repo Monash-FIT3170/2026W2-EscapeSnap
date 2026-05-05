@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
 
 Meteor.startup(() => {
-  // Server startup
+  console.log('[EscapeSnap] server ready');
 });

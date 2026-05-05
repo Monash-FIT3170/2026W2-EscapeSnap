@@ -2,28 +2,41 @@
   "name": "2026W2-EscapeSnap",
   "private": true,
   "scripts": {
+    "patch:denque": "powershell -ExecutionPolicy Bypass -NoProfile -File ./scripts/patch-meteor-win-npm.ps1",
+    "patch:meteor-win": "powershell -ExecutionPolicy Bypass -NoProfile -File ./scripts/patch-meteor-win-npm.ps1",
+    "start:win": "powershell -ExecutionPolicy Bypass -NoProfile -File ./scripts/start-windows.ps1",
     "start": "meteor run",
     "lint": "eslint . --ext .js,.jsx",
     "format": "prettier --write '**/*.{js,jsx,css,md}'"
   },
   "dependencies": {
     "@babel/runtime": "^7.23.5",
-    "@tailwindcss/postcss": "^4.2.2",
+    "arson": "0.2.6",
+    "autoprefixer": "^10.5.0",
+    "bluebird": "3.7.2",
+    "combined-stream2": "1.1.2",
+    "core-js": "3.16.0",
+    "debug": "4.4.3",
+    "denque": "^2.1.0",
     "meteor-node-stubs": "^1.2.12",
-    "postcss": "^8.5.6",
-    "postcss-load-config": "^6.0.1",
+    "ms": "2.1.3",
+    "node-fetch": "^2.7.0",
+    "postcss": "^8.5.13",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "tailwindcss": "^4.2.2"
+    "react-refresh": "^0.18.0",
+    "stream-length": "1.0.2",
+    "tailwindcss": "^3.4.19",
+    "uuid": "8.3.2"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.28.6",
     "@eslint/js": "^9.39.4",
     "eslint": "^9.39.4",
-    "globals": "^16.0.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-react": "^7.37.5",
+    "globals": "^16.0.0",
     "prettier": "^3.8.3"
   }
 }

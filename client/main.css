@@ -1,1 +1,11 @@
-@import "tailwindcss";
+/* Global layout; Tailwind via script in client/main.html */
+
+html,
+body,
+#app {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+}
