@@ -222,26 +222,6 @@ const ProgressPage = () => {
             <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: '#e5e2e1' }}>ESCAPESNAP</span>
             <div style={{ width: 1, height: 16, background: '#5a403c', opacity: 0.3 }} />
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1" style={{ background: '#0e0e0e', border: '1px solid rgba(90,64,60,0.1)' }}>
-              <span style={{ fontSize: 10, color: '#aa8984' }}>PIN:</span>
-              <span style={{ fontWeight: 700, fontSize: 14, letterSpacing: '1.4px', color: '#e5e2e1' }}>{pin}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <circle cx="9" cy="9" r="7" stroke="#aa8984" strokeWidth="1.5" />
-                <polyline points="9,5 9,9 12,11" stroke="#aa8984" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <circle cx="9" cy="6" r="3" stroke="#aa8984" strokeWidth="1.5" />
-                <path d="M3 16c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="#aa8984" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path d="M9 2C6.24 2 4 4.24 4 7v5l-1.5 1.5V15h13v-1.5L14 12V7c0-2.76-2.24-5-5-5z" stroke="#aa8984" strokeWidth="1.5" strokeLinejoin="round" />
-                <path d="M7 15a2 2 0 004 0" stroke="#aa8984" strokeWidth="1.5" />
-              </svg>
-            </div>
-          </div>
         </header>
 
         {/* Body */}
