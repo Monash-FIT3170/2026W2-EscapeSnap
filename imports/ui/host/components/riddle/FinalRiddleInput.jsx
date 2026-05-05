@@ -23,25 +23,48 @@ const FinalRiddleInput = ({ gameId, onCorrect = () => {} }) => {
   }
 
   return (
-    <div className='min-w-screen px-12'>
+    <div className="flex flex-col gap-3">
       <input
         type="text"
-        placeholder="Input riddle guess..."
-        className="w-full bg-gray-900 border-gray-200 min-h-15 input input-lg text-gray-500 text-2xl font-extraitalic"
+        placeholder="TYPE YOUR ANSWER..."
+        value={guess}
         onChange={e => setGuess(e.target.value)}
+        onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+        style={{
+          width: '100%',
+          background: '#131313',
+          border: '1px solid #353534',
+          padding: '14px 16px',
+          color: '#e5e2e1',
+          fontSize: 14,
+          letterSpacing: '1px',
+          outline: 'none',
+          fontFamily: "'Space Grotesk', Helvetica, sans-serif",
+        }}
       />
       <button
-        className="w-full min-h-15 btn bg-red-600 mt-1 font-italic text-2xl"
         onClick={handleSubmit}
+        style={{
+          width: '100%',
+          padding: '14px',
+          background: '#8b0000',
+          color: '#e5e2e1',
+          fontWeight: 700,
+          fontSize: 13,
+          letterSpacing: '1.5px',
+          cursor: 'pointer',
+          transition: 'background 0.15s',
+          fontFamily: "'Space Grotesk', Helvetica, sans-serif",
+        }}
+        onMouseEnter={e => (e.currentTarget.style.background = '#a50000')}
+        onMouseLeave={e => (e.currentTarget.style.background = '#8b0000')}
       >
-        Make Guess
+        SUBMIT ANSWER
       </button>
 
       {result === 'incorrect' && (
-        <div className="toast toast-center toast-middle">
-          <div className="alert alert-error">
-            <span>Incorrect Guess.</span>
-          </div>
+        <div style={{ padding: '12px 16px', background: '#1c0000', borderLeft: '3px solid #8b0000' }}>
+          <p style={{ fontSize: 12, color: '#ffdad6', letterSpacing: '1px' }}>INCORRECT - TRY AGAIN</p>
         </div>
       )}
     </div>

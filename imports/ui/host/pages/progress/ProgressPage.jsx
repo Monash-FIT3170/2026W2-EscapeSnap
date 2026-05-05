@@ -77,9 +77,8 @@ const Sidebar = ({ gameId, expanded, onToggle }) => {
   const navigate = useNavigate();
 
   const navItems = [
-    { label: 'DASHBOARD', Icon: DashboardIcon, route: '/', active: false },
     { label: 'OPERATIVES', Icon: OperativesIcon, route: `/game/${gameId}/progress`, active: true },
-    { label: 'LOGS', Icon: LogsIcon, route: null, active: false },
+    { label: 'FINAL RIDDLE', Icon: RiddleIcon, route: `/game/${gameId}/final-riddle`, active: false },
   ];
 
   return (
