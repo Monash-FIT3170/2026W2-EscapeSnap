@@ -2,7 +2,7 @@
   "name": "2026W2-EscapeSnap",
   "private": true,
   "scripts": {
-    "start": "meteor run",
+    "start": "export $(cat .env | xargs) && meteor run",
     "lint": "eslint . --ext .js,.jsx",
     "format": "prettier --write '**/*.{js,jsx,css,md}'"
   },
