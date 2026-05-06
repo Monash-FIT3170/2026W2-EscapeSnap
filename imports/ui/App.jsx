@@ -21,5 +21,15 @@ export function App() {
       onExit={() => { setPlayerName(''); setGameCode(''); setScreen('home'); }}
     />
   );
-  return <PlayerDashboard playerName={playerName} onExit={() => { setPlayerName(''); setGameCode(''); setScreen('home'); }} />;
+  return (
+    <PlayerDashboard
+      playerName={playerName}
+      gameCode={gameCode}
+      onExit={() => {
+        setPlayerName('');
+        setGameCode('');
+        setScreen('home');
+      }}
+    />
+  );
 }

@@ -4,7 +4,16 @@ import { SurvivorIdCard } from '../../components/lobby/SurvivorIdCard';
 import { AwaitingGameCard } from '../../components/lobby/AwaitingGameCard';
 import { MobileBottomNav } from '../../components/navigation/MobileBottomNav';
 
-export function PlayerLobby({ playerName = 'PLAYER', gameCode = '', photoUrl, playerCount = 0, onExit }) {
+export function PlayerLobby({ 
+  playerName = 'PLAYER', 
+  gameCode = '', 
+  photoUrl, 
+  playerCount = 0, 
+  onGameStart,
+  onExit 
+}) 
+
+{
   const [activeTab, setActiveTab] = useState('status');
 
   return (
@@ -43,6 +52,14 @@ export function PlayerLobby({ playerName = 'PLAYER', gameCode = '', photoUrl, pl
         </div>
 
       </div>
+
+      <button
+        type="button"
+        onClick={onGameStart}
+        className="fixed bottom-24 left-1/2 z-10 w-[90%] max-w-sm -translate-x-1/2 border border-red-600 bg-red-600 px-5 py-4 font-mono text-sm font-semibold uppercase tracking-[0.3em] text-white"
+      >
+        Start Game
+      </button>
 
       <MobileBottomNav active={activeTab} onChange={setActiveTab} />
     </div>

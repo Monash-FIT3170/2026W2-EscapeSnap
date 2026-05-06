@@ -1,83 +1,90 @@
 import React, { useState } from 'react';
+import MobileRiddlePage from './gameplay/MobileRiddlePage';
 import { MobileBottomNav } from '../components/navigation/MobileBottomNav';
 
-export function PlayerDashboard({ playerName = 'PLAYER', onExit }) {
-  const [activeTab, setActiveTab] = useState('status');
+export function PlayerDashboard({ playerName = 'PLAYER', gameCode = '', onExit }) {
+  const [activeTab, setActiveTab] = useState('scanner');
+  const [revealedLetter, setRevealedLetter] = useState(null);
 
-  const clues = [
-    'Red emergency kit holds the first digit.',
-    'The scanner reveals the second code when close.',
-    'Blueprint edge hides the final pair.',
-  ];
+  const handleCorrectAnswer = letter => {
+    setRevealedLetter(letter);
+    setActiveTab('clues');
+  };
 
   return (
     <div className="min-h-screen bg-black text-slate-100">
       <div className="mx-auto flex min-h-screen max-w-md flex-col px-5 pb-24 pt-4">
 
-        <header className="flex items-center justify-between border-b border-slate-800/80 py-3">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.4em] text-red-500">ESCAPESNAP // ACTIVE MISSION</p>
-            <h1 className="mt-1 font-display text-xl font-bold tracking-wide text-white">{playerName.toUpperCase()}</h1>
-          </div>
-          <button
-            type="button"
-            onClick={onExit}
-            className="border border-slate-800/80 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.3em] text-slate-500 transition hover:border-red-500/60 hover:text-red-400 focus:outline-none"
-          >
-            Exit
-          </button>
+        <header className="flex justify-between border-b border-slate-800 py-3">
+          <h1 className="text-white">{playerName}</h1>
+          <button onClick={onExit}>Exit</button>
         </header>
 
         {activeTab === 'status' && (
-          <section className="flex flex-col gap-4 pt-5">
-            <div className="border border-slate-800/80 bg-slate-950/60 px-4 py-4">
-              <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-slate-500">Code Progress</p>
-              <div className="mt-3 flex gap-3">
-                {[4, 2, 7, 1].map((digit, i) => (
-                  <div key={i} className="flex h-12 w-12 items-center justify-center border border-red-500/50 bg-slate-950 font-mono text-lg font-semibold text-red-400">
-                    {digit}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="border border-slate-800/80 bg-slate-950/60 px-4 py-4">
-              <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.35em] text-slate-500">Mission Status</p>
-              <div className="flex items-center justify-between border-b border-slate-800/50 py-2">
-                <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400">Remaining time</span>
-                <span className="font-mono text-sm text-white">09:35</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-slate-400">Clues completed</span>
-                <span className="font-mono text-sm text-white">3/5</span>
-              </div>
-            </div>
-          </section>
+          <div className="pt-5 text-white">STATUS SCREEN</div>
         )}
 
         {activeTab === 'clues' && (
-          <section className="flex flex-col gap-3 pt-5">
-            {clues.map((clue, i) => (
-              <div key={i} className="border border-slate-800/80 bg-slate-950/60 px-4 py-4">
-                <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-slate-500">Clue {i + 1}</p>
-                <p className="mt-2 text-sm leading-6 text-slate-200">{clue}</p>
-              </div>
-            ))}
+          <section className="flex flex-col gap-6 pt-5">
+            {revealedLetter ? (
+              <>
+                <h1 className="font-display text-6xl font-black text-red-700">
+                  CORRECT!
+                </h1>
+
+                <div className="border border-slate-700 bg-slate-950/70 px-6 py-10 text-center">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-slate-500">
+                    DATA_RECOVERY_ACTIVE
+                  </p>
+
+                  <p className="mt-8 font-display text-8xl font-black text-white">
+                    {revealedLetter}
+                  </p>
+
+                  <p className="mt-6 font-mono text-sm uppercase tracking-[0.35em] text-slate-400">
+                    LETTER REVEALED
+                  </p>
+                </div>
+
+                <div className="border-l-4 border-red-600 bg-slate-900/80 px-6 py-6">
+                  <h2 className="font-display text-xl font-bold tracking-widest text-white">
+                    YOU HAVE GOTTEN THE PUZZLE CORRECT!
+                  </h2>
+
+                  <p className="mt-4 text-sm leading-6 text-slate-400">
+                    You have obtained a revealed letter.
+                  </p>
+
+                  <p className="mt-4 text-sm leading-6 text-slate-400">
+                    Revealed letters can be used to assist with solving the final puzzle.
+                  </p>
+                </div>
+
+                <div className="mt-4">
+                  <div className="flex justify-between font-mono text-xs uppercase tracking-[0.3em]">
+                    <span className="text-white">WAITING FOR TEAM...</span>
+                    <span className="text-red-500">1 / 4 READY</span>
+                  </div>
+
+                  <div className="mt-4 h-3 bg-slate-800">
+                    <div className="h-3 w-1/4 bg-red-700" />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <p className="font-mono text-sm text-slate-500">
+                No letters revealed yet. Use the scanner to solve your riddle.
+              </p>
+            )}
           </section>
         )}
 
         {activeTab === 'scanner' && (
-          <section className="flex flex-col gap-4 pt-5">
-            <div className="flex items-center justify-center border border-slate-800/80 bg-slate-950/60" style={{ aspectRatio: '4/3' }}>
-              <div className="text-center">
-                <p className="font-mono text-sm font-semibold tracking-[0.15em] text-white">SCANNER READY</p>
-                <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.2em] text-slate-500">Point at clue marker</p>
-              </div>
-            </div>
-            <button type="button" className="w-full border border-red-600 bg-red-600/10 px-5 py-4 font-mono text-sm font-semibold uppercase tracking-[0.3em] text-red-400 transition hover:bg-red-600 hover:text-white focus:outline-none">
-              Activate Scanner
-            </button>
-          </section>
+          <MobileRiddlePage
+            gameId={gameCode}
+            playerId="player1"
+            onCorrect={handleCorrectAnswer}
+          />
         )}
 
       </div>
