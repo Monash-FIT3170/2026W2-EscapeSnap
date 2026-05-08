@@ -29,6 +29,7 @@ const Lobby = () => {
     setError(null);
     try {
       await Meteor.callAsync('games.start', gameId);
+      await Meteor.callAsync('rounds.createForGame', gameId);
     } catch (err) {
       setError(err.reason || err.message || 'FAILED TO START GAME');
       setStarting(false);
