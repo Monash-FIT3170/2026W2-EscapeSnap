@@ -1,6 +1,6 @@
 import React from 'react';
 
-const BG = '#1c1b1b';
+const BG = '#131313';
 
 const WinScreen = ({ onPlayAgain }) => {
   return (

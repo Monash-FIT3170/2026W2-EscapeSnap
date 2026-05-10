@@ -9,7 +9,7 @@ import FinalRiddle from '/imports/ui/host/components/riddle/FinalRiddle.jsx';
 import FinalRiddleInput from '/imports/ui/host/components/riddle/FinalRiddleInput.jsx';
 import WinScreen from '/imports/ui/host/pages/game-completion/WinScreen.jsx';
 
-const BG = '#1c1b1b';
+const BG = '#131313';
 
 const FinalRiddlePage = () => {
   const { gameId } = useParams();
