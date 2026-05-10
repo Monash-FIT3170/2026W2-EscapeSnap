@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export function PlayerHome({ onStart }) {
+export function PlayerHome({ onStart, loading = false, serverError = '' }) {
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
@@ -77,16 +77,17 @@ export function PlayerHome({ onStart }) {
             />
           </div>
 
-          {error && (
-            <p className="font-mono text-sm text-red-400">⚠ {error}</p>
+          {(error || serverError) && (
+            <p className="font-mono text-sm text-red-400">⚠ {error || serverError}</p>
           )}
 
           <button
             type="submit"
-            className="group relative mt-2 w-full overflow-hidden border border-red-600/60 px-5 py-4 font-mono text-base font-semibold uppercase tracking-wider text-red-400 transition-colors duration-300 hover:text-white focus:outline-none"
+            disabled={loading}
+            className="group relative mt-2 w-full overflow-hidden border border-red-600/60 px-5 py-4 font-mono text-base font-semibold uppercase tracking-wider text-red-400 transition-colors duration-300 hover:text-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="absolute inset-0 -translate-x-full bg-red-600 transition-transform duration-300 ease-out group-hover:translate-x-0" />
-            <span className="relative">Enter Game →</span>
+            <span className="relative">{loading ? 'Joining...' : 'Enter Game →'}</span>
           </button>
 
         </form>
