@@ -32,8 +32,8 @@ Meteor.methods({
   async 'games.submitFinalAnswer'(gameId, guess) {
     const game = await Games.findOneAsync(gameId);
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
-    if (game.status !== 'final_riddle')
-      throw new Meteor.Error('invalid-state', 'Game is not in final riddle phase');
+    if (game.status !== 'in_progress')
+      throw new Meteor.Error('invalid-state', 'Game is not in progress');
 
     // Sprint 3: move answer validation server-side only so answer is never sent to client
     const isCorrect =
@@ -41,7 +41,7 @@ Meteor.methods({
 
     await Games.updateAsync(gameId, {
       $set: {
-        // status: isCorrect ? 'won' : 'lost',
+        status: 'ended',
         endedAt: new Date(),
       },
     });
