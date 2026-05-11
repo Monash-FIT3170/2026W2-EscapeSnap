@@ -2,17 +2,21 @@ import React from 'react';
 
 const FinalRiddle = ({ finalRiddle }) => {
   return (
-    <div className="bg-gray-900 py-6 px-12 mx-8 my-8">
-      <div className='flex justify-content items-center mt-6 mb-6'>
-        <h2 className="text-white font-extraitalic text-7xl uppercase tracking-widest mb-4 mx-2">
-            THE FINAL
-        </h2>
-        <h2 className='text-red-600 font-extrabold text-7xl uppercase tracking-widest mb-1 px-4'> 
-            Riddle 
-        </h2>
-      </div>
-      <div className="bg-gray-800 border-l-8 border-red-600 p-12 mb-2">
-        <p className="text-white font-extrabold text-2xl tracking-wide">{"\"" + finalRiddle + "\""}</p>
+    <div className="mb-8">
+      <h1 
+        className="text-white uppercase mb-6" 
+        style={{ 
+          fontSize: '4.5rem', 
+          letterSpacing: '0.0em', 
+          lineHeight: 1 
+        }}
+      >
+        THE FINAL <span style={{ color: '#991b1b' }}>RIDDLE</span>
+      </h1>
+      <div className="border-l-4 border-red-600 p-8" style={{ backgroundColor: '#1a1a1a' }}>
+        <p className="text-white font-bold text-xl leading-relaxed tracking-wide">
+          "{finalRiddle}"
+        </p>
       </div>
     </div>
   );

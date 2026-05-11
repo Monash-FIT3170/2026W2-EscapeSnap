@@ -7,6 +7,8 @@ import WinScreen from '/imports/ui/host/pages/game-completion/WinScreen.jsx';
 import FinalRiddleInput from '/imports/ui/host/components/riddle/FinalRiddleInput.jsx';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
 
+const BG = '#131313';
+
 const FinalRiddlePage = () => {
   const { gameId } = useParams();
   const navigate = useNavigate();

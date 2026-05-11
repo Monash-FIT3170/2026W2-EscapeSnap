@@ -29,28 +29,19 @@ const FinalRiddleInput = ({ gameId, onCorrect = () => {} }) => {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="mt-6">
+      <p className="text-xs font-bold tracking-[0.3em] text-gray-400 uppercase mb-3">
+        Submit Decryption
+      </p>
       <input
         type="text"
-        placeholder={exhausted ? 'NO ATTEMPTS REMAINING' : 'TYPE YOUR ANSWER...'}
-        value={guess}
-        disabled={exhausted}
+        placeholder="ENTER TERMINAL OVERRIDE..."
+        className="w-full bg-transparent border border-gray-700 text-white placeholder-gray-600 text-sm font-mono tracking-widest px-4 py-4 mb-3 focus:outline-none focus:border-red-600"
         onChange={e => setGuess(e.target.value)}
-        onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-        style={{
-          width: '100%',
-          background: exhausted ? '#0a0a0a' : '#131313',
-          border: '1px solid #353534',
-          padding: '14px 16px',
-          color: exhausted ? '#555' : '#e5e2e1',
-          fontSize: 14,
-          letterSpacing: '1px',
-          outline: 'none',
-          fontFamily: "'Space Grotesk', Helvetica, sans-serif",
-          cursor: exhausted ? 'not-allowed' : 'text',
-        }}
+        value={guess}
       />
       <button
+        className="w-full bg-red-900 hover:bg-red-600 text-white font-bold text-sm tracking-[0.3em] uppercase py-4 transition-colors duration-200 flex items-center justify-center gap-3"
         onClick={handleSubmit}
         disabled={exhausted}
         style={{
