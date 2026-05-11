@@ -4,19 +4,25 @@ import { Meteor } from 'meteor/meteor';
 const FinalRiddleInput = ({ gameId, onCorrect = () => {} }) => {
   const [guess, setGuess] = useState('');
   const [result, setResult] = useState(null);
+  const [attemptsLeft, setAttemptsLeft] = useState(3);
 
   useEffect(() => {
-    if (!result) return;
+    if (!result || result === 'correct') return;
     const timer = setTimeout(() => setResult(null), 3000);
     return () => clearTimeout(timer);
   }, [result]);
 
+  const exhausted = attemptsLeft === 0;
+
   function handleSubmit() {
-    Meteor.call('games.submitFinalAnswer', gameId, guess, (error, isCorrect) => {
+    if (!guess.trim() || exhausted) return;
+    Meteor.call('games.submitFinalAnswer', gameId, guess, (error, response) => {
       if (error) {
         console.error(error);
         return;
       }
+      const { isCorrect, attemptsLeft: remaining } = response;
+      setAttemptsLeft(remaining);
       setResult(isCorrect ? 'correct' : 'incorrect');
       if (isCorrect) onCorrect();
     });
@@ -37,20 +43,36 @@ const FinalRiddleInput = ({ gameId, onCorrect = () => {} }) => {
       <button
         className="w-full bg-red-900 hover:bg-red-600 text-white font-bold text-sm tracking-[0.3em] uppercase py-4 transition-colors duration-200 flex items-center justify-center gap-3"
         onClick={handleSubmit}
+        disabled={exhausted}
+        style={{
+          width: '100%',
+          padding: '14px',
+          background: exhausted ? '#3a0000' : '#8b0000',
+          color: exhausted ? '#555' : '#e5e2e1',
+          fontWeight: 700,
+          fontSize: 13,
+          letterSpacing: '1.5px',
+          cursor: exhausted ? 'not-allowed' : 'pointer',
+          transition: 'background 0.15s',
+          fontFamily: "'Space Grotesk', Helvetica, sans-serif",
+          opacity: exhausted ? 0.5 : 1,
+        }}
+        onMouseEnter={e => { if (!exhausted) e.currentTarget.style.background = '#a50000'; }}
+        onMouseLeave={e => { if (!exhausted) e.currentTarget.style.background = '#8b0000'; }}
       >
-        {/* lock icon */}
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-          <path strokeLinecap="round" strokeLinejoin="round" d="M7 11V7a5 5 0 0110 0v4" />
-        </svg>
-        ENGAGE THE LATCH
+        SUBMIT ANSWER
       </button>
 
-      {result === 'incorrect' && (
-        <div className="toast toast-center toast-middle">
-          <div className="alert alert-error">
-            <span>Incorrect Guess.</span>
-          </div>
+      {result === 'incorrect' && !exhausted && (
+        <div style={{ padding: '12px 16px', background: '#1c0000', borderLeft: '3px solid #8b0000', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <p style={{ fontSize: 12, color: '#ffdad6', letterSpacing: '1px' }}>INCORRECT - TRY AGAIN</p>
+          <p style={{ fontSize: 11, color: '#aa8984', letterSpacing: '1px' }}>{attemptsLeft} {attemptsLeft === 1 ? 'ATTEMPT' : 'ATTEMPTS'} LEFT</p>
+        </div>
+      )}
+
+      {exhausted && (
+        <div style={{ padding: '12px 16px', background: '#1c0000', borderLeft: '3px solid #ff0000' }}>
+          <p style={{ fontSize: 12, color: '#ffdad6', letterSpacing: '1px' }}>MISSION FAILED - NO ATTEMPTS REMAINING</p>
         </div>
       )}
     </div>
