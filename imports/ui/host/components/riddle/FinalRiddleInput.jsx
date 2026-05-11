@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Meteor } from 'meteor/meteor';
 
-const FinalRiddleInput = ({ gameId, onCorrect = () => {} }) => {
+const FinalRiddleInput = ({ gameId, onCorrect = () => {}, onFailed = () => {} }) => {
   const [guess, setGuess] = useState('');
   const [result, setResult] = useState(null);
   const [attemptsLeft, setAttemptsLeft] = useState(3);
@@ -21,27 +21,36 @@ const FinalRiddleInput = ({ gameId, onCorrect = () => {} }) => {
         console.error(error);
         return;
       }
-      const { isCorrect, attemptsLeft: remaining } = response;
+
+      // Handle both old (boolean) and new ({ isCorrect, attemptsLeft }) response formats
+      const isCorrect = typeof response === 'boolean' ? response : response?.isCorrect;
+      const remaining = typeof response === 'boolean'
+        ? (response ? 0 : attemptsLeft - 1)
+        : (response?.attemptsLeft ?? attemptsLeft - 1);
+
       setAttemptsLeft(remaining);
       setResult(isCorrect ? 'correct' : 'incorrect');
-      if (isCorrect) onCorrect();
+      setGuess('');
+
+      if (isCorrect) {
+        onCorrect();
+      } else if (remaining === 0) {
+        onFailed();
+      }
     });
   }
 
   return (
-    <div className="mt-6">
-      <p className="text-xs font-bold tracking-[0.3em] text-gray-400 uppercase mb-3">
-        Submit Decryption
-      </p>
+    <div>
       <input
         type="text"
         placeholder="ENTER TERMINAL OVERRIDE..."
         className="w-full bg-transparent border border-gray-700 text-white placeholder-gray-600 text-sm font-mono tracking-widest px-4 py-4 mb-3 focus:outline-none focus:border-red-600"
         onChange={e => setGuess(e.target.value)}
         value={guess}
+        disabled={exhausted}
       />
       <button
-        className="w-full bg-red-900 hover:bg-red-600 text-white font-bold text-sm tracking-[0.3em] uppercase py-4 transition-colors duration-200 flex items-center justify-center gap-3"
         onClick={handleSubmit}
         disabled={exhausted}
         style={{
@@ -54,7 +63,6 @@ const FinalRiddleInput = ({ gameId, onCorrect = () => {} }) => {
           letterSpacing: '1.5px',
           cursor: exhausted ? 'not-allowed' : 'pointer',
           transition: 'background 0.15s',
-          fontFamily: "'Space Grotesk', Helvetica, sans-serif",
           opacity: exhausted ? 0.5 : 1,
         }}
         onMouseEnter={e => { if (!exhausted) e.currentTarget.style.background = '#a50000'; }}
@@ -64,14 +72,14 @@ const FinalRiddleInput = ({ gameId, onCorrect = () => {} }) => {
       </button>
 
       {result === 'incorrect' && !exhausted && (
-        <div style={{ padding: '12px 16px', background: '#1c0000', borderLeft: '3px solid #8b0000', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ marginTop: 12, padding: '12px 16px', background: '#1c0000', borderLeft: '3px solid #8b0000', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <p style={{ fontSize: 12, color: '#ffdad6', letterSpacing: '1px' }}>INCORRECT - TRY AGAIN</p>
           <p style={{ fontSize: 11, color: '#aa8984', letterSpacing: '1px' }}>{attemptsLeft} {attemptsLeft === 1 ? 'ATTEMPT' : 'ATTEMPTS'} LEFT</p>
         </div>
       )}
 
       {exhausted && (
-        <div style={{ padding: '12px 16px', background: '#1c0000', borderLeft: '3px solid #ff0000' }}>
+        <div style={{ marginTop: 12, padding: '12px 16px', background: '#1c0000', borderLeft: '3px solid #ff0000' }}>
           <p style={{ fontSize: 12, color: '#ffdad6', letterSpacing: '1px' }}>MISSION FAILED - NO ATTEMPTS REMAINING</p>
         </div>
       )}

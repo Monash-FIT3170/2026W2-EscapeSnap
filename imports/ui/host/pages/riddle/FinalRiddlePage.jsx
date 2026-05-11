@@ -4,6 +4,7 @@ import { useFinalRiddle } from '/imports/ui/shared/hooks/useFinalRiddle.js';
 import { useRevealedLetters } from '/imports/ui/shared/hooks/useRevealedLetters.js';
 import GameNotFound from '/imports/ui/shared/components/GameNotFound.jsx';
 import WinScreen from '/imports/ui/host/pages/game-completion/WinScreen.jsx';
+import LoseScreen from '/imports/ui/host/pages/game-completion/LoseScreen.jsx';
 import FinalRiddleInput from '/imports/ui/host/components/riddle/FinalRiddleInput.jsx';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
 
@@ -13,13 +14,14 @@ const FinalRiddlePage = () => {
   const { gameId } = useParams();
   const navigate = useNavigate();
   const [hasWon, setHasWon] = useState(false);
+  const [hasLost, setHasLost] = useState(false);
 
   const { loading, finalRiddle } = useFinalRiddle(gameId);
   const { lettersLoading, letters } = useRevealedLetters(gameId);
 
   if (loading || lettersLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#131313' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: BG }}>
         <p style={{ color: '#aa8984', fontSize: 10, letterSpacing: '1px' }}>LOADING...</p>
       </div>
     );
@@ -28,12 +30,13 @@ const FinalRiddlePage = () => {
   if (!finalRiddle) return <GameNotFound />;
 
   if (hasWon) return <WinScreen onPlayAgain={() => navigate('/game/create')} />;
+  if (hasLost) return <LoseScreen onPlayAgain={() => navigate('/game/create')} />;
 
   return (
     <SidebarLayout gameId={gameId} activePage="final-riddle">
 
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4" style={{ background: '#131313', borderBottom: '2px solid #1c1b1b' }}>
+      <header className="flex items-center justify-between px-6 py-4" style={{ background: BG, borderBottom: '2px solid #1c1b1b' }}>
         <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: '#e5e2e1' }}>ESCAPESNAP</span>
       </header>
 
@@ -90,7 +93,11 @@ const FinalRiddlePage = () => {
             <div style={{ width: 4, height: 16, background: '#8b0000' }} />
             <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: '#e5e2e1' }}>SUBMIT ANSWER</span>
           </div>
-          <FinalRiddleInput gameId={gameId} onCorrect={() => setHasWon(true)} />
+          <FinalRiddleInput
+            gameId={gameId}
+            onCorrect={() => setHasWon(true)}
+            onFailed={() => setHasLost(true)}
+          />
         </div>
 
       </div>
