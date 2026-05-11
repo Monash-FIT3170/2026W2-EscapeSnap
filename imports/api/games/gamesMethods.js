@@ -35,17 +35,23 @@ Meteor.methods({
     if (game.status !== 'in_progress')
       throw new Meteor.Error('invalid-state', 'Game is not in progress');
 
+    const MAX_ATTEMPTS = 3;
+    const attempts = (game.finalRiddleAttempts ?? 0) + 1;
+
     // Sprint 3: move answer validation server-side only so answer is never sent to client
     const isCorrect =
       guess.trim().toLowerCase() === game.finalRiddle.answer.toLowerCase();
 
-    await Games.updateAsync(gameId, {
-      $set: {
-        status: 'ended',
-        endedAt: new Date(),
-      },
-    });
+    if (isCorrect || attempts >= MAX_ATTEMPTS) {
+      await Games.updateAsync(gameId, {
+        $set: { status: 'ended', endedAt: new Date(), finalRiddleAttempts: attempts },
+      });
+    } else {
+      await Games.updateAsync(gameId, {
+        $set: { finalRiddleAttempts: attempts },
+      });
+    }
 
-    return isCorrect;
+    return { isCorrect, attemptsLeft: isCorrect ? 0 : MAX_ATTEMPTS - attempts };
   },
 });
