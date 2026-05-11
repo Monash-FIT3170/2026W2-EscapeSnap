@@ -2,7 +2,7 @@ export const HARDCODED_RIDDLES = [
     {
         id: 'OBJ_001',
         playerId: 'player1',
-        riddle: 'I breathe and think and walk and see — the only living thing to set you free. Capture the source.',
+        riddle: 'I breathe and think and walk and see - the only living thing to set you free. Capture the source.',
         answerKeyword: 'person',
         revealedLetter: 'A',
     },

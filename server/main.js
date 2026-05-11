@@ -14,7 +14,7 @@ Meteor.methods({
       `[submissions.validate] target="${targetObject}" imageSize=${imageBuffer?.byteLength ?? 0}B`
     );
 
-    // Stub: hardcoded pass so the full client server client flow can be tested end-to-end
-    return { outcome: 'pass', explanation: 'stub - Gemini integration pending' };
+    // Stub: fail until Gemini integration replaces this
+    return { outcome: 'fail', explanation: 'stub - Gemini integration pending' };
   },
 });
