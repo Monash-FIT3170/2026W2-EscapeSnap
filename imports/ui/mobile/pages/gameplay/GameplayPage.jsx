@@ -21,10 +21,12 @@ export function GameplayPage() {
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const modelRef = useRef(null);
+  const pendingBlobRef = useRef(null);
 
   const [cameraError, setCameraError] = useState(null);
   const [modelReady, setModelReady] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(false);
   const [capturedUrl, setCapturedUrl] = useState(null);
   const [predictions, setPredictions] = useState(null);
   const [validationState, setValidationState] = useState(null);
@@ -52,8 +54,12 @@ export function GameplayPage() {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-    } catch {
-      setCameraError('Camera access denied or unavailable.');
+    } catch (err) {
+      if (err.name === 'NotAllowedError') {
+        setCameraError('CAMERA ACCESS DENIED');
+      } else {
+        setCameraError('CAMERA UNAVAILABLE');
+      }
     }
   }
 
@@ -65,6 +71,24 @@ export function GameplayPage() {
     setCapturedUrl(null);
     setPredictions(null);
     setValidationState(null);
+    setUploadError(false);
+    pendingBlobRef.current = null;
+  }
+
+  async function handleRetryUpload() {
+    const blob = pendingBlobRef.current;
+    if (!blob) return;
+    setUploadError(false);
+    setUploading(true);
+    const arrayBuffer = await blob.arrayBuffer();
+    Meteor.call('submissions.validate', arrayBuffer, TARGET_OBJECT, (err, result) => {
+      setUploading(false);
+      if (err) {
+        setUploadError(true);
+        return;
+      }
+      setValidationState(result?.outcome ?? 'fail');
+    });
   }
 
   async function handleCapture() {
@@ -91,14 +115,19 @@ export function GameplayPage() {
 
     if (outcome === 'escalate') {
       setUploading(true);
+      setUploadError(false);
       canvas.toBlob(async (blob) => {
-        if (!blob) return;
+        if (!blob) {
+          setUploading(false);
+          setUploadError(true);
+          return;
+        }
+        pendingBlobRef.current = blob;
         const arrayBuffer = await blob.arrayBuffer();
         Meteor.call('submissions.validate', arrayBuffer, TARGET_OBJECT, (err, result) => {
           setUploading(false);
           if (err) {
-            console.error('Meteor method error:', err);
-            setValidationState('fail');
+            setUploadError(true);
             return;
           }
           setValidationState(result?.outcome ?? 'fail');
@@ -159,8 +188,14 @@ export function GameplayPage() {
         {/* Camera viewfinder - always in DOM so the stream stays attached */}
         <div className={`relative bg-black rounded overflow-hidden ${inResultsMode ? 'h-36 shrink-0' : 'flex-1'}`}>
           {cameraError ? (
-            <div className="absolute inset-0 flex items-center justify-center text-[#AA8984] text-xs tracking-widest px-6 text-center">
-              {cameraError}
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 px-6 text-center">
+              <span className="text-[#AA8984] text-xs tracking-widest">{cameraError}</span>
+              <button
+                onClick={() => { setCameraError(null); startCamera(); }}
+                className="text-[#8B0000] text-xs tracking-widest border border-[#8B0000] px-4 py-1.5 rounded-full active:bg-[#8B0000]/20 transition-colors"
+              >
+                TAP TO RETRY
+              </button>
             </div>
           ) : (
             <video
@@ -218,6 +253,12 @@ export function GameplayPage() {
                   <span className="text-[#8B0000] text-xs tracking-widest">PROCESSING...</span>
                 </div>
               )}
+              {uploadError && !uploading && (
+                <div className="absolute inset-0 flex items-center justify-center gap-2">
+                  <span className="text-[#AA8984] text-2xl">!</span>
+                  <span className="text-[#AA8984] text-xs tracking-widest">UPLOAD FAILED</span>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -272,12 +313,29 @@ export function GameplayPage() {
       {/* Bottom action button - capture OR back to camera */}
       <div className="flex justify-center py-4">
         {inResultsMode ? (
-          <button
-            onClick={handleBackToCamera}
-            className="flex items-center gap-2 px-6 py-3 rounded-full border border-[#8B0000] text-[#8B0000] text-xs tracking-widest active:bg-[#8B0000]/20 transition-colors"
-          >
-            {'\u2190'} BACK TO CAMERA
-          </button>
+          uploadError && !uploading ? (
+            <div className="flex gap-3">
+              <button
+                onClick={handleRetryUpload}
+                className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#8B0000] text-[#E5E2E1] text-xs tracking-widest active:opacity-80 transition-opacity"
+              >
+                RETRY UPLOAD
+              </button>
+              <button
+                onClick={handleBackToCamera}
+                className="flex items-center gap-2 px-6 py-3 rounded-full border border-[#AA8984] text-[#AA8984] text-xs tracking-widest active:bg-[#AA8984]/20 transition-colors"
+              >
+                {'\u2190'} BACK
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleBackToCamera}
+              className="flex items-center gap-2 px-6 py-3 rounded-full border border-[#8B0000] text-[#8B0000] text-xs tracking-widest active:bg-[#8B0000]/20 transition-colors"
+            >
+              {'\u2190'} BACK TO CAMERA
+            </button>
+          )
         ) : (
           <button
             onClick={handleCapture}
