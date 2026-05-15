@@ -1,22 +1,23 @@
 import React, { useRef, useEffect, useState } from 'react';
-import * as cocoSsd from '@tensorflow-models/coco-ssd';
-import '@tensorflow/tfjs';
 import { Meteor } from 'meteor/meteor';
 import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 
-function evaluatePredictions(predictions, target) {
-  const match = predictions.find((p) => p.class === target);
-  return match && match.score >= 0.65 ? 'pass' : 'fail';
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
 
 const MobileRiddlePage = ({ gameId, playerId = 'player1', onCorrect }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
-  const modelRef = useRef(null);
 
   const [cameraError, setCameraError] = useState(null);
-  const [modelReady, setModelReady] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [capturedUrl, setCapturedUrl] = useState(null);
   const [predictions, setPredictions] = useState(null);
   const [validationState, setValidationState] = useState(null);
@@ -26,15 +27,8 @@ const MobileRiddlePage = ({ gameId, playerId = 'player1', onCorrect }) => {
 
   useEffect(() => {
     startCamera();
-    loadModel();
     return () => stopCamera();
   }, []);
-
-  async function loadModel() {
-    if (modelRef.current) return;
-    modelRef.current = await cocoSsd.load();
-    setModelReady(true);
-  }
 
   async function startCamera() {
     try {
@@ -62,7 +56,7 @@ const MobileRiddlePage = ({ gameId, playerId = 'player1', onCorrect }) => {
   async function handleCapture() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    if (!video || !canvas || !modelRef.current) return;
+    if (!video || !canvas) return;
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -71,13 +65,20 @@ const MobileRiddlePage = ({ gameId, playerId = 'player1', onCorrect }) => {
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
     setCapturedUrl(dataUrl);
     setValidationState(null);
+    setUploading(true);
 
-    const detected = await modelRef.current.detect(canvas);
-    setPredictions(detected);
-
-    const outcome = evaluatePredictions(detected, targetObject);
-    setValidationState(outcome);
-    if (outcome === 'pass') await submitRiddle();
+    canvas.toBlob(async (blob) => {
+      if (!blob) { setUploading(false); return; }
+      const base64 = await blobToBase64(blob);
+      Meteor.call('submissions.detect', base64, targetObject, (err, result) => {
+        setUploading(false);
+        if (err) { setValidationState('fail'); return; }
+        setPredictions(result.predictions ?? []);
+        const outcome = result.outcome === 'escalate' ? 'fail' : result.outcome;
+        setValidationState(outcome);
+        if (outcome === 'pass') submitRiddle();
+      });
+    }, 'image/jpeg', 0.85);
   }
 
   async function submitRiddle() {
@@ -132,9 +133,6 @@ const MobileRiddlePage = ({ gameId, playerId = 'player1', onCorrect }) => {
             <div className="absolute top-3 right-3 w-6 h-6 border-t-2 border-r-2 border-red-700 pointer-events-none" />
             <div className="absolute bottom-3 left-3 w-6 h-6 border-b-2 border-l-2 border-red-700 pointer-events-none" />
             <div className="absolute bottom-3 right-3 w-6 h-6 border-b-2 border-r-2 border-red-700 pointer-events-none" />
-            {!modelReady && (
-              <span className="absolute bottom-2 text-slate-500 text-xs font-mono">LOADING MODEL...</span>
-            )}
           </>
         )}
 
@@ -145,6 +143,9 @@ const MobileRiddlePage = ({ gameId, playerId = 'player1', onCorrect }) => {
             )}
             {validationState === 'fail' && (
               <span className="text-red-500 text-sm font-mono bg-black/60 px-3 py-1">{'✕'} WRONG OBJECT</span>
+            )}
+            {uploading && (
+              <span className="text-slate-400 text-sm font-mono bg-black/60 px-3 py-1">ANALYSING...</span>
             )}
           </div>
         )}
@@ -163,10 +164,10 @@ const MobileRiddlePage = ({ gameId, playerId = 'player1', onCorrect }) => {
       ) : (
         <button
           onClick={handleCapture}
-          disabled={!modelReady}
+          disabled={uploading || !!cameraError}
           className="bg-red-700 py-4 text-center text-white font-mono text-sm disabled:opacity-40"
         >
-          {!modelReady ? 'LOADING...' : 'CAPTURE & ANALYSE'}
+          {uploading ? 'ANALYSING...' : 'CAPTURE & ANALYSE'}
         </button>
       )}
     </div>

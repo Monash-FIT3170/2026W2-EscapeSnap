@@ -1,30 +1,24 @@
 import React, { useRef, useEffect, useState } from 'react';
-import * as cocoSsd from '@tensorflow-models/coco-ssd';
-import '@tensorflow/tfjs';
 import { Meteor } from 'meteor/meteor';
 
-// Hardcoded for testing - will come from MongoDB subscription later
 const TARGET_OBJECT = 'bottle';
 
-function evaluatePredictions(predictions, target) {
-  const match = predictions.find((p) => p.class === target);
-  if (match) {
-    return match.score >= 0.65 ? 'pass' : 'escalate';
-  }
-  const top = predictions[0];
-  if (top && top.score >= 0.8) return 'fail';
-  return 'escalate';
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
 
 export function GameplayPage() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
-  const modelRef = useRef(null);
   const pendingBlobRef = useRef(null);
 
   const [cameraError, setCameraError] = useState(null);
-  const [modelReady, setModelReady] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(false);
   const [capturedUrl, setCapturedUrl] = useState(null);
@@ -33,16 +27,8 @@ export function GameplayPage() {
 
   useEffect(() => {
     startCamera();
-    loadModel();
     return () => stopCamera();
   }, []);
-
-  async function loadModel() {
-    if (modelRef.current) return;
-    modelRef.current = await cocoSsd.load();
-    setModelReady(true);
-    console.log('COCO-SSD model ready');
-  }
 
   async function startCamera() {
     try {
@@ -76,25 +62,22 @@ export function GameplayPage() {
   }
 
   async function handleRetryUpload() {
-    const blob = pendingBlobRef.current;
-    if (!blob) return;
+    const base64 = pendingBlobRef.current;
+    if (!base64) return;
     setUploadError(false);
     setUploading(true);
-    const arrayBuffer = await blob.arrayBuffer();
-    Meteor.call('submissions.validate', arrayBuffer, TARGET_OBJECT, (err, result) => {
+    Meteor.call('submissions.detect', base64, TARGET_OBJECT, (err, result) => {
       setUploading(false);
-      if (err) {
-        setUploadError(true);
-        return;
-      }
-      setValidationState(result?.outcome ?? 'fail');
+      if (err) { setUploadError(true); return; }
+      setPredictions(result.predictions ?? []);
+      setValidationState(result.outcome === 'escalate' ? 'fail' : result.outcome);
     });
   }
 
   async function handleCapture() {
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    if (!video || !canvas || !modelRef.current) return;
+    if (!video || !canvas) return;
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -103,43 +86,34 @@ export function GameplayPage() {
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
     setCapturedUrl(dataUrl);
     setValidationState(null);
+    setUploading(true);
+    setUploadError(false);
 
-    console.log('%c ', `background:url(${dataUrl}) no-repeat center/contain;padding:120px 200px;`);
+    canvas.toBlob(async (blob) => {
+      if (!blob) { setUploading(false); setUploadError(true); return; }
+      const base64 = await blobToBase64(blob);
+      pendingBlobRef.current = base64;
 
-    const detected = await modelRef.current.detect(canvasRef.current);
-    console.log('Predictions:', detected);
-    setPredictions(detected);
+      Meteor.call('submissions.detect', base64, TARGET_OBJECT, (err, result) => {
+        if (err) { setUploading(false); setUploadError(true); return; }
+        setPredictions(result.predictions ?? []);
 
-    const outcome = evaluatePredictions(detected, TARGET_OBJECT);
-    console.log('Outcome:', outcome);
-
-    if (outcome === 'escalate') {
-      setUploading(true);
-      setUploadError(false);
-      canvas.toBlob(async (blob) => {
-        if (!blob) {
+        if (result.outcome === 'escalate') {
+          Meteor.call('submissions.validate', base64, TARGET_OBJECT, (err2, val) => {
+            setUploading(false);
+            if (err2) { setUploadError(true); return; }
+            setValidationState(val?.outcome ?? 'fail');
+          });
+        } else {
           setUploading(false);
-          setUploadError(true);
-          return;
+          setValidationState(result.outcome);
         }
-        pendingBlobRef.current = blob;
-        const arrayBuffer = await blob.arrayBuffer();
-        Meteor.call('submissions.validate', arrayBuffer, TARGET_OBJECT, (err, result) => {
-          setUploading(false);
-          if (err) {
-            setUploadError(true);
-            return;
-          }
-          setValidationState(result?.outcome ?? 'fail');
-        });
-      }, 'image/jpeg', 0.85);
-    } else {
-      setValidationState(outcome);
-    }
+      });
+    }, 'image/jpeg', 0.85);
   }
 
   const inResultsMode = predictions !== null;
-  const isButtonDisabled = uploading || !!cameraError || !modelReady;
+  const isButtonDisabled = uploading || !!cameraError;
 
   return (
     <div className="flex flex-col h-screen bg-[#131313] text-white font-mono select-none">
@@ -148,9 +122,9 @@ export function GameplayPage() {
       <div className="flex items-center justify-between px-5 pt-5 pb-3">
         <span className="text-lg font-bold tracking-widest text-[#E5E2E1]">ESCAPESNAP</span>
         <div className="flex gap-4 text-[#E5E2E1] text-xl">
-          <span>{'\u23F1'}</span>
-          <span>{'\uD83D\uDC64'}</span>
-          <span>{'\uD83D\uDD14'}</span>
+          <span>{'⏱'}</span>
+          <span>{'👤'}</span>
+          <span>{'🔔'}</span>
         </div>
       </div>
 
@@ -213,7 +187,7 @@ export function GameplayPage() {
           )}
 
           {/* Corner brackets - only in camera mode */}
-          {!inResultsMode && (
+          {!inResultsMode && !cameraError && (
             <>
               <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-[#8B0000] pointer-events-none" />
               <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-[#8B0000] pointer-events-none" />
@@ -225,11 +199,6 @@ export function GameplayPage() {
                   <div className="absolute top-1/2 left-0 right-0 h-px bg-[#8B0000] opacity-60" />
                 </div>
               </div>
-              {!modelReady && (
-                <div className="absolute bottom-2 left-0 right-0 flex justify-center pointer-events-none">
-                  <span className="text-[#AA8984] text-[10px] tracking-widest">LOADING MODEL...</span>
-                </div>
-              )}
             </>
           )}
 
@@ -238,13 +207,13 @@ export function GameplayPage() {
             <>
               {validationState === 'pass' && (
                 <div className="absolute inset-0 flex items-center justify-center gap-2">
-                  <span className="text-green-400 text-2xl">{'\u2713'}</span>
+                  <span className="text-green-400 text-2xl">{'✓'}</span>
                   <span className="text-green-400 text-xs tracking-widest">OBJECT CONFIRMED</span>
                 </div>
               )}
               {validationState === 'fail' && (
                 <div className="absolute inset-0 flex items-center justify-center gap-2">
-                  <span className="text-[#8B0000] text-2xl">{'\u2715'}</span>
+                  <span className="text-[#8B0000] text-2xl">{'✕'}</span>
                   <span className="text-[#8B0000] text-xs tracking-widest">WRONG OBJECT</span>
                 </div>
               )}
@@ -283,7 +252,7 @@ export function GameplayPage() {
                   return (
                     <div key={i} className="flex items-center gap-3 px-3 py-2 border-t border-[#131313]">
                       <span className={`text-xs font-bold w-4 text-center ${isTarget ? 'text-green-400' : 'text-[#AA8984]'}`}>
-                        {isTarget ? '\u2605' : `${i + 1}`}
+                        {isTarget ? '★' : `${i + 1}`}
                       </span>
                       <span className={`text-xs flex-1 uppercase tracking-wider ${isTarget ? 'text-[#E5E2E1]' : 'text-[#AA8984]'}`}>
                         {p.class}
@@ -325,7 +294,7 @@ export function GameplayPage() {
                 onClick={handleBackToCamera}
                 className="flex items-center gap-2 px-6 py-3 rounded-full border border-[#AA8984] text-[#AA8984] text-xs tracking-widest active:bg-[#AA8984]/20 transition-colors"
               >
-                {'\u2190'} BACK
+                {'←'} BACK
               </button>
             </div>
           ) : (
@@ -333,7 +302,7 @@ export function GameplayPage() {
               onClick={handleBackToCamera}
               className="flex items-center gap-2 px-6 py-3 rounded-full border border-[#8B0000] text-[#8B0000] text-xs tracking-widest active:bg-[#8B0000]/20 transition-colors"
             >
-              {'\u2190'} BACK TO CAMERA
+              {'←'} BACK TO CAMERA
             </button>
           )
         ) : (
@@ -363,9 +332,9 @@ export function GameplayPage() {
       {/* Bottom Nav */}
       <div className="flex border-t border-[#1C1B1B] bg-[#0E0E0E]">
         {[
-          { label: 'CLUES', icon: '\uD83D\uDD0D' },
-          { label: 'SCANNER', icon: '\u229E', active: true },
-          { label: 'STATUS', icon: '\uD83D\uDCCA' },
+          { label: 'CLUES', icon: '🔍' },
+          { label: 'SCANNER', icon: '⊞', active: true },
+          { label: 'STATUS', icon: '📊' },
         ].map(({ label, icon, active }) => (
           <button
             key={label}
