@@ -3,10 +3,12 @@ import { Games } from './GamesCollection';
 import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 
 Meteor.methods({
-  async 'games.submitRiddle'(gameId, playerId) {
+  async 'games.submitRiddle'(gameId, playerId, round = 1) {
+    const riddle = HARDCODED_RIDDLES.find(
+      r => r.playerId === playerId && r.round === round
+    );
 
-    const riddle = HARDCODED_RIDDLES.find(r => r.playerId === playerId);
-    if (!riddle) throw new Meteor.Error('no-riddle');
+    if (!riddle) throw new Meteor.Error('no-riddle', 'No riddle found');
 
     return riddle.revealedLetter;
   },

@@ -4,12 +4,14 @@ import { MobileBottomNav } from '../components/navigation/MobileBottomNav';
 
 export function PlayerDashboard({ playerName = 'PLAYER', gameCode = '', onExit }) {
   const [activeTab, setActiveTab] = useState('scanner');
+  const [currentRound, setCurrentRound] = useState(1);
   const [revealedLetter, setRevealedLetter] = useState(null);
   const [answerCorrect, setAnswerCorrect] = useState(null);
+  const maxRounds = 3;
 
-  const handleCorrectAnswer = letter => {
+  const handleCorrectAnswer = (letter, isCorrect) => {
     setRevealedLetter(letter);
-    setAnswerCorrect(letter !== '?');
+    setAnswerCorrect(isCorrect);
     setActiveTab('clues');
   };
 
@@ -82,6 +84,24 @@ export function PlayerDashboard({ playerName = 'PLAYER', gameCode = '', onExit }
                 No letters revealed yet. Use the scanner to solve your riddle.
               </p>
             )}
+
+            {currentRound < maxRounds ? (
+              <button
+                onClick={() => {
+                  setCurrentRound(currentRound + 1);
+                  setRevealedLetter(null);
+                  setAnswerCorrect(null);
+                  setActiveTab('scanner');
+                }}
+                className="mt-6 w-full border border-red-600 bg-red-600 px-5 py-4 font-mono text-sm font-semibold uppercase tracking-[0.3em] text-white"
+              >
+                Next Round
+              </button>
+            ) : (
+              <p className="mt-6 text-center font-mono text-sm uppercase tracking-[0.3em] text-red-500">
+                All rounds completed
+              </p>
+            )}
           </section>
         )}
 
@@ -89,6 +109,7 @@ export function PlayerDashboard({ playerName = 'PLAYER', gameCode = '', onExit }
           <MobileRiddlePage
             gameId={gameCode}
             playerId="player1"
+            round={currentRound}
             onCorrect={handleCorrectAnswer}
           />
         )}

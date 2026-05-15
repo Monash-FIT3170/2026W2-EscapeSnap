@@ -11,7 +11,7 @@ function blobToBase64(blob) {
   });
 }
 
-const MobileRiddlePage = ({ gameId, playerId = 'player1', onCorrect }) => {
+const MobileRiddlePage = ({ gameId, playerId = 'player1', round = 1, onCorrect }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
@@ -22,7 +22,9 @@ const MobileRiddlePage = ({ gameId, playerId = 'player1', onCorrect }) => {
   const [predictions, setPredictions] = useState(null);
   const [validationState, setValidationState] = useState(null);
 
-  const riddle = HARDCODED_RIDDLES.find(r => r.playerId === playerId);
+  const riddle = HARDCODED_RIDDLES.find(
+    r => r.playerId === playerId && r.round === round
+  );
   const targetObject = riddle?.answerKeyword ?? 'object';
 
   useEffect(() => {
@@ -79,7 +81,7 @@ const MobileRiddlePage = ({ gameId, playerId = 'player1', onCorrect }) => {
         if (outcome === 'pass') {
           submitRiddle();
         } else {
-          if (onCorrect) onCorrect('?');
+          if (onCorrect) onCorrect('?', false);
         }
       });
     }, 'image/jpeg', 0.85);
@@ -87,10 +89,16 @@ const MobileRiddlePage = ({ gameId, playerId = 'player1', onCorrect }) => {
 
   async function submitRiddle() {
     try {
-      const revealed = await Meteor.callAsync('games.submitRiddle', gameId, playerId);
-      if (onCorrect) onCorrect(revealed);
+      const revealed = await Meteor.callAsync(
+        'games.submitRiddle',
+        gameId,
+        playerId,
+        round
+      );
+
+      if (onCorrect) onCorrect(revealed, true);
     } catch (err) {
-      console.error('submitRiddle error:', err);
+      if (onCorrect) onCorrect('?', false);
     }
   }
 
