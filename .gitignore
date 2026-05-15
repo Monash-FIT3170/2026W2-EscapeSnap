@@ -26,3 +26,5 @@ e2e/playwright-report/
 
 # Local UI preview (dev-only, not part of Meteor app)
 preview/
+
+CLAUDE.md
