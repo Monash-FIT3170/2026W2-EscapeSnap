@@ -76,7 +76,11 @@ const MobileRiddlePage = ({ gameId, playerId = 'player1', onCorrect }) => {
         setPredictions(result.predictions ?? []);
         const outcome = result.outcome === 'escalate' ? 'fail' : result.outcome;
         setValidationState(outcome);
-        if (outcome === 'pass') submitRiddle();
+        if (outcome === 'pass') {
+          submitRiddle();
+        } else {
+          if (onCorrect) onCorrect('?');
+        }
       });
     }, 'image/jpeg', 0.85);
   }

@@ -5,9 +5,11 @@ import { MobileBottomNav } from '../components/navigation/MobileBottomNav';
 export function PlayerDashboard({ playerName = 'PLAYER', gameCode = '', onExit }) {
   const [activeTab, setActiveTab] = useState('scanner');
   const [revealedLetter, setRevealedLetter] = useState(null);
+  const [answerCorrect, setAnswerCorrect] = useState(null);
 
   const handleCorrectAnswer = letter => {
     setRevealedLetter(letter);
+    setAnswerCorrect(letter !== '?');
     setActiveTab('clues');
   };
 
@@ -29,7 +31,7 @@ export function PlayerDashboard({ playerName = 'PLAYER', gameCode = '', onExit }
             {revealedLetter ? (
               <>
                 <h1 className="font-display text-6xl font-black text-red-700">
-                  CORRECT!
+                  {answerCorrect ? 'CORRECT!' : 'INCORRECT!'}
                 </h1>
 
                 <div className="border border-slate-700 bg-slate-950/70 px-6 py-10 text-center">
@@ -48,11 +50,15 @@ export function PlayerDashboard({ playerName = 'PLAYER', gameCode = '', onExit }
 
                 <div className="border-l-4 border-red-600 bg-slate-900/80 px-6 py-6">
                   <h2 className="font-display text-xl font-bold tracking-widest text-white">
-                    YOU HAVE GOTTEN THE PUZZLE CORRECT!
+                    {answerCorrect
+                      ? 'YOU HAVE GOTTEN THE PUZZLE CORRECT!'
+                      : 'WRONG OBJECT DETECTED'}
                   </h2>
 
                   <p className="mt-4 text-sm leading-6 text-slate-400">
-                    You have obtained a revealed letter.
+                    {answerCorrect
+                      ? 'You have obtained a revealed letter.'
+                      : 'You have failed to obtain a revealed letter'}
                   </p>
 
                   <p className="mt-4 text-sm leading-6 text-slate-400">
