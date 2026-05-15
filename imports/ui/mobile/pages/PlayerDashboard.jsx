@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import MobileRiddlePage from './gameplay/MobileRiddlePage';
 import { MobileBottomNav } from '../components/navigation/MobileBottomNav';
 
@@ -8,12 +8,31 @@ export function PlayerDashboard({ playerName = 'PLAYER', gameCode = '', onExit }
   const [revealedLetter, setRevealedLetter] = useState(null);
   const [answerCorrect, setAnswerCorrect] = useState(null);
   const maxRounds = 3;
+  const roundTimeLimit = 60;
+  const [timeLeft, setTimeLeft] = useState(roundTimeLimit);
 
   const handleCorrectAnswer = (letter, isCorrect) => {
     setRevealedLetter(letter);
     setAnswerCorrect(isCorrect);
     setActiveTab('clues');
   };
+
+  useEffect(() => {
+    if (activeTab !== 'scanner') return;
+
+    if (timeLeft <= 0) {
+      setRevealedLetter('?');
+      setAnswerCorrect(false);
+      setActiveTab('clues');
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [activeTab, timeLeft]);
 
   return (
     <div className="min-h-screen bg-black text-slate-100">
@@ -89,6 +108,7 @@ export function PlayerDashboard({ playerName = 'PLAYER', gameCode = '', onExit }
               <button
                 onClick={() => {
                   setCurrentRound(currentRound + 1);
+                  setTimeLeft(roundTimeLimit);
                   setRevealedLetter(null);
                   setAnswerCorrect(null);
                   setActiveTab('scanner');
@@ -106,12 +126,23 @@ export function PlayerDashboard({ playerName = 'PLAYER', gameCode = '', onExit }
         )}
 
         {activeTab === 'scanner' && (
-          <MobileRiddlePage
-            gameId={gameCode}
-            playerId="player1"
-            round={currentRound}
-            onCorrect={handleCorrectAnswer}
-          />
+          <>
+            <div className="mt-5 border border-slate-800 bg-slate-950/60 px-4 py-3">
+              <div className="flex justify-between font-mono text-xs uppercase tracking-[0.3em]">
+                <span className="text-slate-400">Round {currentRound}</span>
+                <span className={timeLeft <= 10 ? 'text-red-500' : 'text-white'}>
+                  {timeLeft}s
+                </span>
+              </div>
+            </div>
+
+            <MobileRiddlePage
+              gameId={gameCode}
+              playerId="player1"
+              round={currentRound}
+              onCorrect={handleCorrectAnswer}
+            />
+          </>
         )}
 
       </div>
