@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Meteor } from 'meteor/meteor';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 
 const DIFFICULTY_OPTIONS = [
   { value: 'easy', label: 'EASY', sub: 'STABLE VITALS' },
