@@ -23,8 +23,8 @@ function PlayerPlaceholder() {
 
 export function SurvivorIdCard({ photoUrl, callSign = 'PLAYER', refCode = 'REF_SEC_U012_X', zoneCode = 'C_SECTOR_X', duration = '0:00MS', status = 'AWAITING GUIDANCE' }) {
   return (
-    <section className="flex flex-col items-center px-2 pb-1 pt-4">
-      <div className="relative aspect-[4/5] w-full max-w-[260px]">
+    <section className="flex flex-col items-center px-2 py-1 w-full">
+      <div className="relative aspect-[4/5]" style={{ width: 'min(200px, 50vw, 28vh)' }}>
         <CornerBrackets />
 
         <div className="absolute inset-0 overflow-hidden bg-slate-900">
@@ -44,7 +44,7 @@ export function SurvivorIdCard({ photoUrl, callSign = 'PLAYER', refCode = 'REF_S
         </div>
       </div>
 
-      <h2 className="mt-5 font-display text-2xl font-bold tracking-wide text-white">
+      <h2 className="mt-2 font-display text-xl font-bold tracking-wide text-white">
         {callSign}
       </h2>
 
