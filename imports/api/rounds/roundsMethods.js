@@ -66,6 +66,25 @@ Meteor.methods({
     if (round.status !== 'pending')
       throw new Meteor.Error('invalid-state', 'Round already submitted');
 
+    // reject submissions made after the round timer expires.
+    // MVP uses the total game timer as the round timer.
+    const game = await Games.findOneAsync(round.gameId);
+    const expired = game?.startedAt &&
+      Date.now() - game.startedAt.getTime() > game.timerMinutes * 60 * 1000;
+
+    if (expired) {
+      await Rounds.updateAsync(roundId, {
+        $set: {
+          status: 'timeout',
+          photoUrl,
+          submittedAt: new Date(),
+        },
+      });
+      await Players.updateAsync(round.playerId, {
+        $push: { revealedLetters: '?' },
+      });
+      throw new Meteor.Error('timeout', 'Round timer expired');
+    }
 
     const isCorrect = false; // placeholder until AI validation
 
