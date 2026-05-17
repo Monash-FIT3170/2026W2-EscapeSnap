@@ -29,6 +29,11 @@ Meteor.methods({
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
     if (game.status !== 'lobby')
       throw new Meteor.Error('invalid-state', 'Game is not in lobby state');
+
+    // Assign individual riddles to each player for every round before starting.
+    // Done first so a failure here (e.g. no players) leaves the game in 'lobby'.
+    await Meteor.callAsync('rounds.createForGame', gameId);
+
     await Games.updateAsync(gameId, {
       $set: { status: 'in_progress', startedAt: new Date() },
     });
