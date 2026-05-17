@@ -15,18 +15,19 @@ export function PlayerHome({ onStart, loading = false, serverError = '' }) {
 
   return (
     <div
-      className="min-h-screen bg-black text-white flex items-center justify-center"
+      className="h-screen overflow-hidden bg-black text-white flex items-center justify-center"
       style={{
         backgroundImage: 'linear-gradient(rgba(239,68,68,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(239,68,68,0.04) 1px, transparent 1px)',
         backgroundSize: '48px 48px',
       }}
     >
-      <div className="relative w-full max-w-sm px-8 py-14">
+      {/* Red corner brackets framing the full screen */}
+      <span className="pointer-events-none fixed left-4 top-4 h-10 w-10 border-l-2 border-t-2 border-red-500/70" />
+      <span className="pointer-events-none fixed right-4 top-4 h-10 w-10 border-r-2 border-t-2 border-red-500/70" />
+      <span className="pointer-events-none fixed bottom-4 left-4 h-10 w-10 border-b-2 border-l-2 border-red-500/70" />
+      <span className="pointer-events-none fixed bottom-4 right-4 h-10 w-10 border-b-2 border-r-2 border-red-500/70" />
 
-        <span className="pointer-events-none absolute -left-0.5 -top-0.5 h-10 w-10 border-l-2 border-t-2 border-red-500/70" />
-        <span className="pointer-events-none absolute -right-0.5 -top-0.5 h-10 w-10 border-r-2 border-t-2 border-red-500/70" />
-        <span className="pointer-events-none absolute -bottom-0.5 -left-0.5 h-10 w-10 border-b-2 border-l-2 border-red-500/70" />
-        <span className="pointer-events-none absolute -bottom-0.5 -right-0.5 h-10 w-10 border-b-2 border-r-2 border-red-500/70" />
+      <div className="relative w-full max-w-sm px-8 py-10">
 
         <div className="mb-6 flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
