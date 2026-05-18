@@ -48,6 +48,11 @@ Games.attachSchema(new SimpleSchema({
     type: Date,
     optional: true,
   },
+  finalRiddleAttempts: {
+    type: SimpleSchema.Integer,
+    optional: true,
+    min: 0,
+  },
   'finalRiddle': {
     type: Object,
   },

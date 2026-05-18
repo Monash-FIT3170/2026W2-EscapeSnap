@@ -54,7 +54,7 @@ Meteor.methods({
 
     if (isCorrect || attempts >= MAX_ATTEMPTS) {
       await Games.updateAsync(gameId, {
-        $set: { status: 'ended', endedAt: new Date(), finalRiddleAttempts: attempts },
+        $set: { status: isCorrect ? 'won' : 'lost', endedAt: new Date() },
       });
     } else {
       await Games.updateAsync(gameId, {
