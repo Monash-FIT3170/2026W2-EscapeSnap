@@ -2,33 +2,44 @@ import { Meteor } from 'meteor/meteor';
 import { Games } from './GamesCollection';
 import { FINAL_RIDDLE } from '../../lib/finalRiddle';
 
+function generateJoinCode() {
+  return String(Math.floor(1000 + Math.random() * 9000));
+}
+
 Meteor.methods({
-  async 'games.create'({ timerMinutes = 30, capacity = 4, difficulty = 'medium' } = {}) {
+  async 'games.create'({ timerMinutes = 30, totalRounds = 3, capacity = 4, difficulty = 'medium' } = {}) {
+    const joinCode = generateJoinCode();
     return Games.insertAsync({
+      joinCode,
       status: 'lobby',
-      createdAt: new Date(),
+      currentRound: 1,
+      totalRounds,
       timerMinutes,
       capacity,
       difficulty,
-      players: [
-        { id: 'player1', name: 'Dylan', revealedLetters: ['M', '?', 'A'] },
-      ],
+      createdAt: new Date(),
+      startedAt: null,
+      endedAt: null,
       finalRiddle: FINAL_RIDDLE,
     });
   },
 
-  // SCRUM-103
   async 'games.start'(gameId) {
     const game = await Games.findOneAsync(gameId);
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
     if (game.status !== 'lobby')
       throw new Meteor.Error('invalid-state', 'Game is not in lobby state');
+
+    // Assign individual riddles to each player for every round before starting.
+    // Done first so a failure here (e.g. no players) leaves the game in 'lobby'.
+    await Meteor.callAsync('rounds.createForGame', gameId);
+
     await Games.updateAsync(gameId, {
       $set: { status: 'in_progress', startedAt: new Date() },
     });
   },
 
-  // SCRUM-126, SCRUM-119
+
   async 'games.submitFinalAnswer'(gameId, guess) {
     const game = await Games.findOneAsync(gameId);
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
@@ -38,7 +49,6 @@ Meteor.methods({
     const MAX_ATTEMPTS = 3;
     const attempts = (game.finalRiddleAttempts ?? 0) + 1;
 
-    // Sprint 3: move answer validation server-side only so answer is never sent to client
     const isCorrect =
       guess.trim().toLowerCase() === game.finalRiddle.answer.toLowerCase();
 
