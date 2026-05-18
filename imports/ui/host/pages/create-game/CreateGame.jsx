@@ -94,7 +94,7 @@ const CreateGame = () => {
                 LOBBY CAPACITY
               </label>
               <div className="flex items-center gap-4">
-                <input type="range" min={1} max={8} step={1} value={capacity} onChange={e => setCapacity(Number(e.target.value))} className="range flex-1 text-gray-400"
+                <input type="range" min={2} max={4} step={1} value={capacity} onChange={e => setCapacity(Number(e.target.value))} className="range flex-1 text-gray-400"
                 />
                 <span className="text-red-400 text-lg w-12 text-right">
                   {String(capacity).padStart(2, '0')}
