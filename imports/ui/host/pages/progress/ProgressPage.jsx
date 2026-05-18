@@ -3,6 +3,7 @@ import { useParams } from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Games } from '../../../../api/games/GamesCollection';
+import { Rounds } from '../../../../api/rounds/RoundsCollection';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
 
 const MOCK_PUZZLE_DATA = [
@@ -35,11 +36,13 @@ const ProgressPage = () => {
   const { gameId } = useParams();
   const [timeLeft, setTimeLeft] = useState(null);
 
-  const { game, loading } = useTracker(() => {
-    const sub = Meteor.subscribe('games.current', gameId);
+  const { game, rounds, loading } = useTracker(() => {
+    const gameSub = Meteor.subscribe('games.current', gameId);
+    const roundsSub = Meteor.subscribe('rounds.forGame', gameId);
     return {
-      loading: !sub.ready(),
+      loading: !gameSub.ready() || !roundsSub.ready(),
       game: Games.findOne(gameId),
+      rounds: Rounds.find({ gameId }).fetch(),
     };
   }, [gameId]);
 
@@ -88,6 +91,11 @@ const ProgressPage = () => {
 
   const isExpired = timeLeft === 0;
 
+  // SCRUM-110: calculate team progress from real round data
+  const totalRoundDocs = rounds.length;
+  const solvedRounds = rounds.filter(r => r.status === 'correct').length;
+  const teamProgress = totalRoundDocs > 0 ? Math.round((solvedRounds / totalRoundDocs) * 100) : 0;
+
   return (
     <SidebarLayout gameId={gameId} activePage="progress">
 
@@ -114,24 +122,32 @@ const ProgressPage = () => {
             )}
           </div>
 
+          {/* SCRUM-110: wire team progress to real round data */}
           <div className="flex flex-col justify-between p-6" style={{ background: '#1c1b1b' }}>
             <span style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>TEAM PROGRESS</span>
             <div className="flex items-end gap-2">
-              <span style={{ fontWeight: 700, fontSize: 48, lineHeight: '48px', color: '#e5e2e1' }}>64</span>
+              <span style={{ fontWeight: 700, fontSize: 48, lineHeight: '48px', color: '#e5e2e1' }}>{teamProgress}</span>
               <span style={{ fontSize: 24, color: '#aa8984', paddingBottom: 4 }}>%</span>
             </div>
             <div style={{ height: 4, background: '#353534' }}>
-              <div style={{ height: '100%', width: '64%', background: '#8b0000' }} />
+              <div style={{ height: '100%', width: `${teamProgress}%`, background: '#8b0000' }} />
             </div>
           </div>
 
+          {/* SCRUM-110: wire round counter to real game state */}
           <div className="flex flex-col justify-between p-6" style={{ background: '#1c1b1b' }}>
             <span style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>CURRENT ROUND</span>
             <div className="flex items-end gap-2">
-              <span style={{ fontWeight: 700, fontSize: 48, lineHeight: '48px', color: '#e5e2e1' }}>03</span>
-              <span style={{ fontSize: 18, color: '#aa8984', paddingBottom: 6 }}>/ 05</span>
+              <span style={{ fontWeight: 700, fontSize: 48, lineHeight: '48px', color: '#e5e2e1' }}>
+                {String(game.currentRound).padStart(2, '0')}
+              </span>
+              <span style={{ fontSize: 18, color: '#aa8984', paddingBottom: 6 }}>
+                / {String(game.totalRounds).padStart(2, '0')}
+              </span>
             </div>
-            <span style={{ fontSize: 10, color: '#aa8984', opacity: 0.6 }}>REMAINING PUZZLES: 2</span>
+            <span style={{ fontSize: 10, color: '#aa8984', opacity: 0.6 }}>
+              REMAINING PUZZLES: {Math.max(0, game.totalRounds - game.currentRound)}
+            </span>
           </div>
 
           <div className="flex items-center justify-center p-6 relative" style={{ background: '#0e0e0e' }}>
