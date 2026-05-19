@@ -1,60 +1,57 @@
 import React from 'react';
 
-const BG = '#131313';
-
 const WinScreen = ({ onPlayAgain }) => {
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: BG }}>
+    <div className="min-h-screen flex flex-col" style={{ background: '#0e0e0e', color: '#e5e2e1' }}>
 
-      {/* Navbar — matches other pages */}
-      <header
-        className="border-b border-gray-800 px-8 py-4 flex items-center justify-between"
-        style={{ backgroundColor: BG }}
-      >
-        <span className="text-red-500 font-bold text-xl tracking-widest uppercase">
+      <header className="px-8 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #1c1b1b' }}>
+        <span className="font-bold text-xl tracking-widest uppercase" style={{ color: '#e5e2e1' }}>
           ESCAPESNAP
         </span>
-        <span className="text-xs text-gray-500 tracking-widest uppercase">
+        <span className="text-xs tracking-widest uppercase" style={{ color: '#aa8984' }}>
           MISSION COMPLETE
         </span>
       </header>
 
-      {/* Centered content */}
       <div className="flex-1 flex flex-col items-center justify-center">
+        <p className="text-xs tracking-widest mb-3" style={{ color: '#8b0000' }}>
+          MISSION SUCCESS
+        </p>
         <h1
           className="font-extrabold uppercase mb-4"
           style={{
-            color: '#991b1b',
+            color: '#e5e2e1',
             fontSize: '6rem',
             letterSpacing: '0.1em',
             lineHeight: 1,
           }}
         >
-          You Escaped!
+          YOU ESCAPED
         </h1>
 
         <p
-          className="text-white uppercase mb-16"
-          style={{ letterSpacing: '0.3em', fontSize: '1rem' }}
+          className="uppercase mb-16"
+          style={{ letterSpacing: '0.3em', fontSize: '1rem', color: '#aa8984' }}
         >
-          The riddle has been solved.
+          THE RIDDLE HAS BEEN SOLVED.
         </p>
 
-        {/* TODO: onPlayAgain should navigate to lobby screen once implemented */}
         <button
           onClick={onPlayAgain}
           className="font-bold uppercase transition-colors duration-200"
           style={{
-            backgroundColor: '#991b1b',
-            color: 'white',
+            background: '#8b0000',
+            color: '#e5e2e1',
             letterSpacing: '0.2em',
             fontSize: '1rem',
             padding: '1rem 4rem',
+            border: 'none',
+            cursor: 'pointer',
           }}
-          onMouseEnter={e => (e.target.style.backgroundColor = '#7f1d1d')}
-          onMouseLeave={e => (e.target.style.backgroundColor = '#991b1b')}
+          onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
+          onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
         >
-          Play Again
+          PLAY AGAIN
         </button>
       </div>
 
