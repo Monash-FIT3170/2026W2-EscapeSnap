@@ -1,56 +1,54 @@
 import React from 'react';
 
-const BG = '#131313';
-
 const LoseScreen = ({ onPlayAgain }) => {
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: BG }}>
+    <div className="min-h-screen flex flex-col" style={{ background: '#0e0e0e', color: '#e5e2e1' }}>
 
-      <header
-        className="border-b border-gray-800 px-8 py-4 flex items-center justify-between"
-        style={{ backgroundColor: BG }}
-      >
-        <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: '#e5e2e1' }}>
+      <header className="px-8 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #1c1b1b' }}>
+        <span className="font-bold text-xl tracking-widest uppercase" style={{ color: '#e5e2e1' }}>
           ESCAPESNAP
         </span>
-        <span style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>
+        <span className="text-xs tracking-widest uppercase" style={{ color: '#aa8984' }}>
           MISSION FAILED
         </span>
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center gap-6">
-        <div style={{ width: 4, height: 48, background: '#8b0000', marginBottom: 8 }} />
+        <p className="text-xs tracking-widest" style={{ color: '#8b0000' }}>
+          MISSION FAILED
+        </p>
 
-        <h1 style={{
-          fontWeight: 700,
-          fontSize: '5rem',
-          letterSpacing: '0.1em',
-          lineHeight: 1,
-          color: '#6b6b6b',
-        }}>
+        <h1
+          className="font-bold uppercase"
+          style={{
+            fontSize: '5rem',
+            letterSpacing: '0.1em',
+            lineHeight: 1,
+            color: '#e5e2e1',
+          }}
+        >
           NO ESCAPE.
         </h1>
 
-        <p style={{ fontSize: 12, letterSpacing: '2px', color: '#aa8984' }}>
+        <p className="uppercase" style={{ fontSize: 12, letterSpacing: '2px', color: '#aa8984' }}>
           THE RIDDLE REMAINS UNSOLVED.
         </p>
 
         <button
           onClick={onPlayAgain}
+          className="font-bold uppercase"
           style={{
             marginTop: 32,
             padding: '14px 64px',
-            background: '#1c1b1b',
+            background: '#8b0000',
             color: '#e5e2e1',
-            fontWeight: 700,
             fontSize: 13,
             letterSpacing: '1.5px',
             cursor: 'pointer',
-            transition: 'background 0.15s',
-            border: '1px solid #374151',
+            border: 'none',
           }}
-          onMouseEnter={e => (e.currentTarget.style.background = '#374151')}
-          onMouseLeave={e => (e.currentTarget.style.background = '#1c1b1b')}
+          onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
+          onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
         >
           TRY AGAIN
         </button>
