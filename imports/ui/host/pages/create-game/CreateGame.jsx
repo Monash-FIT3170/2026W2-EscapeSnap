@@ -30,9 +30,9 @@ const CreateGame = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 flex flex-col">
-      <header className="border-b border-gray-800 px-8 py-4 flex items-center justify-between">
-        <span className="text-red-500 font-bold text-xl tracking-widest uppercase">
+    <div className="min-h-screen text-gray-100 flex flex-col" style={{ background: '#0e0e0e' }}>
+      <header className="px-8 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #1c1b1b' }}>
+        <span className="font-bold text-xl tracking-widest uppercase" style={{ color: '#e5e2e1' }}>
           ESCAPESNAP
         </span>
       </header>
@@ -40,70 +40,56 @@ const CreateGame = () => {
       <main className="flex-1 flex items-center justify-center px-8 py-12">
         <div className="w-full max-w-lg">
           <div className="mb-8">
-            <p className="font-BOLD text-xs text-red-500 tracking-widest mb-1">
+            <p className="text-xs tracking-widest mb-1" style={{ color: '#8b0000' }}>
               CREATE A NEW GAME
             </p>
-            <h1 className="text-3xl font-bold tracking-widest uppercase text-gray-100">
+            <h1 className="text-3xl font-bold tracking-widest uppercase" style={{ color: '#e5e2e1' }}>
               GAME CONFIGURATION
             </h1>
-            <p className="text-xs text-gray-500 mt-2 tracking-wide">
+            <p className="text-xs mt-2 tracking-wide" style={{ color: '#555' }}>
               DEFINE GAME PARAMETERS BEFORE ENTERING
             </p>
           </div>
 
           <div className="space-y-6">
 
-            <div className="border border-gray-800 p-4">
-              <label className="block text-xs text-gray-400 tracking-widest mb-3">
+            <div className="p-4" style={{ border: '1px solid #1c1b1b' }}>
+              <label className="block text-xs tracking-widest mb-3" style={{ color: '#aa8984' }}>
                 GAME TIME LIMIT (MIN)
               </label>
-              <div className="">
-                <input type="range" min={10} max={60} step={5} value={timer} className="range w-full text-gray-400" onChange={e => setTimer(Number(e.target.value))}/>
-                <div className="flex justify-between px-2.5 mt-2 text-xs">
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-                    <span>|</span>
-
-                </div>
-                <div className="flex justify-between px-2.5 mt-2 text-xs">
-                    <span>10</span>
-                    <span>15</span>
-                    <span>20</span>
-                    <span>25</span>
-                    <span>30</span>
-                    <span>35</span>
-                    <span>40</span>
-                    <span>45</span>
-                    <span>50</span>
-                    <span>55</span>
-                    <span>60</span>
-                </div>
+              <input
+                type="range" min={10} max={60} step={5} value={timer}
+                className="range w-full"
+                onChange={e => setTimer(Number(e.target.value))}
+              />
+              <div className="flex justify-between px-2.5 mt-2 text-xs" style={{ color: '#333' }}>
+                <span>|</span><span>|</span><span>|</span><span>|</span><span>|</span>
+                <span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span>
+              </div>
+              <div className="flex justify-between px-2.5 mt-2 text-xs" style={{ color: '#555' }}>
+                <span>10</span><span>15</span><span>20</span><span>25</span><span>30</span>
+                <span>35</span><span>40</span><span>45</span><span>50</span><span>55</span><span>60</span>
               </div>
             </div>
 
-            <div className="border border-gray-800 p-4">
-              <label className="block text-xs text-gray-400 tracking-widest mb-3">
+            <div className="p-4" style={{ border: '1px solid #1c1b1b' }}>
+              <label className="block text-xs tracking-widest mb-3" style={{ color: '#aa8984' }}>
                 LOBBY CAPACITY
               </label>
               <div className="flex items-center gap-4">
-                <input type="range" min={2} max={4} step={1} value={capacity} onChange={e => setCapacity(Number(e.target.value))} className="range flex-1 text-gray-400"
+                <input
+                  type="range" min={2} max={4} step={1} value={capacity}
+                  onChange={e => setCapacity(Number(e.target.value))}
+                  className="range flex-1"
                 />
-                <span className="text-red-400 text-lg w-12 text-right">
+                <span className="text-lg w-12 text-right font-bold" style={{ color: '#8b0000' }}>
                   {String(capacity).padStart(2, '0')}
                 </span>
               </div>
             </div>
 
-            <div className="border border-gray-800 p-4">
-              <label className="block text-xs text-gray-400 tracking-widest mb-3">
+            <div className="p-4" style={{ border: '1px solid #1c1b1b' }}>
+              <label className="block text-xs tracking-widest mb-3" style={{ color: '#aa8984' }}>
                 DIFFICULTY LEVEL
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -111,16 +97,16 @@ const CreateGame = () => {
                   <button
                     key={opt.value}
                     onClick={() => setDifficulty(opt.value)}
-                    className={`border p-3 text-left transition-colors cursor-pointer ${
-                      difficulty === opt.value
-                        ? 'border-red-500 bg-red-950'
-                        : 'border-gray-700 hover:border-gray-500'
-                    }`}
+                    className="p-3 text-left transition-colors cursor-pointer"
+                    style={{
+                      border: difficulty === opt.value ? '1px solid #8b0000' : '1px solid #1c1b1b',
+                      background: difficulty === opt.value ? '#1c0000' : 'transparent',
+                    }}
                   >
-                    <div className="text-xs font-bold text-gray-100">
+                    <div className="text-xs font-bold" style={{ color: '#e5e2e1' }}>
                       {opt.label}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1 leading-tight">
+                    <div className="text-xs mt-1 leading-tight" style={{ color: difficulty === opt.value ? '#aa8984' : '#555' }}>
                       {opt.sub}
                     </div>
                   </button>
@@ -128,16 +114,16 @@ const CreateGame = () => {
               </div>
             </div>
 
-            <div className="border border-gray-800 p-3">
-              <p className="text-xs text-gray-600 tracking-wide">
+            <div className="p-3" style={{ border: '1px solid #1c1b1b' }}>
+              <p className="text-xs tracking-wide" style={{ color: '#444' }}>
                 SPRINT_1 // PRESET PLAYER: DYLAN ·
                 STATUS WILL BE SET TO{' '}
-                <span className="text-gray-500">LOBBY</span>
+                <span style={{ color: '#555' }}>LOBBY</span>
               </p>
             </div>
 
             {error && (
-              <p className="text-xs text-red-500 tracking-widest">
+              <p className="text-xs tracking-widest" style={{ color: '#8b0000' }}>
                 !! {error}
               </p>
             )}
@@ -145,10 +131,15 @@ const CreateGame = () => {
             <button
               onClick={handleCreateGame}
               disabled={loading}
-              className="w-full bg-red-700 hover:bg-red-600 disabled:bg-gray-800 disabled:text-gray-600 text-white text-sm tracking-widest uppercase py-4 transition-colors cursor-pointer disabled:cursor-not-allowed"
+              className="w-full text-sm tracking-widest uppercase py-4 transition-colors cursor-pointer disabled:cursor-not-allowed"
+              style={{
+                background: loading ? '#3a0000' : '#8b0000',
+                color: loading ? '#555' : '#e5e2e1',
+              }}
             >
               {loading ? 'INITIALIZING…' : 'INITIALIZE MISSION'}
             </button>
+
           </div>
         </div>
       </main>
