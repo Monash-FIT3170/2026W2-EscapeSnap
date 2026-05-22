@@ -1,5 +1,11 @@
 # Keep Playwright and other tooling out of the Meteor bundle (see SPIKE5 / e2e/).
 e2e/
 
+# Standalone HTML previews — not Meteor templates
+preview/
+
 # Tooling configs (Meteor will try to bundle root files otherwise)
 eslint.config.js
+
+# Local UI preview (dev-only, not part of the Meteor app)
+preview/

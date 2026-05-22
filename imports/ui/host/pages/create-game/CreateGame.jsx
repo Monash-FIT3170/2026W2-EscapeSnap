@@ -59,7 +59,7 @@ const CreateGame = () => {
               </label>
               <input
                 type="range" min={10} max={60} step={5} value={timer}
-                className="range w-full"
+                className="w-full accent-[#8b0000] cursor-pointer"
                 onChange={e => setTimer(Number(e.target.value))}
               />
               <div className="flex justify-between px-2.5 mt-2 text-xs" style={{ color: '#333' }}>
@@ -80,7 +80,7 @@ const CreateGame = () => {
                 <input
                   type="range" min={2} max={4} step={1} value={capacity}
                   onChange={e => setCapacity(Number(e.target.value))}
-                  className="range flex-1"
+                  className="flex-1 accent-[#8b0000] cursor-pointer"
                 />
                 <span className="text-lg w-12 text-right font-bold" style={{ color: '#8b0000' }}>
                   {String(capacity).padStart(2, '0')}

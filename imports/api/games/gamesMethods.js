@@ -1,6 +1,10 @@
 import { Meteor } from 'meteor/meteor';
 import { Games } from './GamesCollection';
+import { RoundSessions } from '/imports/api/rounds/RoundSessions';
+import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 import { FINAL_RIDDLE } from '../../lib/finalRiddle';
+
+const ROUND_DURATION_MS = 60 * 1000;
 
 function generateJoinCode() {
   return String(Math.floor(1000 + Math.random() * 9000));
@@ -30,8 +34,6 @@ Meteor.methods({
     if (game.status !== 'lobby')
       throw new Meteor.Error('invalid-state', 'Game is not in lobby state');
 
-    // Assign individual riddles to each player for every round before starting.
-    // Done first so a failure here (e.g. no players) leaves the game in 'lobby'.
     await Meteor.callAsync('rounds.createForGame', gameId);
 
     await Games.updateAsync(gameId, {
@@ -39,6 +41,32 @@ Meteor.methods({
     });
   },
 
+  async 'games.startRound'(sessionId) {
+    if (!sessionId || typeof sessionId !== 'string') {
+      throw new Meteor.Error('invalid', 'sessionId required');
+    }
+    await RoundSessions.upsertAsync(
+      { sessionId },
+      { $set: { sessionId, startedAt: new Date() } }
+    );
+  },
+
+  async 'games.submitRiddle'(sessionId, playerId) {
+    const session = await RoundSessions.findOneAsync({ sessionId });
+    if (!session) {
+      throw new Meteor.Error('no-session', 'Round session not found — cannot verify timing');
+    }
+
+    const elapsed = Date.now() - session.startedAt.getTime();
+    if (elapsed > ROUND_DURATION_MS) {
+      throw new Meteor.Error('expired', 'Round timer has expired — submission rejected by server');
+    }
+
+    const riddle = HARDCODED_RIDDLES.find(r => r.playerId === playerId);
+    if (!riddle) throw new Meteor.Error('no-riddle', 'No riddle found for this player');
+
+    return riddle.revealedLetter;
+  },
 
   async 'games.submitFinalAnswer'(gameId, guess) {
     const game = await Games.findOneAsync(gameId);

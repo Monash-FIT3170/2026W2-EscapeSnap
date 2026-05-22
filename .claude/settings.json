@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Set-Location \"c:\\\\Users\\\\Sebas\\\\Documents\\\\Monash\\\\FIT3170\\\\2026W2-EscapeSnap\"; $env:MONGO_URL=\"mongodb://localhost:27017/escapesnap\"; meteor run 2>&1 | Tee-Object -FilePath \"$env:TEMP\\\\meteor-out4.txt\")",
+      "PowerShell(Set-Location \"c:\\\\Users\\\\Sebas\\\\Documents\\\\Monash\\\\FIT3170\\\\2026W2-EscapeSnap\"; $env:MONGO_URL=\"mongodb://localhost:27017/escapesnap\"; meteor run 2>&1 | Tee-Object -FilePath \"$env:TEMP\\\\meteor-out6.txt\")",
+      "Read(//c/Users/Sebas/AppData/Local/.meteor/**)",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Sebas\\\\AppData\\\\Local\\\\.meteor\" 2>&1)",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Sebas\\\\AppData\\\\Local\\\\.meteor\\\\packages\\\\fetch\\\\0.1.6\" 2>&1)",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Sebas\\\\AppData\\\\Local\\\\.meteor\\\\packages\\\\fetch\\\\0.1.6\\\\npm\" 2>&1)",
+      "Bash(meteor show *)",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Sebas\\\\AppData\\\\Local\\\\.meteor\\\\packages\\\\fetch\")",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Sebas\\\\AppData\\\\Local\\\\.meteor\\\\packages\\\\fetch\\\\0.1.6\")",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Sebas\\\\AppData\\\\Local\\\\.meteor\\\\packages\\\\fetch\\\\0.1.6\\\\npm\")",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Sebas\\\\AppData\\\\Local\\\\.meteor\\\\packages\\\\fetch\\\\0.1.6\\\\npm\\\\node_modules\")",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Sebas\\\\Documents\\\\Monash\\\\FIT3170\\\\2026W2-EscapeSnap\\\\.meteor\\\\local\\\\build\\\\programs\\\\server\\\\packages\\\\fetch.js 2>&1\")",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Sebas\\\\Documents\\\\Monash\\\\FIT3170\\\\2026W2-EscapeSnap\\\\.meteor\\\\local 2>&1\")",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Sebas\\\\AppData\\\\Local\\\\.meteor\\\\packages\\\\fetch\\\\0.1.6\\\\os\\\\packages\")",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Sebas\\\\AppData\\\\Local\\\\.meteor\\\\packages\\\\meteor-tool\\\\3.4.1\\\\mt-os.windows.x86_64\\\\dev_bundle\\\\server-lib\\\\node_modules\\\\node-fetch 2>&1\")",
+      "PowerShell(cmd /c \"dir C:\\\\Users\\\\Sebas\\\\AppData\\\\Local\\\\.meteor\\\\packages\\\\ecmascript-runtime-server\" 2>&1)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\Sebas\\AppData\\Local\\.meteor\\packages\\fetch\\0.1.6\\os-legacy\\packages"
+    ]
+  }
+}

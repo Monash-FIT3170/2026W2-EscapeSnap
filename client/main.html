@@ -1,7 +1,44 @@
 <head>
   <title>EscapeSnap</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            mono: ['"Share Tech Mono"', 'monospace'],
+            display: ['Orbitron', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    [data-theme="escapesnap"] {
+      color-scheme: dark;
+      --b1: 222 15% 4%;
+      --b2: 222 15% 7%;
+      --b3: 222 15% 10%;
+      --bc: 215 20% 90%;
+      --p: 0 72% 55%;
+      --pc: 0 0% 100%;
+      --pf: 0 72% 45%;
+      --s: 0 60% 30%;
+      --sc: 0 0% 100%;
+      --a: 0 72% 45%;
+      --ac: 0 0% 100%;
+      --n: 222 15% 12%;
+      --nc: 215 20% 65%;
+      --er: 0 72% 55%;
+      --erc: 0 0% 100%;
+    }
+  </style>
 </head>
-<body>
+<body data-theme="escapesnap">
   <div id="app"></div>
 </body>
