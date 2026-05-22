@@ -34,6 +34,7 @@ Meteor.methods({
     const { data, info } = await sharp(buf).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     const pixelData = { data: new Uint8Array(data.buffer), width: info.width, height: info.height };
     const predictions = await model.detect(pixelData);
+    console.log(`[COCO-SSD] target="${targetObject}" detections:`, predictions.map(p => `${p.class} (${(p.score * 100).toFixed(1)}%)`));
     const outcome = evaluatePredictions(predictions, targetObject);
     return { outcome, predictions };
   },
