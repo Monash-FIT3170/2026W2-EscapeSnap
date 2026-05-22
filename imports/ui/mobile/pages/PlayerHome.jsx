@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export function PlayerHome({ onStart }) {
+export function PlayerHome({ onStart, loading = false, serverError = '' }) {
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
@@ -15,18 +15,19 @@ export function PlayerHome({ onStart }) {
 
   return (
     <div
-      className="min-h-screen bg-black text-white flex items-center justify-center"
+      className="h-screen overflow-hidden bg-black text-white flex items-center justify-center"
       style={{
         backgroundImage: 'linear-gradient(rgba(239,68,68,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(239,68,68,0.04) 1px, transparent 1px)',
         backgroundSize: '48px 48px',
       }}
     >
-      <div className="relative w-full max-w-sm px-8 py-14">
+      {/* Red corner brackets framing the full screen */}
+      <span className="pointer-events-none fixed left-4 top-4 h-10 w-10 border-l-2 border-t-2 border-red-500/70" />
+      <span className="pointer-events-none fixed right-4 top-4 h-10 w-10 border-r-2 border-t-2 border-red-500/70" />
+      <span className="pointer-events-none fixed bottom-4 left-4 h-10 w-10 border-b-2 border-l-2 border-red-500/70" />
+      <span className="pointer-events-none fixed bottom-4 right-4 h-10 w-10 border-b-2 border-r-2 border-red-500/70" />
 
-        <span className="pointer-events-none absolute -left-0.5 -top-0.5 h-10 w-10 border-l-2 border-t-2 border-red-500/70" />
-        <span className="pointer-events-none absolute -right-0.5 -top-0.5 h-10 w-10 border-r-2 border-t-2 border-red-500/70" />
-        <span className="pointer-events-none absolute -bottom-0.5 -left-0.5 h-10 w-10 border-b-2 border-l-2 border-red-500/70" />
-        <span className="pointer-events-none absolute -bottom-0.5 -right-0.5 h-10 w-10 border-b-2 border-r-2 border-red-500/70" />
+      <div className="relative w-full max-w-sm px-8 py-10">
 
         <div className="mb-6 flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
@@ -77,16 +78,17 @@ export function PlayerHome({ onStart }) {
             />
           </div>
 
-          {error && (
-            <p className="font-mono text-sm text-red-400">⚠ {error}</p>
+          {(error || serverError) && (
+            <p className="font-mono text-sm text-red-400">⚠ {error || serverError}</p>
           )}
 
           <button
             type="submit"
-            className="group relative mt-2 w-full overflow-hidden border border-red-600/60 px-5 py-4 font-mono text-base font-semibold uppercase tracking-wider text-red-400 transition-colors duration-300 hover:text-white focus:outline-none"
+            disabled={loading}
+            className="group relative mt-2 w-full overflow-hidden border border-red-600/60 px-5 py-4 font-mono text-base font-semibold uppercase tracking-wider text-red-400 transition-colors duration-300 hover:text-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="absolute inset-0 -translate-x-full bg-red-600 transition-transform duration-300 ease-out group-hover:translate-x-0" />
-            <span className="relative">Enter Game →</span>
+            <span className="relative">{loading ? 'Joining...' : 'Enter Game →'}</span>
           </button>
 
         </form>

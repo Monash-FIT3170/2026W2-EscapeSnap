@@ -3,6 +3,11 @@ import '@tensorflow/tfjs';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import sharp from 'sharp';
 import '/imports/api/games/methods';
+import '/imports/api/rounds/RoundSessions';
+import '/imports/api/games/gamesMethods';
+import '/imports/api/games/gamesPublications';
+import '/imports/api/players/playersMethods';
+import '/imports/api/players/playersPublications';
 
 let detectionModel = null;
 let modelLoadPromise = null;
