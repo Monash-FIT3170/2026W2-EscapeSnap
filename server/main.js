@@ -2,7 +2,6 @@ import { Meteor } from 'meteor/meteor';
 import '@tensorflow/tfjs';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import sharp from 'sharp';
-import '/imports/api/games/methods';
 import '/imports/api/rounds/RoundSessions';
 import '/imports/api/games/gamesMethods';
 import '/imports/api/games/gamesPublications';
