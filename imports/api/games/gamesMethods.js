@@ -2,16 +2,28 @@ import { Meteor } from 'meteor/meteor';
 import { Games } from './GamesCollection';
 import { RoundSessions } from '/imports/api/rounds/RoundSessions';
 import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
-import { FINAL_RIDDLE } from '/imports/lib/finalRiddle';
+import { FINAL_RIDDLE } from '../../lib/finalRiddle';
 
 const ROUND_DURATION_MS = 60 * 1000;
 
+function generateJoinCode() {
+  return String(Math.floor(1000 + Math.random() * 9000));
+}
+
 Meteor.methods({
-  async 'games.create'() {
+  async 'games.create'({ timerMinutes = 30, totalRounds = 3, capacity = 4, difficulty = 'medium' } = {}) {
+    const joinCode = generateJoinCode();
     return Games.insertAsync({
+      joinCode,
       status: 'lobby',
+      currentRound: 1,
+      totalRounds,
+      timerMinutes,
+      capacity,
+      difficulty,
       createdAt: new Date(),
-      players: [],
+      startedAt: null,
+      endedAt: null,
       finalRiddle: FINAL_RIDDLE,
     });
   },
@@ -21,12 +33,14 @@ Meteor.methods({
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
     if (game.status !== 'lobby')
       throw new Meteor.Error('invalid-state', 'Game is not in lobby state');
+
+    await Meteor.callAsync('rounds.createForGame', gameId);
+
     await Games.updateAsync(gameId, {
       $set: { status: 'in_progress', startedAt: new Date() },
     });
   },
 
-  // Called by the client when the round timer starts — records the deadline server-side
   async 'games.startRound'(sessionId) {
     if (!sessionId || typeof sessionId !== 'string') {
       throw new Meteor.Error('invalid', 'sessionId required');
@@ -37,7 +51,6 @@ Meteor.methods({
     );
   },
 
-  // Validates the round has not expired before awarding the revealed letter
   async 'games.submitRiddle'(sessionId, playerId) {
     const session = await RoundSessions.findOneAsync({ sessionId });
     if (!session) {
@@ -58,9 +71,25 @@ Meteor.methods({
   async 'games.submitFinalAnswer'(gameId, guess) {
     const game = await Games.findOneAsync(gameId);
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
+    if (game.status !== 'in_progress')
+      throw new Meteor.Error('invalid-state', 'Game is not in progress');
+
+    const MAX_ATTEMPTS = 3;
+    const attempts = (game.finalRiddleAttempts ?? 0) + 1;
+
     const isCorrect =
       guess.trim().toLowerCase() === game.finalRiddle.answer.toLowerCase();
-    await Games.updateAsync(gameId, { $set: { endedAt: new Date() } });
-    return isCorrect;
+
+    if (isCorrect || attempts >= MAX_ATTEMPTS) {
+      await Games.updateAsync(gameId, {
+        $set: { status: isCorrect ? 'won' : 'lost', endedAt: new Date() },
+      });
+    } else {
+      await Games.updateAsync(gameId, {
+        $set: { finalRiddleAttempts: attempts },
+      });
+    }
+
+    return { isCorrect, attemptsLeft: isCorrect ? 0 : MAX_ATTEMPTS - attempts };
   },
 });

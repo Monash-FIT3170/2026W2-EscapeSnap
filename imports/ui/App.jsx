@@ -1,16 +1,17 @@
 import React, { useState, useRef } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route } from 'react-router';
+import { Link } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
 import { PlayerHome } from './mobile/pages/PlayerHome';
 import { PlayerLobby } from './mobile/pages/lobby/PlayerLobby';
 import { PlayerDashboard } from './mobile/pages/PlayerDashboard';
 import CreateGame from './host/pages/create-game/CreateGame';
 import Lobby from './host/pages/lobby/Lobby';
-import Dashboard from './host/pages/dashboard/Dashboard';
+import ProgressPage from './host/pages/progress/ProgressPage';
+import FinalRiddlePage from './host/pages/riddle/FinalRiddlePage';
 
 const ROUND_DURATION = 60;
 
-// Mobile player flow — manages screen state internally
 function PlayerFlow() {
   const [screen, setScreen] = useState('home');
   const [playerName, setPlayerName] = useState('');
@@ -27,14 +28,12 @@ function PlayerFlow() {
 
   const handleGameStart = () => {
     if (!sessionId.current) {
-      // First launch only — set timestamp and register with server
       sessionId.current = Math.random().toString(36).slice(2) + Date.now().toString(36);
       setGameStartedAt(Date.now());
       Meteor.callAsync('games.startRound', sessionId.current).catch(err =>
         console.error('[round-timer] startRound failed:', err)
       );
     }
-    // On rejoin, gameStartedAt is preserved — timer continues from where it left off
     setInSession(true);
     setScreen('dashboard');
   };
@@ -52,9 +51,7 @@ function PlayerFlow() {
     setScreen('lobby');
   };
 
-  if (screen === 'home') return (
-    <PlayerHome onStart={handleJoin} />
-  );
+  if (screen === 'home') return <PlayerHome onStart={handleJoin} />;
   if (screen === 'lobby') return (
     <PlayerLobby
       playerName={playerName}
@@ -77,33 +74,59 @@ function PlayerFlow() {
   );
 }
 
-// Landing page — choose host or player
 function LandingPage() {
   return (
-    <div
-      className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-8"
-      style={{
-        backgroundImage: 'linear-gradient(rgba(239,68,68,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(239,68,68,0.04) 1px, transparent 1px)',
-        backgroundSize: '48px 48px',
-      }}
-    >
-      <h1 className="font-mono text-4xl font-bold tracking-widest text-red-500 uppercase">
-        EscapeSnap
-      </h1>
-      <div className="flex flex-col gap-4 w-full max-w-xs">
-        <Link
-          to="/player"
-          className="block w-full border border-slate-700 bg-slate-950 py-4 text-center font-mono text-sm uppercase tracking-widest text-white transition hover:border-red-500 hover:text-red-400"
-        >
-          Join as Player
-        </Link>
-        <Link
-          to="/host"
-          className="block w-full border border-red-700 bg-red-950/40 py-4 text-center font-mono text-sm uppercase tracking-widest text-red-400 transition hover:bg-red-700 hover:text-white"
-        >
-          Host a Game
-        </Link>
-      </div>
+    <div className="min-h-screen text-gray-100 flex flex-col" style={{ background: '#0e0e0e' }}>
+      <header className="px-8 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #1c1b1b' }}>
+        <span className="font-bold text-xl tracking-widest uppercase" style={{ color: '#e5e2e1' }}>
+          ESCAPESNAP
+        </span>
+      </header>
+
+      <main className="flex-1 flex items-center justify-center px-8 py-12">
+        <div className="w-full max-w-2xl text-center">
+          <p className="text-xs tracking-widest mb-3" style={{ color: '#8b0000' }}>
+            INITIATE PROTOCOL
+          </p>
+          <h1 className="text-6xl font-bold tracking-widest uppercase mb-6" style={{ color: '#e5e2e1' }}>
+            ESCAPESNAP
+          </h1>
+          <p className="text-sm tracking-wide mb-12 max-w-md mx-auto leading-relaxed" style={{ color: '#aa8984' }}>
+            Turn your surroundings into an interactive escape room. Solve visual riddles, collect clues, and crack the final code — wherever you are.
+          </p>
+
+          <div className="flex flex-col gap-4 w-full max-w-xs mx-auto">
+            <Link
+              to="/player"
+              className="block w-full py-4 text-center text-sm tracking-widest uppercase transition-colors cursor-pointer"
+              style={{ border: '1px solid #1c1b1b', color: '#e5e2e1', background: 'transparent' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = '#8b0000'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = '#1c1b1b'}
+            >
+              JOIN AS PLAYER
+            </Link>
+            <Link
+              to="/host"
+              className="block w-full py-4 text-center text-sm tracking-widest uppercase transition-colors cursor-pointer"
+              style={{ background: '#8b0000', color: '#e5e2e1' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
+              onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
+            >
+              HOST A GAME
+            </Link>
+          </div>
+
+          <p className="text-xs tracking-widest mt-8" style={{ color: '#444' }}>
+            HOST A SESSION · BEGIN MISSION
+          </p>
+        </div>
+      </main>
+
+      <footer className="px-8 py-4 text-center" style={{ borderTop: '1px solid #1c1b1b' }}>
+        <p className="text-xs tracking-widest" style={{ color: '#444' }}>
+          ESCAPESNAP
+        </p>
+      </footer>
     </div>
   );
 }
@@ -113,9 +136,11 @@ export function App() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/player/*" element={<PlayerFlow />} />
-      <Route path="/host" element={<Dashboard />} />
+      <Route path="/host" element={<CreateGame />} />
       <Route path="/game/create" element={<CreateGame />} />
       <Route path="/game/:gameId/lobby" element={<Lobby />} />
+      <Route path="/game/:gameId/progress" element={<ProgressPage />} />
+      <Route path="/game/:gameId/final-riddle" element={<FinalRiddlePage />} />
     </Routes>
   );
 }

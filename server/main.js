@@ -2,11 +2,15 @@ import { Meteor } from 'meteor/meteor';
 import '@tensorflow/tfjs';
 import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import sharp from 'sharp';
+import '../imports/api/games/gamesMethods';
+import '../imports/api/games/gamesPublications';
+import '../imports/api/players/playersMethods';
+import '../imports/api/players/playersPublications';
+import '../imports/api/rounds/roundsMethods';
+import '../imports/api/rounds/roundsPublications';
 import '/imports/api/rounds/RoundSessions';
-import '/imports/api/games/gamesMethods';
-import '/imports/api/games/gamesPublications';
-import '/imports/api/players/playersMethods';
-import '/imports/api/players/playersPublications';
+import { Games } from '../imports/api/games/GamesCollection';
+import { Rounds } from '../imports/api/rounds/RoundsCollection';
 
 let detectionModel = null;
 let modelLoadPromise = null;
@@ -22,9 +26,13 @@ function ensureModel() {
   return modelLoadPromise;
 }
 
-Meteor.startup(() => {
+Meteor.startup(async () => {
   console.log('[EscapeSnap] server ready — warming COCO-SSD');
   ensureModel().catch((err) => console.error('[EscapeSnap] model load failed:', err));
+  await Games.createIndexAsync({ joinCode: 1 });
+  await Games.createIndexAsync({ status: 1 });
+  await Rounds.createIndexAsync({ gameId: 1, roundNumber: 1 });
+  await Rounds.createIndexAsync({ playerId: 1, roundNumber: 1 });
 });
 
 Meteor.methods({
