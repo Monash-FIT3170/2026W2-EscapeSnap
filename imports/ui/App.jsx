@@ -1,7 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router';
-import { Link } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
+import { useTracker } from 'meteor/react-meteor-data';
+import { Games } from '../api/games/GamesCollection';
+import { Players } from '../api/players/PlayersCollection';
 import { PlayerHome } from './mobile/pages/PlayerHome';
 import { PlayerLobby } from './mobile/pages/lobby/PlayerLobby';
 import { PlayerDashboard } from './mobile/pages/PlayerDashboard';
@@ -11,66 +13,77 @@ import ProgressPage from './host/pages/progress/ProgressPage';
 import FinalRiddlePage from './host/pages/riddle/FinalRiddlePage';
 import LandingPage from './host/pages/landing/Landing';
 
-const ROUND_DURATION = 60;
-
 function PlayerFlow() {
   const [screen, setScreen] = useState('home');
   const [playerName, setPlayerName] = useState('');
   const [gameCode, setGameCode] = useState('');
-  const [inSession, setInSession] = useState(false);
-  const [gameStartedAt, setGameStartedAt] = useState(null);
-  const sessionId = useRef(null);
+  const [playerId, setPlayerId] = useState(null);
+  const [gameId, setGameId] = useState(null);
+  const [joinLoading, setJoinLoading] = useState(false);
+  const [joinError, setJoinError] = useState('');
 
-  const handleJoin = (name, code) => {
-    setPlayerName(name);
-    setGameCode(code);
-    setScreen('lobby');
-  };
+  const { game, playerCount } = useTracker(() => {
+    if (!gameId) return { game: null, playerCount: 0 };
+    Meteor.subscribe('games.current', gameId);
+    Meteor.subscribe('players.inGame', gameId);
+    return {
+      game: Games.findOne(gameId),
+      playerCount: Players.find({ gameId }).count(),
+    };
+  }, [gameId]);
 
-  const handleGameStart = () => {
-    if (!sessionId.current) {
-      sessionId.current = Math.random().toString(36).slice(2) + Date.now().toString(36);
-      setGameStartedAt(Date.now());
-      Meteor.callAsync('games.startRound', sessionId.current).catch(err =>
-        console.error('[round-timer] startRound failed:', err)
-      );
+  useEffect(() => {
+    if (game?.status === 'in_progress' && screen === 'lobby') {
+      setScreen('dashboard');
     }
-    setInSession(true);
-    setScreen('dashboard');
+  }, [game?.status, screen]);
+
+  const handleJoin = async (name, code) => {
+    setJoinLoading(true);
+    setJoinError('');
+    try {
+      const { playerId: pid, gameId: gid } = await Meteor.callAsync('players.join', code, name);
+      setPlayerName(name);
+      setGameCode(code);
+      setPlayerId(pid);
+      setGameId(gid);
+      setScreen('lobby');
+    } catch (err) {
+      setJoinError(err.reason || err.message || 'Failed to join game');
+    } finally {
+      setJoinLoading(false);
+    }
   };
 
   const handleExitToHome = () => {
     setPlayerName('');
     setGameCode('');
-    setInSession(false);
-    setGameStartedAt(null);
-    sessionId.current = null;
+    setPlayerId(null);
+    setGameId(null);
+    setJoinError('');
     setScreen('home');
   };
 
-  const handleReturnToLobby = () => {
-    setScreen('lobby');
-  };
-
-  if (screen === 'home') return <PlayerHome onStart={handleJoin} />;
-  if (screen === 'lobby') return (
-    <PlayerLobby
-      playerName={playerName}
-      gameCode={gameCode}
-      inSession={inSession}
-      gameStartedAt={gameStartedAt}
-      roundDuration={ROUND_DURATION}
-      onGameStart={handleGameStart}
-      onExit={handleExitToHome}
-    />
-  );
+  if (screen === 'home') {
+    return <PlayerHome onStart={handleJoin} loading={joinLoading} serverError={joinError} />;
+  }
+  if (screen === 'lobby') {
+    return (
+      <PlayerLobby
+        playerName={playerName}
+        gameCode={gameCode}
+        playerCount={playerCount}
+        onExit={handleExitToHome}
+      />
+    );
+  }
   return (
     <PlayerDashboard
       playerName={playerName}
       gameCode={gameCode}
-      sessionId={sessionId.current}
-      gameStartedAt={gameStartedAt}
-      onExit={handleReturnToLobby}
+      playerId={playerId}
+      gameId={gameId}
+      onExit={() => setScreen('lobby')}
     />
   );
 }

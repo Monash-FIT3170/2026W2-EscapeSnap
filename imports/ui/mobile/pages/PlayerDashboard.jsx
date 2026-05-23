@@ -1,95 +1,41 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Meteor } from 'meteor/meteor';
+import { useTracker } from 'meteor/react-meteor-data';
+import { Rounds } from '/imports/api/rounds/RoundsCollection';
+import { Players } from '/imports/api/players/PlayersCollection';
 import MobileRiddlePage from './gameplay/MobileRiddlePage';
 import { MobileBottomNav } from '../components/navigation/MobileBottomNav';
 import { RoundTimer } from '../components/gameplay/RoundTimer';
-import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 
 const ROUND_DURATION = 60;
 const MAX_ROUNDS = 3;
 
-const TEAM = [
-  { id: 'player1', callSign: 'AGENT_01' },
-  { id: 'player2', callSign: 'AGENT_02' },
-  { id: 'player3', callSign: 'AGENT_03' },
-  { id: 'player4', callSign: 'AGENT_04' },
-];
-
-const HARDCODED_PROGRESS = {
-  player1: null,
-  player2: 'B',
-  player3: null,
-  player4: null,
-};
-
-function StatusScreen({ revealedLetter, playerId }) {
-  const progress = { ...HARDCODED_PROGRESS, [playerId]: revealedLetter };
-  const solvedCount = Object.values(progress).filter(Boolean).length;
-  const totalCount = TEAM.length;
-  const progressPercent = Math.round((solvedCount / totalCount) * 100);
-
+function StatusScreen({ revealedLetters }) {
   return (
     <section className="flex flex-col gap-5 pt-5">
       <div>
-        <p className="font-mono text-xs uppercase tracking-widest text-red-500">
-          Team Progress
-        </p>
+        <p className="font-mono text-xs uppercase tracking-widest text-red-500">Letters Collected</p>
         <h2 className="mt-1 font-mono text-xl font-bold tracking-wide text-white">
-          {solvedCount} / {totalCount} Agents Complete
+          {revealedLetters.filter(l => l && l !== '?').length} / {MAX_ROUNDS} Rounds Complete
         </h2>
       </div>
-
-      <div>
-        <div className="mb-1 flex justify-between font-mono text-[10px] uppercase tracking-widest text-slate-500">
-          <span>Mission Completion</span>
-          <span className="text-white">{progressPercent}%</span>
-        </div>
-        <div className="h-2 w-full bg-slate-800">
-          <div
-            className="h-2 bg-red-600 transition-all duration-500"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-3">
-        {TEAM.map(agent => {
-          const letter = progress[agent.id];
-          const isSelf = agent.id === playerId;
-          const solved = !!letter && letter !== '?';
-
+      <div className="flex gap-3 mt-2">
+        {Array.from({ length: MAX_ROUNDS }, (_, i) => {
+          const letter = revealedLetters[i];
+          const hasLetter = letter && letter !== '?';
           return (
             <div
-              key={agent.id}
-              className={`flex items-center gap-4 border px-4 py-3 ${
-                solved
-                  ? 'border-red-900/60 bg-red-950/20'
-                  : 'border-slate-800 bg-slate-950/40'
+              key={i}
+              className={`flex-1 border py-6 text-center ${
+                hasLetter ? 'border-red-900/60 bg-red-950/20' : 'border-slate-800 bg-slate-950/40'
               }`}
             >
-              <span
-                className={`h-2 w-2 flex-shrink-0 rounded-full ${
-                  solved ? 'bg-red-500' : 'bg-slate-700'
-                }`}
-              />
-              <span className="flex-1 font-mono text-xs uppercase tracking-widest text-slate-300">
-                {agent.callSign}
-                {isSelf ? ' (you)' : ''}
-              </span>
-
-              {solved ? (
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[10px] uppercase tracking-widest text-slate-500">
-                    Letter
-                  </span>
-                  <span className="font-display text-2xl font-black text-white">
-                    {letter}
-                  </span>
-                </div>
-              ) : (
-                <span className="font-mono text-[10px] uppercase tracking-widest text-slate-600 animate-pulse">
-                  Waiting...
-                </span>
-              )}
+              <p className="font-mono text-[10px] uppercase tracking-widest text-slate-500 mb-3">
+                Round {i + 1}
+              </p>
+              <p className="font-display text-4xl font-black text-white">
+                {letter ?? '?'}
+              </p>
             </div>
           );
         })}
@@ -98,13 +44,7 @@ function StatusScreen({ revealedLetter, playerId }) {
   );
 }
 
-export function PlayerDashboard({
-  playerName = 'PLAYER',
-  gameCode = '',
-  playerId = 'player1',
-  sessionId,
-  onExit,
-}) {
+export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit }) {
   const [activeTab, setActiveTab] = useState('scanner');
   const [currentRound, setCurrentRound] = useState(1);
   const [revealedLetter, setRevealedLetter] = useState(null);
@@ -112,9 +52,14 @@ export function PlayerDashboard({
   const [timeLeft, setTimeLeft] = useState(ROUND_DURATION);
   const [timerRunning, setTimerRunning] = useState(true);
 
-  const riddle = HARDCODED_RIDDLES.find(
-    r => r.playerId === playerId && r.round === currentRound
-  );
+  const { round, revealedLetters } = useTracker(() => {
+    Meteor.subscribe('rounds.forPlayer', playerId, currentRound);
+    Meteor.subscribe('player.self', playerId);
+    return {
+      round: Rounds.findOne({ playerId, roundNumber: currentRound }),
+      revealedLetters: Players.findOne(playerId)?.revealedLetters ?? [],
+    };
+  }, [playerId, currentRound]);
 
   const handleCorrectAnswer = useCallback((letter, isCorrect) => {
     setTimerRunning(false);
@@ -125,7 +70,6 @@ export function PlayerDashboard({
 
   useEffect(() => {
     if (!timerRunning) return;
-
     if (timeLeft <= 0) {
       setRevealedLetter('?');
       setAnswerCorrect(false);
@@ -133,11 +77,7 @@ export function PlayerDashboard({
       setTimerRunning(false);
       return;
     }
-
-    const timer = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
-    }, 1000);
-
+    const timer = setInterval(() => setTimeLeft(t => t - 1), 1000);
     return () => clearInterval(timer);
   }, [timeLeft, timerRunning]);
 
@@ -152,7 +92,6 @@ export function PlayerDashboard({
           </span>
           <RoundTimer timeLeft={timeLeft} totalTime={ROUND_DURATION} compact />
         </div>
-
         <button
           type="button"
           onClick={onExit}
@@ -165,10 +104,10 @@ export function PlayerDashboard({
       {activeTab === 'scanner' && (
         <div className="flex-shrink-0 flex items-start gap-3 border-b border-slate-800 px-5 py-3">
           <span className="flex-shrink-0 bg-red-700 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-white">
-            {riddle?.id ?? 'OBJ_???'}
+            ROUND_{currentRound}
           </span>
           <p className="font-mono text-xs leading-5 text-slate-300">
-            {riddle?.riddle ?? 'No riddle assigned'}
+            {round?.riddleText ?? 'Loading riddle...'}
           </p>
         </div>
       )}
@@ -184,7 +123,7 @@ export function PlayerDashboard({
       <div className="flex-1 min-h-0 flex flex-col pb-16">
         {activeTab === 'status' && (
           <div className="flex-1 overflow-y-auto px-5">
-            <StatusScreen revealedLetter={revealedLetter} playerId={playerId} />
+            <StatusScreen revealedLetters={revealedLetters} />
           </div>
         )}
 
@@ -201,11 +140,9 @@ export function PlayerDashboard({
                     <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-slate-500">
                       DATA_RECOVERY_ACTIVE
                     </p>
-
                     <p className="mt-8 font-display text-8xl font-black text-white">
                       {revealedLetter}
                     </p>
-
                     <p className="mt-6 font-mono text-sm uppercase tracking-[0.35em] text-slate-400">
                       LETTER REVEALED
                     </p>
@@ -215,22 +152,11 @@ export function PlayerDashboard({
                     <h2 className="font-display text-xl font-bold tracking-widest text-white">
                       {answerCorrect ? 'PUZZLE SOLVED' : 'WRONG OBJECT DETECTED'}
                     </h2>
-
                     <p className="mt-4 text-sm leading-6 text-slate-400">
                       {answerCorrect
                         ? 'You have obtained a revealed letter. Use it to help assemble the final code.'
                         : 'You have failed to obtain a revealed letter for this round.'}
                     </p>
-                  </div>
-
-                  <div className="mt-4">
-                    <div className="flex justify-between font-mono text-xs uppercase tracking-[0.3em]">
-                      <span className="text-white">WAITING FOR TEAM...</span>
-                      <span className="text-red-500">1 / 4 READY</span>
-                    </div>
-                    <div className="mt-4 h-3 bg-slate-800">
-                      <div className="h-3 w-1/4 bg-red-700" />
-                    </div>
                   </div>
                 </>
               ) : (
@@ -243,7 +169,7 @@ export function PlayerDashboard({
                 <button
                   type="button"
                   onClick={() => {
-                    setCurrentRound(prev => prev + 1);
+                    setCurrentRound(r => r + 1);
                     setTimeLeft(ROUND_DURATION);
                     setTimerRunning(true);
                     setRevealedLetter(null);
@@ -265,10 +191,9 @@ export function PlayerDashboard({
 
         {activeTab === 'scanner' && (
           <MobileRiddlePage
-            gameId={gameCode}
-            playerId={playerId}
-            round={currentRound}
-            sessionId={sessionId}
+            roundId={round?._id}
+            riddleText={round?.riddleText}
+            targetObject={round?.answer}
             isExpired={isExpired}
             onCorrect={handleCorrectAnswer}
           />

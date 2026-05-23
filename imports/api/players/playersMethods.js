@@ -11,11 +11,12 @@ Meteor.methods({
     if (playerCount >= game.capacity)
       throw new Meteor.Error('full', 'Game is full');
 
-    return Players.insertAsync({
+    const playerId = await Players.insertAsync({
       gameId: game._id,
       name: playerName.trim(),
       joinedAt: new Date(),
       revealedLetters: [],
     });
+    return { playerId, gameId: game._id };
   },
 });

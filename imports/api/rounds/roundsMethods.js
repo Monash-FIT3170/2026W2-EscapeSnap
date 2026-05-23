@@ -86,13 +86,12 @@ Meteor.methods({
       throw new Meteor.Error('timeout', 'Round timer expired');
     }
 
-    const isCorrect = false; // placeholder until AI validation
-
-    const letter = isCorrect ? round.letter : '?';
+    // Trust client-side detection result: if rounds.submit is called, detection passed
+    const letter = round.letter;
 
     await Rounds.updateAsync(roundId, {
       $set: {
-        status: isCorrect ? 'correct' : 'wrong',
+        status: 'correct',
         photoUrl,
         submittedAt: new Date(),
       },
@@ -102,6 +101,6 @@ Meteor.methods({
       $push: { revealedLetters: letter },
     });
 
-    return isCorrect;
+    return letter;
   },
 });
