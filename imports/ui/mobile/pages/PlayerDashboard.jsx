@@ -7,6 +7,8 @@ import { Games } from '/imports/api/games/GamesCollection';
 import MobileRiddlePage from './gameplay/MobileRiddlePage';
 import { MobileBottomNav } from '../components/navigation/MobileBottomNav';
 import { RoundTimer } from '../components/gameplay/RoundTimer';
+import { PlayerWinScreen } from './result/PlayerWinScreen';
+import { PlayerLoseScreen } from './result/PlayerLoseScreen';
 
 const MAX_ROUNDS = 3;
 
@@ -78,6 +80,7 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
   const isExpired = timeLeft !== null && timeLeft <= 0;
   const totalGameSeconds = (game?.timerMinutes ?? 30) * 60;
 
+  // All hooks must be declared before any early returns
   const handleCorrectAnswer = useCallback((letter, isCorrect) => {
     setRevealedLetter(letter);
     setAnswerCorrect(isCorrect);
@@ -99,6 +102,9 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
     setAnswerCorrect(null);
     setActiveTab('scanner');
   };
+
+  if (game?.status === 'won') return <PlayerWinScreen />;
+  if (game?.status === 'lost') return <PlayerLoseScreen />;
 
   return (
     <div className="h-screen flex flex-col bg-black text-slate-100 overflow-hidden">
