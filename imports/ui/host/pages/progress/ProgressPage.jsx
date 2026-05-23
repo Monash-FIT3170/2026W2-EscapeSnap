@@ -4,14 +4,8 @@ import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Games } from '../../../../api/games/GamesCollection';
 import { Rounds } from '../../../../api/rounds/RoundsCollection';
+import { Players } from '../../../../api/players/PlayersCollection';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
-
-const MOCK_PUZZLE_DATA = [
-  { puzzles: [true, true, true, false, false], status: 'COMPLETED' },
-  { puzzles: [true, false, false, false, false], status: 'NEEDS HELP' },
-  { puzzles: [true, true, true, false, false], status: 'COMPLETED' },
-  { puzzles: [true, true, false, false, false], status: 'NEEDS HELP' },
-];
 
 const MOCK_EVENTS = [
   { time: '14:22:10', message: 'DYLAN HAS COMPLETED THE PUZZLE', highlight: true },
@@ -19,6 +13,7 @@ const MOCK_EVENTS = [
   { time: '14:15:33', message: 'KAYVIS HAS UPLOADED AN INCORRECT ANSWER', highlight: false },
   { time: '14:10:12', message: 'CASIE HAS COMPLETED THE PUZZLE', highlight: false },
 ];
+
 
 const CheckIcon = () => (
   <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
@@ -36,13 +31,15 @@ const ProgressPage = () => {
   const { gameId } = useParams();
   const [timeLeft, setTimeLeft] = useState(null);
 
-  const { game, rounds, loading } = useTracker(() => {
+  const { game, rounds, players, loading } = useTracker(() => {
     const gameSub = Meteor.subscribe('games.current', gameId);
     const roundsSub = Meteor.subscribe('rounds.forGame', gameId);
+    const playersSub = Meteor.subscribe('players.inGame', gameId);
     return {
-      loading: !gameSub.ready() || !roundsSub.ready(),
+      loading: !gameSub.ready() || !roundsSub.ready() || !playersSub.ready(),
       game: Games.findOne(gameId),
       rounds: Rounds.find({ gameId }).fetch(),
+      players: Players.find({ gameId }, { sort: { joinedAt: 1 } }).fetch(),
     };
   }, [gameId]);
 
@@ -77,7 +74,6 @@ const ProgressPage = () => {
     );
   }
 
-  const players = game.players || [];
   const pinRaw = gameId.slice(-6).toUpperCase();
   const pin = pinRaw.slice(0, 3) + '-' + pinRaw.slice(3);
 
@@ -166,42 +162,87 @@ const ProgressPage = () => {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1">
                 <CheckIcon />
-                <span style={{ fontSize: 10, color: '#aa8984' }}>SOLVED</span>
+                <span style={{ fontSize: 10, color: '#aa8984' }}>CORRECT</span>
               </div>
               <div className="flex items-center gap-1">
                 <CrossIcon />
-                <span style={{ fontSize: 10, color: '#aa8984' }}>IN PROGRESS</span>
+                <span style={{ fontSize: 10, color: '#aa8984' }}>INCORRECT</span>
               </div>
+              <span style={{ fontSize: 10, color: '#aa8984' }}>? PENDING</span>
             </div>
           </div>
 
+          {/* Column headers */}
           <div className="flex items-center px-6 py-3" style={{ background: '#0e0e0e', borderBottom: '1px solid #353534' }}>
             <div style={{ width: 160, fontSize: 10, fontWeight: 700, letterSpacing: '1px', color: '#aa8984' }}>PLAYER</div>
-            {[1, 2, 3, 4, 5].map(n => (
-              <div key={n} style={{ flex: 1, fontSize: 10, fontWeight: 700, letterSpacing: '1px', color: '#aa8984', textAlign: 'center' }}>PUZZLE {n}</div>
+            {Array.from({ length: game.totalRounds }, (_, i) => (
+              <div
+                key={i}
+                style={{
+                  flex: 1, fontSize: 10, fontWeight: 700, letterSpacing: '1px',
+                  color: (i + 1) === game.currentRound ? '#e5e2e1' : '#aa8984',
+                  textAlign: 'center',
+                }}
+              >
+                ROUND {i + 1}{(i + 1) === game.currentRound ? ' ●' : ''}
+              </div>
             ))}
             <div style={{ width: 120, fontSize: 10, fontWeight: 700, letterSpacing: '1px', color: '#aa8984', textAlign: 'right' }}>STATUS</div>
           </div>
 
+          {players.length === 0 && (
+            <div className="px-6 py-6" style={{ color: '#555', fontSize: 11, letterSpacing: '1px' }}>
+              NO PLAYERS JOINED YET
+            </div>
+          )}
+
           {players.map((player, i) => {
-            const data = MOCK_PUZZLE_DATA[i] || { puzzles: [false, false, false, false, false], status: 'NEEDS HELP' };
-            const isCompleted = data.status === 'COMPLETED';
+            const playerRounds = rounds.filter(r => r.playerId === player._id);
+            const hasAnyWrong = playerRounds.some(r => r.status === 'wrong' || r.status === 'timeout');
+            const allDone = playerRounds.filter(r => r.status !== 'pending').length === game.totalRounds;
+            const allCorrect = playerRounds.every(r => r.status === 'correct');
+
+            let statusLabel, statusBg, statusColor;
+            if (allDone && allCorrect) {
+              statusLabel = 'COMPLETED'; statusBg = '#474747'; statusColor = '#e5e2e1';
+            } else if (hasAnyWrong) {
+              statusLabel = 'NEEDS HELP'; statusBg = '#93000a'; statusColor = '#ffdad6';
+            } else {
+              statusLabel = 'IN PROGRESS'; statusBg = '#1c3a1c'; statusColor = '#86efac';
+            }
+
             return (
-              <div key={player.id} className="flex items-center px-6 py-4" style={{ borderTop: i > 0 ? '1px solid #353534' : 'none' }}>
-                <div style={{ width: 160, fontWeight: 700, fontSize: 12, color: '#e5e2e1' }}>{player.name.toUpperCase()}</div>
-                {data.puzzles.map((solved, pi) => (
-                  <div key={pi} style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    {solved ? <CheckIcon /> : pi < 3 ? <CrossIcon /> : null}
-                  </div>
-                ))}
+              <div key={player._id} className="flex items-center px-6 py-4" style={{ borderTop: i > 0 ? '1px solid #353534' : 'none' }}>
+                <div style={{ width: 160, fontWeight: 700, fontSize: 12, color: '#e5e2e1' }}>
+                  {player.name.toUpperCase()}
+                </div>
+
+                {Array.from({ length: game.totalRounds }, (_, ri) => {
+                  const roundNum = ri + 1;
+                  const round = playerRounds.find(r => r.roundNumber === roundNum);
+                  const isFuture = roundNum > game.currentRound;
+
+                  let cell;
+                  if (isFuture) {
+                    cell = <span style={{ color: '#333', fontSize: 12 }}>—</span>;
+                  } else if (!round || round.status === 'pending') {
+                    cell = <span style={{ color: '#aa8984', fontSize: 16, fontWeight: 700 }}>?</span>;
+                  } else if (round.status === 'correct') {
+                    cell = <CheckIcon />;
+                  } else {
+                    cell = <CrossIcon />;
+                  }
+
+                  return (
+                    <div key={roundNum} style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                      {cell}
+                    </div>
+                  );
+                })}
+
                 <div style={{ width: 120, display: 'flex', justifyContent: 'flex-end' }}>
-                  <span style={{
-                    fontSize: 9,
-                    padding: '2px 8px',
-                    background: isCompleted ? '#474747' : '#93000a',
-                    color: isCompleted ? '#e5e2e1' : '#ffdad6',
-                  }}>
-                    {data.status}
+                  <span style={{ fontSize: 9, padding: '2px 8px', background: statusBg, color: statusColor }}>
+                    {statusLabel}
                   </span>
                 </div>
               </div>
@@ -210,7 +251,7 @@ const ProgressPage = () => {
         </div>
 
         {/* Event Log */}
-        <div className="p-6" style={{ background: '#0e0e0e', borderLeft: '1px solid rgba(90,64,60,0.2)' }}>
+      <div className="p-6" style={{ background: '#0e0e0e', borderLeft: '1px solid rgba(90,64,60,0.2)' }}>
           <div className="flex items-center gap-3 mb-4">
             <div style={{ width: 4, height: 16, background: '#8b0000' }} />
             <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: '#e5e2e1' }}>EVENT_LOG</span>

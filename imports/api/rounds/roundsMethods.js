@@ -101,6 +101,24 @@ Meteor.methods({
       $push: { revealedLetters: letter },
     });
 
+    // Advance currentRound when all players have submitted for this round
+    const submittedCount = await Rounds.find({
+      gameId: round.gameId,
+      roundNumber: round.roundNumber,
+      status: { $ne: 'pending' },
+    }).countAsync();
+    const playerCount = await Players.find({ gameId: round.gameId }).countAsync();
+
+    if (
+      submittedCount >= playerCount &&
+      game.currentRound === round.roundNumber &&
+      round.roundNumber < game.totalRounds
+    ) {
+      await Games.updateAsync(round.gameId, {
+        $set: { currentRound: round.roundNumber + 1 },
+      });
+    }
+
     return letter;
   },
 });
