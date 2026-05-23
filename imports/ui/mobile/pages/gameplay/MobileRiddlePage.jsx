@@ -123,8 +123,8 @@ const MobileRiddlePage = ({
   async function submitRiddle(photoUrl) {
     if (isExpired || !roundId) return;
     try {
-      const letter = await Meteor.callAsync('rounds.submit', roundId, photoUrl);
-      if (onCorrect) onCorrect(letter, letter !== '?');
+      const letter = await Meteor.callAsync('rounds.submit', roundId, photoUrl, true);
+      if (onCorrect) onCorrect(letter, true);
     } catch {
       if (onCorrect) onCorrect('?', false);
     } finally {

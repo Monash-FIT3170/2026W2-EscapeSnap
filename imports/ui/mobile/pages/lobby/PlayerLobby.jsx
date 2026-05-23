@@ -47,7 +47,7 @@ export function PlayerLobby({
         backgroundSize: '48px 48px',
       }}
     >
-      <div className="flex flex-col flex-1 min-h-0 w-full max-w-md mx-auto px-5 pt-4 pb-5">
+      <div className="flex flex-col flex-1 min-h-0 w-full max-w-md mx-auto px-5 pt-4 pb-2">
 
         {/* Header */}
         <div className="flex-shrink-0">
@@ -97,21 +97,6 @@ export function PlayerLobby({
 
           {/* Awaiting / in-session card */}
           <AwaitingGameCard inSession={inSession} />
-
-          {/* Action button */}
-          <button
-            type="button"
-            onClick={onGameStart}
-            disabled={inSession && isExpired}
-            className={`w-full border px-5 py-3.5 font-mono text-sm font-semibold uppercase tracking-[0.3em] transition ${
-              inSession && isExpired
-                ? 'border-slate-800 bg-slate-950 text-slate-600 cursor-not-allowed'
-                : 'border-red-600 bg-red-600 text-white hover:bg-red-500'
-            }`}
-          >
-            {inSession ? (isExpired ? 'Round Ended' : 'Rejoin') : 'Start Game'}
-          </button>
-
         </div>
       </div>
     </div>

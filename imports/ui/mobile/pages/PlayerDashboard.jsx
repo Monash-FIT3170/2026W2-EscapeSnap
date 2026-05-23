@@ -3,11 +3,11 @@ import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Rounds } from '/imports/api/rounds/RoundsCollection';
 import { Players } from '/imports/api/players/PlayersCollection';
+import { Games } from '/imports/api/games/GamesCollection';
 import MobileRiddlePage from './gameplay/MobileRiddlePage';
 import { MobileBottomNav } from '../components/navigation/MobileBottomNav';
 import { RoundTimer } from '../components/gameplay/RoundTimer';
 
-const ROUND_DURATION = 60;
 const MAX_ROUNDS = 3;
 
 function StatusScreen({ revealedLetters }) {
@@ -49,39 +49,56 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
   const [currentRound, setCurrentRound] = useState(1);
   const [revealedLetter, setRevealedLetter] = useState(null);
   const [answerCorrect, setAnswerCorrect] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(ROUND_DURATION);
-  const [timerRunning, setTimerRunning] = useState(true);
+  const [timeLeft, setTimeLeft] = useState(null);
 
-  const { round, revealedLetters } = useTracker(() => {
+  const { round, revealedLetters, game } = useTracker(() => {
     Meteor.subscribe('rounds.forPlayer', playerId, currentRound);
     Meteor.subscribe('player.self', playerId);
+    Meteor.subscribe('games.current', gameId);
     return {
       round: Rounds.findOne({ playerId, roundNumber: currentRound }),
       revealedLetters: Players.findOne(playerId)?.revealedLetters ?? [],
+      game: Games.findOne(gameId),
     };
-  }, [playerId, currentRound]);
+  }, [playerId, currentRound, gameId]);
+
+  // Track remaining game time
+  useEffect(() => {
+    if (!game?.startedAt || !game?.timerMinutes) return;
+    const tick = () => {
+      const elapsed = Date.now() - new Date(game.startedAt).getTime();
+      const remaining = Math.max(0, game.timerMinutes * 60 * 1000 - elapsed);
+      setTimeLeft(Math.floor(remaining / 1000));
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [game?.startedAt, game?.timerMinutes]);
+
+  const isExpired = timeLeft !== null && timeLeft <= 0;
+  const totalGameSeconds = (game?.timerMinutes ?? 30) * 60;
 
   const handleCorrectAnswer = useCallback((letter, isCorrect) => {
-    setTimerRunning(false);
     setRevealedLetter(letter);
     setAnswerCorrect(isCorrect);
     setActiveTab('clues');
   }, []);
 
-  useEffect(() => {
-    if (!timerRunning) return;
-    if (timeLeft <= 0) {
-      setRevealedLetter('?');
-      setAnswerCorrect(false);
-      setActiveTab('clues');
-      setTimerRunning(false);
-      return;
-    }
-    const timer = setInterval(() => setTimeLeft(t => t - 1), 1000);
-    return () => clearInterval(timer);
-  }, [timeLeft, timerRunning]);
+  const handleNextRound = async () => {
+    try {
+      await Meteor.callAsync('games.advanceRound', gameId);
+    } catch {}
+    setCurrentRound(r => r + 1);
+    setRevealedLetter(null);
+    setAnswerCorrect(null);
+    setActiveTab('scanner');
+  };
 
-  const isExpired = timeLeft <= 0;
+  const handleRetry = () => {
+    setRevealedLetter(null);
+    setAnswerCorrect(null);
+    setActiveTab('scanner');
+  };
 
   return (
     <div className="h-screen flex flex-col bg-black text-slate-100 overflow-hidden">
@@ -90,7 +107,7 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
           <span className="font-mono text-xs font-bold uppercase tracking-widest text-white">
             Round {currentRound}
           </span>
-          <RoundTimer timeLeft={timeLeft} totalTime={ROUND_DURATION} compact />
+          <RoundTimer timeLeft={timeLeft ?? totalGameSeconds} totalTime={totalGameSeconds} compact />
         </div>
         <button
           type="button"
@@ -115,7 +132,7 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
       {activeTab === 'scanner' && isExpired && (
         <div className="flex-shrink-0 border-b border-red-900/60 bg-red-950/40 px-5 py-2 text-center">
           <p className="font-mono text-xs uppercase tracking-widest text-red-400">
-            Round ended — submission window closed
+            Game time expired — no more submissions
           </p>
         </div>
       )}
@@ -158,6 +175,16 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
                         : 'You have failed to obtain a revealed letter for this round.'}
                     </p>
                   </div>
+
+                  {!answerCorrect && !isExpired && (
+                    <button
+                      type="button"
+                      onClick={handleRetry}
+                      className="w-full border border-slate-600 bg-transparent px-5 py-4 font-mono text-sm font-semibold uppercase tracking-[0.3em] text-slate-400 hover:border-slate-400 hover:text-slate-200 transition"
+                    >
+                      Retry
+                    </button>
+                  )}
                 </>
               ) : (
                 <p className="font-mono text-sm text-slate-500">
@@ -168,14 +195,7 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
               {currentRound < MAX_ROUNDS ? (
                 <button
                   type="button"
-                  onClick={() => {
-                    setCurrentRound(r => r + 1);
-                    setTimeLeft(ROUND_DURATION);
-                    setTimerRunning(true);
-                    setRevealedLetter(null);
-                    setAnswerCorrect(null);
-                    setActiveTab('scanner');
-                  }}
+                  onClick={handleNextRound}
                   className="mt-6 w-full border border-red-600 bg-red-600 px-5 py-4 font-mono text-sm font-semibold uppercase tracking-[0.3em] text-white"
                 >
                   Next Round
