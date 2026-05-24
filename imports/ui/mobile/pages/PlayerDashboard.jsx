@@ -12,7 +12,7 @@ import { PlayerLoseScreen } from './result/PlayerLoseScreen';
 
 const MAX_ROUNDS = 3;
 
-function StatusScreen({ revealedLetters }) {
+function LettersScreen({ revealedLetters }) {
   return (
     <section className="flex flex-col gap-5 pt-5">
       <div>
@@ -46,12 +46,73 @@ function StatusScreen({ revealedLetters }) {
   );
 }
 
+function ResultScreen({ revealedLetter, answerCorrect, isExpired, currentRound, onRetry, onNextRound }) {
+  return (
+    <div className="flex-1 overflow-y-auto px-5">
+      <section className="flex flex-col gap-6 pt-5">
+        <h1 className="font-display text-6xl font-black text-red-700">
+          {answerCorrect ? 'CORRECT!' : 'INCORRECT!'}
+        </h1>
+
+        <div className="border border-slate-700 bg-slate-950/70 px-6 py-10 text-center">
+          <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-slate-500">
+            DATA_RECOVERY_ACTIVE
+          </p>
+          <p className="mt-8 font-display text-8xl font-black text-white">
+            {revealedLetter}
+          </p>
+          <p className="mt-6 font-mono text-sm uppercase tracking-[0.35em] text-slate-400">
+            LETTER REVEALED
+          </p>
+        </div>
+
+        <div className="border-l-4 border-red-600 bg-slate-900/80 px-6 py-6">
+          <h2 className="font-display text-xl font-bold tracking-widest text-white">
+            {answerCorrect ? 'PUZZLE SOLVED' : 'WRONG OBJECT DETECTED'}
+          </h2>
+          <p className="mt-4 text-sm leading-6 text-slate-400">
+            {answerCorrect
+              ? 'You have obtained a revealed letter. Use it to help assemble the final code.'
+              : 'You have failed to obtain a revealed letter for this round.'}
+          </p>
+        </div>
+
+        {!answerCorrect && !isExpired && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="w-full border border-slate-600 bg-transparent px-5 py-4 font-mono text-sm font-semibold uppercase tracking-[0.3em] text-slate-400 hover:border-slate-400 hover:text-slate-200 transition"
+          >
+            Retry
+          </button>
+        )}
+
+        {currentRound < MAX_ROUNDS ? (
+          <button
+            type="button"
+            onClick={onNextRound}
+            className="mt-2 w-full border border-red-600 bg-red-600 px-5 py-4 font-mono text-sm font-semibold uppercase tracking-[0.3em] text-white"
+          >
+            Next Round
+          </button>
+        ) : (
+          <p className="mt-6 text-center font-mono text-sm uppercase tracking-[0.3em] text-red-500">
+            All rounds completed
+          </p>
+        )}
+      </section>
+    </div>
+  );
+}
+
 export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit }) {
   const [activeTab, setActiveTab] = useState('scanner');
   const [currentRound, setCurrentRound] = useState(1);
   const [revealedLetter, setRevealedLetter] = useState(null);
   const [answerCorrect, setAnswerCorrect] = useState(null);
   const [timeLeft, setTimeLeft] = useState(null);
+
+  const showResult = revealedLetter !== null;
 
   const { round, revealedLetters, game } = useTracker(() => {
     Meteor.subscribe('rounds.forPlayer', playerId, currentRound);
@@ -64,7 +125,6 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
     };
   }, [playerId, currentRound, gameId]);
 
-  // Track remaining game time
   useEffect(() => {
     if (!game?.startedAt || !game?.timerMinutes) return;
     const tick = () => {
@@ -80,16 +140,13 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
   const isExpired = timeLeft !== null && timeLeft <= 0;
   const totalGameSeconds = (game?.timerMinutes ?? 30) * 60;
 
-  // All hooks must be declared before any early returns
   const handleCorrectAnswer = useCallback((letter, isCorrect) => {
     setRevealedLetter(letter);
     setAnswerCorrect(isCorrect);
-    setActiveTab('clues');
   }, []);
 
   const handleNextRound = async () => {
     if (!answerCorrect) {
-      // Player didn't submit correctly - mark their pending round as wrong and advance
       try {
         await Meteor.callAsync('games.advanceRound', gameId);
       } catch {}
@@ -127,7 +184,7 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
         </button>
       </header>
 
-      {activeTab === 'scanner' && (
+      {!showResult && activeTab === 'scanner' && (
         <div className="flex-shrink-0 flex items-start gap-3 border-b border-slate-800 px-5 py-3">
           <span className="flex-shrink-0 bg-red-700 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-white">
             ROUND_{currentRound}
@@ -138,7 +195,7 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
         </div>
       )}
 
-      {activeTab === 'scanner' && isExpired && (
+      {!showResult && activeTab === 'scanner' && isExpired && (
         <div className="flex-shrink-0 border-b border-red-900/60 bg-red-950/40 px-5 py-2 text-center">
           <p className="font-mono text-xs uppercase tracking-widest text-red-400">
             Game time expired — no more submissions
@@ -146,90 +203,40 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
         </div>
       )}
 
-      <div className="flex-1 min-h-0 flex flex-col pb-16">
-        {activeTab === 'status' && (
-          <div className="flex-1 overflow-y-auto px-5">
-            <StatusScreen revealedLetters={revealedLetters} />
-          </div>
-        )}
-
-        {activeTab === 'clues' && (
-          <div className="flex-1 overflow-y-auto px-5">
-            <section className="flex flex-col gap-6 pt-5">
-              {revealedLetter ? (
-                <>
-                  <h1 className="font-display text-6xl font-black text-red-700">
-                    {answerCorrect ? 'CORRECT!' : 'INCORRECT!'}
-                  </h1>
-
-                  <div className="border border-slate-700 bg-slate-950/70 px-6 py-10 text-center">
-                    <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-slate-500">
-                      DATA_RECOVERY_ACTIVE
-                    </p>
-                    <p className="mt-8 font-display text-8xl font-black text-white">
-                      {revealedLetter}
-                    </p>
-                    <p className="mt-6 font-mono text-sm uppercase tracking-[0.35em] text-slate-400">
-                      LETTER REVEALED
-                    </p>
-                  </div>
-
-                  <div className="border-l-4 border-red-600 bg-slate-900/80 px-6 py-6">
-                    <h2 className="font-display text-xl font-bold tracking-widest text-white">
-                      {answerCorrect ? 'PUZZLE SOLVED' : 'WRONG OBJECT DETECTED'}
-                    </h2>
-                    <p className="mt-4 text-sm leading-6 text-slate-400">
-                      {answerCorrect
-                        ? 'You have obtained a revealed letter. Use it to help assemble the final code.'
-                        : 'You have failed to obtain a revealed letter for this round.'}
-                    </p>
-                  </div>
-
-                  {!answerCorrect && !isExpired && (
-                    <button
-                      type="button"
-                      onClick={handleRetry}
-                      className="w-full border border-slate-600 bg-transparent px-5 py-4 font-mono text-sm font-semibold uppercase tracking-[0.3em] text-slate-400 hover:border-slate-400 hover:text-slate-200 transition"
-                    >
-                      Retry
-                    </button>
-                  )}
-                </>
-              ) : (
-                <p className="font-mono text-sm text-slate-500">
-                  No letters revealed yet. Use the scanner to solve your riddle.
-                </p>
-              )}
-
-              {currentRound < MAX_ROUNDS ? (
-                <button
-                  type="button"
-                  onClick={handleNextRound}
-                  className="mt-6 w-full border border-red-600 bg-red-600 px-5 py-4 font-mono text-sm font-semibold uppercase tracking-[0.3em] text-white"
-                >
-                  Next Round
-                </button>
-              ) : (
-                <p className="mt-6 text-center font-mono text-sm uppercase tracking-[0.3em] text-red-500">
-                  All rounds completed
-                </p>
-              )}
-            </section>
-          </div>
-        )}
-
-        {activeTab === 'scanner' && (
-          <MobileRiddlePage
-            roundId={round?._id}
-            riddleText={round?.riddleText}
-            targetObject={round?.answer}
+      <div className={`flex-1 min-h-0 flex flex-col ${showResult ? '' : 'pb-16'}`}>
+        {showResult ? (
+          <ResultScreen
+            revealedLetter={revealedLetter}
+            answerCorrect={answerCorrect}
             isExpired={isExpired}
-            onCorrect={handleCorrectAnswer}
+            currentRound={currentRound}
+            onRetry={handleRetry}
+            onNextRound={handleNextRound}
           />
+        ) : (
+          <>
+            {activeTab === 'letters' && (
+              <div className="flex-1 overflow-y-auto px-5">
+                <LettersScreen revealedLetters={revealedLetters} />
+              </div>
+            )}
+
+            {activeTab === 'scanner' && (
+              <MobileRiddlePage
+                roundId={round?._id}
+                riddleText={round?.riddleText}
+                targetObject={round?.answer}
+                isExpired={isExpired}
+                onCorrect={handleCorrectAnswer}
+              />
+            )}
+          </>
         )}
       </div>
 
-      <MobileBottomNav active={activeTab} onChange={setActiveTab} />
+      {!showResult && (
+        <MobileBottomNav active={activeTab} onChange={setActiveTab} />
+      )}
     </div>
   );
 }

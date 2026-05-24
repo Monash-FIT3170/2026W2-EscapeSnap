@@ -2,16 +2,6 @@ import React from 'react';
 
 const navItems = [
   {
-    key: 'clues',
-    label: 'Clues',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-        <circle cx="11" cy="11" r="6" />
-        <path d="m20 20-3.5-3.5" />
-      </svg>
-    ),
-  },
-  {
     key: 'scanner',
     label: 'Scanner',
     icon: (
@@ -21,14 +11,12 @@ const navItems = [
     ),
   },
   {
-    key: 'status',
-    label: 'Status',
+    key: 'letters',
+    label: 'Letters',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-        <rect x="4" y="4" width="6" height="6" rx="1" />
-        <rect x="14" y="4" width="6" height="6" rx="1" />
-        <rect x="4" y="14" width="6" height="6" rx="1" />
-        <path d="M14 14h6v6h-6z" />
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="m3 7 9 6 9-6" />
       </svg>
     ),
   },
