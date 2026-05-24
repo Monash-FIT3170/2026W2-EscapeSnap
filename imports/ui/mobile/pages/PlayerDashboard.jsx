@@ -88,9 +88,12 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
   }, []);
 
   const handleNextRound = async () => {
-    try {
-      await Meteor.callAsync('games.advanceRound', gameId);
-    } catch {}
+    if (!answerCorrect) {
+      // Player didn't submit correctly - mark their pending round as wrong and advance
+      try {
+        await Meteor.callAsync('games.advanceRound', gameId);
+      } catch {}
+    }
     setCurrentRound(r => r + 1);
     setRevealedLetter(null);
     setAnswerCorrect(null);
