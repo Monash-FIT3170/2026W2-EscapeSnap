@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Meteor } from 'meteor/meteor';
-import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 
 function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
@@ -29,10 +28,9 @@ function CameraIcon() {
 }
 
 const MobileRiddlePage = ({
-  gameId,
-  sessionId,
-  playerId = 'player1',
-  round = 1,
+  roundId,
+  riddleText,
+  targetObject,
   isExpired = false,
   onCorrect,
 }) => {
@@ -45,12 +43,6 @@ const MobileRiddlePage = ({
   const [capturedUrl, setCapturedUrl] = useState(null);
   const [predictions, setPredictions] = useState(null);
   const [validationState, setValidationState] = useState(null);
-
-  const riddle = HARDCODED_RIDDLES.find(
-    r => r.playerId === playerId && r.round === round
-  );
-
-  const targetObject = riddle?.answerKeyword ?? 'object';
 
   useEffect(() => {
     if (isExpired) return;
@@ -68,9 +60,7 @@ const MobileRiddlePage = ({
         video: { facingMode: 'environment' },
         audio: false,
       });
-
       streamRef.current = stream;
-
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
@@ -84,11 +74,10 @@ const MobileRiddlePage = ({
   }
 
   async function handleCapture() {
-    if (isExpired) return;
+    if (isExpired || !roundId) return;
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
-
     if (!video || !canvas) return;
 
     canvas.width = video.videoWidth;
@@ -109,50 +98,44 @@ const MobileRiddlePage = ({
 
       const base64 = await blobToBase64(blob);
 
-      Meteor.call('submissions.detect', base64, targetObject, (err, result) => {
-        setUploading(false);
-
+      Meteor.call('submissions.detect', base64, targetObject ?? 'object', async (err, result) => {
         if (err) {
+          setUploading(false);
           setValidationState('fail');
           if (onCorrect) onCorrect('?', false);
           return;
         }
 
         setPredictions(result.predictions ?? []);
-
         const outcome = result.outcome === 'escalate' ? 'fail' : result.outcome;
         setValidationState(outcome);
 
         if (outcome === 'pass') {
-          submitRiddle();
+          await submitRiddle(base64);
         } else {
+          setUploading(false);
           if (onCorrect) onCorrect('?', false);
         }
       });
     }, 'image/jpeg', 0.85);
   }
 
-  async function submitRiddle() {
-    if (isExpired) return;
-
+  async function submitRiddle(photoUrl) {
+    if (isExpired || !roundId) return;
     try {
-      const revealed = await Meteor.callAsync(
-        'games.submitRiddle',
-        sessionId || gameId,
-        playerId,
-        round
-      );
-
-      if (onCorrect) onCorrect(revealed, true);
+      const letter = await Meteor.callAsync('rounds.submit', roundId, photoUrl, true);
+      if (onCorrect) onCorrect(letter, true);
     } catch {
       if (onCorrect) onCorrect('?', false);
+    } finally {
+      setUploading(false);
     }
   }
 
-  if (!riddle) {
+  if (!roundId) {
     return (
-      <div className="pt-5 font-mono text-sm text-red-500">
-        RIDDLE NOT FOUND
+      <div className="pt-5 font-mono text-sm text-slate-500 text-center">
+        Loading round...
       </div>
     );
   }
@@ -206,9 +189,7 @@ const MobileRiddlePage = ({
         {isExpired && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/70">
             <span className="font-mono text-3xl text-red-500">✗</span>
-            <span className="font-mono text-xs uppercase tracking-widest text-red-400">
-              Round Ended
-            </span>
+            <span className="font-mono text-xs uppercase tracking-widest text-red-400">Round Ended</span>
             <span className="mt-1 font-mono text-[10px] uppercase tracking-widest text-red-700">
               No submission accepted
             </span>

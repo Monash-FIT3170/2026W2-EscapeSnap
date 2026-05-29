@@ -1,5 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { Games } from './GamesCollection';
+import { Players } from '../players/PlayersCollection';
+import { Rounds } from '../rounds/RoundsCollection';
 import { RoundSessions } from '/imports/api/rounds/RoundSessions';
 import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 import { FINAL_RIDDLE } from '../../lib/finalRiddle';
@@ -66,6 +68,32 @@ Meteor.methods({
     if (!riddle) throw new Meteor.Error('no-riddle', 'No riddle found for this player');
 
     return riddle.revealedLetter;
+  },
+
+  async 'games.advanceRound'(gameId) {
+    const game = await Games.findOneAsync(gameId);
+    if (!game) throw new Meteor.Error('not-found', 'Game not found');
+    if (game.currentRound >= game.totalRounds) return;
+
+    // Mark every still-pending round for the current round as wrong
+    const pendingRounds = await Rounds.find({
+      gameId,
+      roundNumber: game.currentRound,
+      status: 'pending',
+    }).fetchAsync();
+
+    await Promise.all(pendingRounds.map(async r => {
+      await Rounds.updateAsync(r._id, {
+        $set: { status: 'wrong', submittedAt: new Date() },
+      });
+      await Players.updateAsync(r.playerId, {
+        $push: { revealedLetters: '?' },
+      });
+    }));
+
+    await Games.updateAsync(gameId, {
+      $set: { currentRound: game.currentRound + 1 },
+    });
   },
 
   async 'games.submitFinalAnswer'(gameId, guess) {

@@ -1,11 +1,11 @@
 import { Meteor } from 'meteor/meteor';
 import { Rounds } from './RoundsCollection';
 
-// Mobile: player's round for the current round number
+// Mobile: player's round — includes answer (for camera detection) but not the letter reward
 Meteor.publish('rounds.forPlayer', function (playerId, roundNumber) {
   return Rounds.find(
     { playerId, roundNumber },
-    { fields: { answer: 0 } }
+    { fields: { letter: 0 } }
   );
 });
 

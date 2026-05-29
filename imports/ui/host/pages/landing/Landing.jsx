@@ -1,9 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router';
+import { Link } from 'react-router-dom';
 
-const Landing = () => {
-  const navigate = useNavigate();
-
+function Landing() {
   return (
     <div className="min-h-screen text-gray-100 flex flex-col" style={{ background: '#0e0e0e' }}>
       <header className="px-8 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #1c1b1b' }}>
@@ -24,15 +22,26 @@ const Landing = () => {
             Turn your surroundings into an interactive escape room. Solve visual riddles, collect clues, and crack the final code — wherever you are.
           </p>
 
-          <button
-            onClick={() => navigate('/game/create')}
-            className="text-sm tracking-widest uppercase px-12 py-4 transition-colors cursor-pointer"
-            style={{ background: '#8b0000', color: '#e5e2e1' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
-            onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
-          >
-            CREATE NEW GAME
-          </button>
+          <div className="flex flex-col gap-4 w-full max-w-xs mx-auto">
+            <Link
+              to="/player"
+              className="block w-full py-4 text-center text-sm tracking-widest uppercase transition-colors cursor-pointer"
+              style={{ border: '1px solid #1c1b1b', color: '#e5e2e1', background: 'transparent' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = '#8b0000'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = '#1c1b1b'}
+            >
+              JOIN AS PLAYER
+            </Link>
+            <Link
+              to="/host"
+              className="block w-full py-4 text-center text-sm tracking-widest uppercase transition-colors cursor-pointer"
+              style={{ background: '#8b0000', color: '#e5e2e1' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
+              onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
+            >
+              HOST A GAME
+            </Link>
+          </div>
 
           <p className="text-xs tracking-widest mt-8" style={{ color: '#444' }}>
             HOST A SESSION · BEGIN MISSION
@@ -47,6 +56,6 @@ const Landing = () => {
       </footer>
     </div>
   );
-};
+}
 
 export default Landing;

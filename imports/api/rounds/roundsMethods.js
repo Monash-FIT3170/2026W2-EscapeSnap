@@ -60,33 +60,25 @@ Meteor.methods({
 
 
 
-  async 'rounds.submit'(roundId, photoUrl) {
+  async 'rounds.submit'(roundId, photoUrl, isCorrect = true) {
     const round = await Rounds.findOneAsync(roundId);
     if (!round) throw new Meteor.Error('not-found', 'Round not found');
     if (round.status !== 'pending')
       throw new Meteor.Error('invalid-state', 'Round already submitted');
 
-    // reject submissions made after the round timer expires.
-    // MVP uses the total game timer as the round timer.
     const game = await Games.findOneAsync(round.gameId);
     const expired = game?.startedAt &&
       Date.now() - game.startedAt.getTime() > game.timerMinutes * 60 * 1000;
 
     if (expired) {
       await Rounds.updateAsync(roundId, {
-        $set: {
-          status: 'timeout',
-          photoUrl,
-          submittedAt: new Date(),
-        },
+        $set: { status: 'timeout', photoUrl, submittedAt: new Date() },
       });
       await Players.updateAsync(round.playerId, {
         $push: { revealedLetters: '?' },
       });
       throw new Meteor.Error('timeout', 'Round timer expired');
     }
-
-    const isCorrect = false; // placeholder until AI validation
 
     const letter = isCorrect ? round.letter : '?';
 
@@ -102,6 +94,24 @@ Meteor.methods({
       $push: { revealedLetters: letter },
     });
 
-    return isCorrect;
+    // Advance currentRound when all players have submitted for this round
+    const submittedCount = await Rounds.find({
+      gameId: round.gameId,
+      roundNumber: round.roundNumber,
+      status: { $ne: 'pending' },
+    }).countAsync();
+    const playerCount = await Players.find({ gameId: round.gameId }).countAsync();
+
+    if (
+      submittedCount >= playerCount &&
+      game.currentRound === round.roundNumber &&
+      round.roundNumber < game.totalRounds
+    ) {
+      await Games.updateAsync(round.gameId, {
+        $set: { currentRound: round.roundNumber + 1 },
+      });
+    }
+
+    return letter;
   },
 });
