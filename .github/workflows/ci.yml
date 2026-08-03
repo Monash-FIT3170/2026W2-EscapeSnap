@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  branch-name:
+    name: Branch naming convention
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      # PMP 3.4 / QAP: feature/<name>, fix/<name>, spike/<name>, kebab-case
+      - name: Check branch name
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          echo "Branch: $BRANCH"
+          if [[ ! "$BRANCH" =~ ^(feature|fix|spike)/[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+            echo "::error::Branch '$BRANCH' does not follow the required convention: feature/<name>, fix/<name>, or spike/<name> in kebab-case (PMP 3.4)."
+            exit 1
+          fi
+
+  commit-format:
+    name: Commit message format
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # QAP: "[Role] [Task ID] <type>: <description>", role in {RTE, PM, SA}, type in {feat, fix, docs, chore}
+      - name: Check commit messages
+        run: |
+          PATTERN='^\[(RTE|PM|SA)\] \[[A-Z]+-[0-9]+\] (feat|fix|docs|chore): .+'
+          FAILED=0
+          for sha in $(git rev-list ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}); do
+            MSG=$(git log -1 --format=%s "$sha")
+            if [[ ! "$MSG" =~ $PATTERN ]]; then
+              echo "::error::Commit $sha does not follow '[Role] [Task ID] <type>: <description>' — \"$MSG\""
+              FAILED=1
+            fi
+          done
+          exit $FAILED
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+
+  build:
+    name: Build (Meteor)
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Meteor tool
+        uses: actions/cache@v4
+        with:
+          path: ~/.meteor
+          key: meteor-${{ runner.os }}-${{ hashFiles('.meteor/release') }}
+
+      - name: Install Meteor
+        run: |
+          if [ ! -x "$HOME/.meteor/meteor" ]; then
+            curl https://install.meteor.com/ | sh
+          fi
+          echo "$HOME/.meteor" >> "$GITHUB_PATH"
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Install dependencies
+        run: meteor npm install
+
+      # Verifies main can still build and boot (QAP rule M1.4 — Broken Main Branch)
+      - name: Build app
+        run: meteor build --directory /tmp/escapesnap-build --allow-superuser
