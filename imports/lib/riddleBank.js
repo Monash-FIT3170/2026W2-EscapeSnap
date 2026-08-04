@@ -1,7 +1,5 @@
-// Offline fallback riddle pool — used only when live Gemini generation
-// (imports/api/riddles/geminiClient.js) is unavailable, errors, or returns too few
-// riddles. Every `answer` here must be an exact match from ROUND_RIDDLE_CLASSES in
-// imports/lib/cocoClasses.js, or the vision model will never confirm a photo.
+// Offline fallback riddles, used if live Gemini generation fails. Every `answer`
+// must exactly match a ROUND_RIDDLE_CLASSES entry (imports/lib/cocoClasses.js).
 export const RIDDLE_BANK = [
   {
     text: 'I breathe, I think, and I might be reading this riddle right now. Capture me.',

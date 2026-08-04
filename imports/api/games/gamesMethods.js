@@ -32,11 +32,8 @@ Meteor.methods({
       createdAt: new Date(),
       startedAt: null,
       endedAt: null,
-      // Placeholder — the real final riddle is generated in rounds.createForGame
-      // (triggered by games.start) once the actual player count is known. Its
-      // answer's length must exactly match totalRounds * playerCount so every
-      // letter a player can earn maps to a real position in the word — that can
-      // only be computed after players have actually joined the lobby.
+      // Placeholder — replaced in rounds.createForGame once player count is known
+      // (the real answer's length must equal totalRounds * playerCount).
       finalRiddle: FINAL_RIDDLE,
     });
   },

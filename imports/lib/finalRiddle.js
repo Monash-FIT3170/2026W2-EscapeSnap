@@ -1,9 +1,6 @@
-// Offline fallback final riddles — used only when live Gemini generation
-// (imports/api/riddles/geminiClient.js) is unavailable or can't produce an answer of
-// the exact letter count needed. That count must match totalRounds * playerCount
-// exactly, or not every collected letter maps to a real position in the answer (see
-// assignLetters() in imports/api/rounds/roundsMethods.js) — so this bank is keyed by
-// answer length, not just a single static riddle.
+// Offline fallback final riddles, keyed by answer length — the length must exactly
+// match totalRounds * playerCount (see rounds.createForGame), so one static riddle
+// isn't enough.
 const FINAL_RIDDLE_BANK = [
   {
     riddle:
@@ -57,11 +54,8 @@ const FINAL_RIDDLE_BANK = [
   },
 ];
 
-// Picks a fallback riddle whose answer is exactly `letterCount` letters long — this
-// covers the realistic in-app range (totalRounds is fixed at 3, capacity is 1-4, so
-// letterCount is 3/6/9/12, all present above). Falls back to the closest available
-// length if there's genuinely no exact match, which only happens if Gemini AND every
-// retry have already failed and someone changed totalRounds/capacity outside the UI.
+// Returns a riddle with an exact-length answer, or the closest available length if
+// there's no exact match (only possible if Gemini and every retry already failed).
 export function getFallbackFinalRiddle(letterCount) {
   const exact = FINAL_RIDDLE_BANK.filter(
     (r) => r.answer.length === letterCount
@@ -80,7 +74,5 @@ export function getFallbackFinalRiddle(letterCount) {
   )[0];
 }
 
-// A single static riddle for use as an initial placeholder at game creation time,
-// before the real player count (and therefore the real letterCount) is known.
-// Always overwritten by rounds.createForGame once the game actually starts.
+// Placeholder used at game creation, before player count is known.
 export const FINAL_RIDDLE = FINAL_RIDDLE_BANK[0];

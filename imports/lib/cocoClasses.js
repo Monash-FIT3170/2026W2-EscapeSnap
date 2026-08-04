@@ -1,7 +1,5 @@
-// Full label set used by @tensorflow-models/coco-ssd (COCO 2017, 80 classes).
-// This is the exact vocabulary the server's object-detection model can recognise —
-// any AI-generated round riddle's `answer` MUST be one of these strings verbatim,
-// or the camera step in MobileRiddlePage can never register a match.
+// All 80 labels the vision model (coco-ssd) recognises. Round riddle answers must
+// match one of these verbatim, or the camera check can never pass.
 export const COCO_CLASSES = [
   'person',
   'bicycle',
@@ -85,12 +83,8 @@ export const COCO_CLASSES = [
   'toothbrush',
 ];
 
-// Curated subset of COCO_CLASSES: objects a player could realistically find and
-// photograph in a university classroom/lecture room (the actual venue this game
-// is played in). Excludes anything home-only (microwave, refrigerator, teddy bear,
-// hair drier, bed, couch...) or outdoor/exotic (elephant, airplane, bicycle...) that
-// a student would never have on them or find in a classroom.
-// This is the enum we constrain Gemini's round-riddle `answer` field to.
+// Subset of COCO_CLASSES realistic for a live classroom game (excludes home-only
+// and outdoor/exotic items). Gemini's round-riddle `answer` is constrained to this.
 export const ROUND_RIDDLE_CLASSES = [
   'person',
   'backpack',

@@ -9,9 +9,8 @@ import {
   generateRoundRiddles,
 } from '../riddles/geminiClient';
 
-// Tops a (possibly short, possibly empty) AI-generated pool up to `needed` entries
-// using the offline fallback bank, so a Gemini failure or partial response never
-// blocks round creation.
+// Tops up a short/empty AI-generated pool with the offline fallback bank, so a
+// Gemini failure never blocks round creation.
 function ensureEnoughRiddles(pool, needed) {
   const combined = [...(pool || [])];
   if (combined.length < needed) {
@@ -47,14 +46,12 @@ Meteor.methods({
 
     const totalRounds = game.totalRounds;
     const needed = totalRounds * players.length;
-    // Every letter a player can earn must map to a real position in the final
-    // answer, so the answer's length has to exactly equal the total number of
-    // letters that CAN be revealed across the whole game — totalRounds * playerCount.
-    // Only known now, once players have actually joined the lobby.
+    // Each round rewards one letter of the final answer, so its length must equal
+    // totalRounds * playerCount exactly — the total letters that can ever be
+    // revealed. Only known now that players have actually joined.
     const letterCount = Math.max(1, needed);
 
-    // Run both Gemini calls in parallel — round-riddle generation doesn't depend on
-    // the final answer, only the local letter-assignment math below does.
+    // Independent of each other — run in parallel.
     const [finalRiddleResult, roundPoolResult] = await Promise.allSettled([
       generateFinalRiddle({ difficulty: game.difficulty, letterCount }),
       generateRoundRiddles({ count: needed, difficulty: game.difficulty }),

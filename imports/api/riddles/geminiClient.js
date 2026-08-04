@@ -1,17 +1,13 @@
-// Server-only. Never import this from imports/ui — it reads GEMINI_API_KEY from
-// process.env and must not end up in the client bundle.
+// Server-only — reads GEMINI_API_KEY from process.env; never import from imports/ui.
 import { ROUND_RIDDLE_CLASSES } from '/imports/lib/cocoClasses';
 
-// gemini-2.0-flash and gemini-2.5-flash return 404/zero-quota for new free-tier
-// keys as of writing — gemini-flash-latest is the model that's actually reachable
-// on the no-billing free tier. Override via GEMINI_MODEL if that changes.
+// gemini-2.0-flash/2.5-flash return 404/zero-quota on free-tier keys as of writing;
+// gemini-flash-latest works. Override via GEMINI_MODEL if that changes.
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
 const GEMINI_URL = (model) =>
   `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
-// Bulk riddle generation (a whole array against a large enum) can take Gemini
-// well over 15s on a cold call — 30s gives it realistic headroom without leaving
-// a player staring at a loading screen indefinitely.
+// Bulk generation against a large enum can exceed 15s on a cold call.
 const REQUEST_TIMEOUT_MS = 30000;
 const MAX_ATTEMPTS = 2;
 
@@ -57,9 +53,7 @@ async function callGeminiOnce(prompt, schema) {
   }
 }
 
-// Retries once on a timeout/abort — the free-tier API occasionally takes longer
-// than REQUEST_TIMEOUT_MS on a cold request, and a single retry usually succeeds
-// without meaningfully delaying game start.
+// Retries once on timeout — the free tier occasionally runs long on a cold request.
 async function callGemini(prompt, schema) {
   let lastErr;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
@@ -77,12 +71,9 @@ async function callGemini(prompt, schema) {
   throw lastErr;
 }
 
-// Generates the final "escape code" riddle. Each round rewards exactly one letter of
-// this answer, so the answer's length MUST exactly equal totalRounds * playerCount —
-// the total number of letters that can ever be revealed (see assignLetters() in
-// imports/api/rounds/roundsMethods.js). Too short and rounds go to waste; too long
-// and the tail of the word can never be revealed. `letterCount` is required for
-// exactly that reason — it can only be computed once real players have joined.
+// Generates the final "escape code" riddle. `letterCount` is required — every
+// letter a player earns must map to a real position in the answer, so its length
+// must be exact (see rounds.createForGame for how letterCount is derived).
 const MAX_LENGTH_ATTEMPTS = 3;
 
 export async function generateFinalRiddle({
@@ -140,9 +131,8 @@ Be original — don't reuse a riddle you may have generated before.`;
   );
 }
 
-// Generates `count` round riddles. Each answer is constrained (via responseSchema
-// enum) to ROUND_RIDDLE_CLASSES so it exactly matches a class the vision model
-// (server/main.js, submissions.detect) can actually recognise in a photo.
+// Generates `count` round riddles. `answer` is enum-constrained to
+// ROUND_RIDDLE_CLASSES so it's always a class the vision model can detect.
 export async function generateRoundRiddles({ count, difficulty = 'medium' }) {
   if (!count || count < 1) return [];
 
