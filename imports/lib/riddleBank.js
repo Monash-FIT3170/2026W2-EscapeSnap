@@ -33,10 +33,6 @@ export const RIDDLE_BANK = [
     answer: 'cup',
   },
   {
-    text: 'I am round, I hold your cereal, and I am not a plate. What am I?',
-    answer: 'bowl',
-  },
-  {
     text: 'I carry your books all day but I have no hands. What am I?',
     answer: 'backpack',
   },
@@ -53,15 +49,39 @@ export const RIDDLE_BANK = [
     answer: 'laptop',
   },
   {
-    text: 'I have buttons but no keys, and I never leave the couch. What am I?',
+    text: 'I have buttons but no keys, and I sit quietly beside a screen at the front of the room. What am I?',
     answer: 'remote',
   },
   {
-    text: 'I hold flowers but I never drink the water myself. What am I?',
-    answer: 'vase',
+    text: 'I have four legs but I never walk, and you rest your notes on my back. What am I?',
+    answer: 'dining table',
   },
   {
-    text: 'I am soft, stitched, and I never grow up. What am I?',
-    answer: 'teddy bear',
+    text: 'I show pictures and words all day but I have no eyes. What am I?',
+    answer: 'tv',
+  },
+  {
+    text: 'I have no tail but I still scurry quietly beside your laptop. What am I?',
+    answer: 'mouse',
+  },
+  {
+    text: 'I grow quietly in the corner of the room and never say a word. What am I?',
+    answer: 'potted plant',
+  },
+  {
+    text: 'I am yellow and curved, and you peel me before eating. What am I?',
+    answer: 'banana',
+  },
+  {
+    text: 'I keep the doctor away, or so they say, and I am red or green. What am I?',
+    answer: 'apple',
+  },
+  {
+    text: 'I am made of layers stacked between two slices, perfect for a quick lunch. What am I?',
+    answer: 'sandwich',
+  },
+  {
+    text: 'I carry your things but I am not a backpack, and I hang from your shoulder. What am I?',
+    answer: 'handbag',
   },
 ];

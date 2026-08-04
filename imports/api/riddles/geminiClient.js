@@ -151,9 +151,11 @@ export async function generateRoundRiddles({ count, difficulty = 'medium' }) {
     required: ['riddles'],
   };
 
-  const prompt = `You are writing short object-finding riddles for a mobile escape-room game.
-Players read a riddle, then find and photograph the real-world object it describes. A vision model checks
-whether the photo matches, so the answer must EXACTLY be one of this fixed list of object names:
+  const prompt = `You are writing short object-finding riddles for a mobile escape-room game played live
+in a university classroom. Players read a riddle, then find and photograph the real-world object it
+describes — something a student would realistically have on them or nearby in that room (in their bag,
+on the desk, or in the room itself). A vision model checks whether the photo matches, so the answer must
+EXACTLY be one of this fixed list of object names:
 ${ROUND_RIDDLE_CLASSES.join(', ')}.
 
 Write exactly ${count} riddles. Each riddle:

@@ -86,54 +86,32 @@ export const COCO_CLASSES = [
 ];
 
 // Curated subset of COCO_CLASSES: objects a player could realistically find and
-// photograph in a home/office setting. Excludes large, outdoor, or exotic classes
-// (e.g. "elephant", "airplane", "traffic light") that make for an unplayable riddle.
+// photograph in a university classroom/lecture room (the actual venue this game
+// is played in). Excludes anything home-only (microwave, refrigerator, teddy bear,
+// hair drier, bed, couch...) or outdoor/exotic (elephant, airplane, bicycle...) that
+// a student would never have on them or find in a classroom.
 // This is the enum we constrain Gemini's round-riddle `answer` field to.
 export const ROUND_RIDDLE_CLASSES = [
   'person',
   'backpack',
-  'umbrella',
   'handbag',
-  'tie',
-  'suitcase',
+  'umbrella',
   'bottle',
-  'wine glass',
   'cup',
-  'fork',
-  'knife',
-  'spoon',
-  'bowl',
   'banana',
   'apple',
   'sandwich',
   'orange',
   'chair',
-  'couch',
-  'potted plant',
-  'bed',
   'dining table',
+  'potted plant',
   'tv',
   'laptop',
   'mouse',
   'remote',
   'keyboard',
   'cell phone',
-  'microwave',
-  'oven',
-  'toaster',
-  'sink',
-  'refrigerator',
   'book',
   'clock',
-  'vase',
   'scissors',
-  'teddy bear',
-  'hair drier',
-  'toothbrush',
-  'cat',
-  'dog',
-  'bicycle',
-  'sports ball',
-  'frisbee',
-  'skateboard',
 ];
