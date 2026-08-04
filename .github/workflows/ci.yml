@@ -1,5 +1,12 @@
 name: CI
 
+env:
+  NODE_ENV: test
+  PORT: 3000
+  ROOT_URL: http://localhost:3000
+  MONGO_URL: ${{ secrets.MONGO_URL || 'mongodb://127.0.0.1:27017/escapesnap' }}
+  METEOR_SETTINGS: ${{ vars.METEOR_SETTINGS || '{}' }}
+
 on:
   pull_request:
     branches: [main]
@@ -56,8 +63,32 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Create .env file
+        run: |
+          cat > .env <<EOF
+          NODE_ENV=${NODE_ENV}
+          PORT=${PORT}
+          ROOT_URL=${ROOT_URL}
+          MONGO_URL=${MONGO_URL}
+          METEOR_SETTINGS=${METEOR_SETTINGS}
+          EOF
+
       - run: npm ci
       - run: npm run lint
+
+  format:
+    name: Format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npx prettier --check '**/*.{js,jsx,css,md}'
 
   build:
     name: Build (Meteor)
@@ -80,10 +111,20 @@ jobs:
           echo "$HOME/.meteor" >> "$GITHUB_PATH"
 
       - name: Cache npm dependencies
-        uses: actions/cache@v4
+        uses: actions/cach
         with:
           path: node_modules
           key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Create .env file
+        run: |
+          cat > .env <<EOF
+          NODE_ENV=${NODE_ENV}
+          PORT=${PORT}
+          ROOT_URL=${ROOT_URL}
+          MONGO_URL=${MONGO_URL}
+          METEOR_SETTINGS=${METEOR_SETTINGS}
+          EOF
 
       - name: Install dependencies
         run: meteor npm install
@@ -91,3 +132,4 @@ jobs:
       # Verifies main can still build and boot (QAP rule M1.4 — Broken Main Branch)
       - name: Build app
         run: meteor build --directory /tmp/escapesnap-build --allow-superuser
+
