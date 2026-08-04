@@ -3,6 +3,23 @@ import { Rounds } from './RoundsCollection';
 import { Players } from '../players/PlayersCollection';
 import { Games } from '../games/GamesCollection';
 import { RIDDLE_BANK } from '../../lib/riddleBank';
+import { generateRoundRiddles } from '../riddles/geminiClient';
+
+// Tops a (possibly short, possibly empty) AI-generated pool up to `needed` entries
+// using the offline fallback bank, so a Gemini failure or partial response never
+// blocks round creation.
+function ensureEnoughRiddles(pool, needed) {
+  const combined = [...(pool || [])];
+  if (combined.length < needed) {
+    const fallback = [...RIDDLE_BANK].sort(() => Math.random() - 0.5);
+    let i = 0;
+    while (combined.length < needed) {
+      combined.push(fallback[i % fallback.length]);
+      i++;
+    }
+  }
+  return combined.slice(0, needed);
+}
 
 function assignLetters(answer, totalRounds, playerCount) {
   const letters = answer.toUpperCase().split('');
@@ -29,7 +46,30 @@ Meteor.methods({
     const letterPool = assignLetters(answer, totalRounds, players.length);
 
     const needed = totalRounds * players.length;
-    const shuffled = [...RIDDLE_BANK].sort(() => Math.random() - 0.5).slice(0, needed);
+
+    let pool;
+    try {
+      pool = await generateRoundRiddles({
+        count: needed,
+        difficulty: game.difficulty,
+      });
+      console.log(
+        `[rounds.createForGame] Gemini generated ${pool.length}/${needed} round riddles live.`
+      );
+    } catch (err) {
+      console.error(
+        '[rounds.createForGame] Gemini round riddle generation failed, using fallback bank:',
+        err
+      );
+      pool = null;
+    }
+    const shuffled = ensureEnoughRiddles(pool, needed);
+    const fromFallbackCount = pool ? Math.max(0, needed - pool.length) : needed;
+    if (fromFallbackCount > 0) {
+      console.warn(
+        `[rounds.createForGame] ${fromFallbackCount}/${needed} riddles came from the offline fallback bank, not Gemini.`
+      );
+    }
 
     const inserts = [];
     let riddleIndex = 0;
@@ -58,8 +98,6 @@ Meteor.methods({
     await Promise.all(inserts);
   },
 
-
-
   async 'rounds.submit'(roundId, photoUrl, isCorrect = true) {
     const round = await Rounds.findOneAsync(roundId);
     if (!round) throw new Meteor.Error('not-found', 'Round not found');
@@ -67,7 +105,8 @@ Meteor.methods({
       throw new Meteor.Error('invalid-state', 'Round already submitted');
 
     const game = await Games.findOneAsync(round.gameId);
-    const expired = game?.startedAt &&
+    const expired =
+      game?.startedAt &&
       Date.now() - game.startedAt.getTime() > game.timerMinutes * 60 * 1000;
 
     if (expired) {
@@ -100,7 +139,9 @@ Meteor.methods({
       roundNumber: round.roundNumber,
       status: { $ne: 'pending' },
     }).countAsync();
-    const playerCount = await Players.find({ gameId: round.gameId }).countAsync();
+    const playerCount = await Players.find({
+      gameId: round.gameId,
+    }).countAsync();
 
     if (
       submittedCount >= playerCount &&

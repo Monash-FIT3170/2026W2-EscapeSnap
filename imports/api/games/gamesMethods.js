@@ -5,6 +5,7 @@ import { Rounds } from '../rounds/RoundsCollection';
 import { RoundSessions } from '/imports/api/rounds/RoundSessions';
 import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 import { FINAL_RIDDLE } from '../../lib/finalRiddle';
+import { generateFinalRiddle } from '../riddles/geminiClient';
 
 const ROUND_DURATION_MS = 60 * 1000;
 
@@ -13,8 +14,28 @@ function generateJoinCode() {
 }
 
 Meteor.methods({
-  async 'games.create'({ timerMinutes = 30, totalRounds = 3, capacity = 4, difficulty = 'medium' } = {}) {
+  async 'games.create'({
+    timerMinutes = 30,
+    totalRounds = 3,
+    capacity = 4,
+    difficulty = 'medium',
+  } = {}) {
     const joinCode = generateJoinCode();
+
+    let finalRiddle;
+    try {
+      finalRiddle = await generateFinalRiddle({ difficulty });
+      console.log(
+        `[games.create] Gemini generated the final riddle live (answer: ${finalRiddle.answer.length} letters).`
+      );
+    } catch (err) {
+      console.error(
+        '[games.create] Gemini final riddle generation failed, using fallback riddle:',
+        err
+      );
+      finalRiddle = FINAL_RIDDLE;
+    }
+
     return Games.insertAsync({
       joinCode,
       status: 'lobby',
@@ -26,7 +47,7 @@ Meteor.methods({
       createdAt: new Date(),
       startedAt: null,
       endedAt: null,
-      finalRiddle: FINAL_RIDDLE,
+      finalRiddle,
     });
   },
 
@@ -56,16 +77,23 @@ Meteor.methods({
   async 'games.submitRiddle'(sessionId, playerId) {
     const session = await RoundSessions.findOneAsync({ sessionId });
     if (!session) {
-      throw new Meteor.Error('no-session', 'Round session not found — cannot verify timing');
+      throw new Meteor.Error(
+        'no-session',
+        'Round session not found — cannot verify timing'
+      );
     }
 
     const elapsed = Date.now() - session.startedAt.getTime();
     if (elapsed > ROUND_DURATION_MS) {
-      throw new Meteor.Error('expired', 'Round timer has expired — submission rejected by server');
+      throw new Meteor.Error(
+        'expired',
+        'Round timer has expired — submission rejected by server'
+      );
     }
 
-    const riddle = HARDCODED_RIDDLES.find(r => r.playerId === playerId);
-    if (!riddle) throw new Meteor.Error('no-riddle', 'No riddle found for this player');
+    const riddle = HARDCODED_RIDDLES.find((r) => r.playerId === playerId);
+    if (!riddle)
+      throw new Meteor.Error('no-riddle', 'No riddle found for this player');
 
     return riddle.revealedLetter;
   },
@@ -82,14 +110,16 @@ Meteor.methods({
       status: 'pending',
     }).fetchAsync();
 
-    await Promise.all(pendingRounds.map(async r => {
-      await Rounds.updateAsync(r._id, {
-        $set: { status: 'wrong', submittedAt: new Date() },
-      });
-      await Players.updateAsync(r.playerId, {
-        $push: { revealedLetters: '?' },
-      });
-    }));
+    await Promise.all(
+      pendingRounds.map(async (r) => {
+        await Rounds.updateAsync(r._id, {
+          $set: { status: 'wrong', submittedAt: new Date() },
+        });
+        await Players.updateAsync(r.playerId, {
+          $push: { revealedLetters: '?' },
+        });
+      })
+    );
 
     await Games.updateAsync(gameId, {
       $set: { currentRound: game.currentRound + 1 },

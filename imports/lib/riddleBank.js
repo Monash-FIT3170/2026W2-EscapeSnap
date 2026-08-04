@@ -1,27 +1,67 @@
-// Sprint 3: replace with AI-generated riddles
+// Offline fallback riddle pool — used only when live Gemini generation
+// (imports/api/riddles/geminiClient.js) is unavailable, errors, or returns too few
+// riddles. Every `answer` here must be an exact match from ROUND_RIDDLE_CLASSES in
+// imports/lib/cocoClasses.js, or the vision model will never confirm a photo.
 export const RIDDLE_BANK = [
-  // { text: 'I have four legs but cannot walk. What am I?', answer: 'table' },
-  // { text: 'I have hands but cannot clap. What am I?', answer: 'clock' },
-  // { text: 'I have a face but no eyes, nose, or mouth. What am I?', answer: 'clock' },
-  // { text: 'I have keys but no locks. What am I?', answer: 'keyboard' },
-  // { text: 'I have a spine but no bones. What am I?', answer: 'book' },
-  // { text: 'I have a screen but no eyes. What am I?', answer: 'phone' },
-  // { text: 'I have legs but cannot run. What am I?', answer: 'chair' },
-  // { text: 'I have arms but cannot hug. What am I?', answer: 'chair' },
-  // { text: 'I have a mouth but cannot speak. What am I?', answer: 'bottle' },
-  // { text: 'I have teeth but cannot bite. What am I?', answer: 'comb' },
-  // { text: 'I have a lid but am not a pot. What am I?', answer: 'bin' },
-  // { text: 'I have a neck but no head. What am I?', answer: 'bottle' },
-  // { text: 'I run but have no legs. What am I?', answer: 'tap' },
-  // { text: 'I have a tongue but cannot taste. What am I?', answer: 'shoe' },
-  // { text: 'I have an eye but cannot see. What am I?', answer: 'needle' },
-  // { text: 'I have a tail but am not an animal. What am I?', answer: 'kite' },
-  // { text: 'I have a crown but am not a king. What am I?', answer: 'tooth' },
-  // { text: 'I have bars but am not a cage. What am I?', answer: 'phone' },
-  { text: 'I am a person.', answer: 'person' },
-  { text: 'I am a person.', answer: 'person' },
-  { text: 'I am a person.', answer: 'person' },
-  { text: 'I am a person.', answer: 'person' },
-  { text: 'I am a person.', answer: 'person' },
-  { text: 'I am a person.', answer: 'person' },
+  {
+    text: 'I breathe, I think, and I might be reading this riddle right now. Capture me.',
+    answer: 'person',
+  },
+  {
+    text: 'I hold words but cannot read them myself. What am I?',
+    answer: 'book',
+  },
+  {
+    text: 'I have hands but cannot clap, and a face but no eyes. What am I?',
+    answer: 'clock',
+  },
+  {
+    text: 'I have a screen and I ring, but I am not a TV. I fit in your hand. What am I?',
+    answer: 'cell phone',
+  },
+  {
+    text: 'I have legs but cannot run, and arms but cannot hug. What am I?',
+    answer: 'chair',
+  },
+  {
+    text: 'I have a neck and a mouth, but I cannot speak or swallow. What am I?',
+    answer: 'bottle',
+  },
+  { text: 'I have keys but open no locks. What am I?', answer: 'keyboard' },
+  {
+    text: 'I have a handle but open no doors, and I hold your coffee. What am I?',
+    answer: 'cup',
+  },
+  {
+    text: 'I am round, I hold your cereal, and I am not a plate. What am I?',
+    answer: 'bowl',
+  },
+  {
+    text: 'I carry your books all day but I have no hands. What am I?',
+    answer: 'backpack',
+  },
+  {
+    text: 'I open my arms only when it starts to rain. What am I?',
+    answer: 'umbrella',
+  },
+  {
+    text: 'I have two blades but I am not a sword. What am I?',
+    answer: 'scissors',
+  },
+  {
+    text: 'I have a keyboard but I am not a piano, and a screen but I am not a TV. What am I?',
+    answer: 'laptop',
+  },
+  {
+    text: 'I have buttons but no keys, and I never leave the couch. What am I?',
+    answer: 'remote',
+  },
+  {
+    text: 'I hold flowers but I never drink the water myself. What am I?',
+    answer: 'vase',
+  },
+  {
+    text: 'I am soft, stitched, and I never grow up. What am I?',
+    answer: 'teddy bear',
+  },
 ];
