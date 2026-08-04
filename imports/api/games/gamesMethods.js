@@ -5,7 +5,6 @@ import { Rounds } from '../rounds/RoundsCollection';
 import { RoundSessions } from '/imports/api/rounds/RoundSessions';
 import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 import { FINAL_RIDDLE } from '../../lib/finalRiddle';
-import { generateFinalRiddle } from '../riddles/geminiClient';
 
 const ROUND_DURATION_MS = 60 * 1000;
 
@@ -22,20 +21,6 @@ Meteor.methods({
   } = {}) {
     const joinCode = generateJoinCode();
 
-    let finalRiddle;
-    try {
-      finalRiddle = await generateFinalRiddle({ difficulty });
-      console.log(
-        `[games.create] Gemini generated the final riddle live (answer: ${finalRiddle.answer.length} letters).`
-      );
-    } catch (err) {
-      console.error(
-        '[games.create] Gemini final riddle generation failed, using fallback riddle:',
-        err
-      );
-      finalRiddle = FINAL_RIDDLE;
-    }
-
     return Games.insertAsync({
       joinCode,
       status: 'lobby',
@@ -47,7 +32,12 @@ Meteor.methods({
       createdAt: new Date(),
       startedAt: null,
       endedAt: null,
-      finalRiddle,
+      // Placeholder — the real final riddle is generated in rounds.createForGame
+      // (triggered by games.start) once the actual player count is known. Its
+      // answer's length must exactly match totalRounds * playerCount so every
+      // letter a player can earn maps to a real position in the word — that can
+      // only be computed after players have actually joined the lobby.
+      finalRiddle: FINAL_RIDDLE,
     });
   },
 

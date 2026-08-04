@@ -3,7 +3,11 @@ import { Rounds } from './RoundsCollection';
 import { Players } from '../players/PlayersCollection';
 import { Games } from '../games/GamesCollection';
 import { RIDDLE_BANK } from '../../lib/riddleBank';
-import { generateRoundRiddles } from '../riddles/geminiClient';
+import { getFallbackFinalRiddle } from '../../lib/finalRiddle';
+import {
+  generateFinalRiddle,
+  generateRoundRiddles,
+} from '../riddles/geminiClient';
 
 // Tops a (possibly short, possibly empty) AI-generated pool up to `needed` entries
 // using the offline fallback bank, so a Gemini failure or partial response never
@@ -42,24 +46,51 @@ Meteor.methods({
     //   throw new Meteor.Error('no-players', 'No players in game');
 
     const totalRounds = game.totalRounds;
-    const answer = game.finalRiddle.answer;
-    const letterPool = assignLetters(answer, totalRounds, players.length);
-
     const needed = totalRounds * players.length;
+    // Every letter a player can earn must map to a real position in the final
+    // answer, so the answer's length has to exactly equal the total number of
+    // letters that CAN be revealed across the whole game — totalRounds * playerCount.
+    // Only known now, once players have actually joined the lobby.
+    const letterCount = Math.max(1, needed);
+
+    // Run both Gemini calls in parallel — round-riddle generation doesn't depend on
+    // the final answer, only the local letter-assignment math below does.
+    const [finalRiddleResult, roundPoolResult] = await Promise.allSettled([
+      generateFinalRiddle({ difficulty: game.difficulty, letterCount }),
+      generateRoundRiddles({ count: needed, difficulty: game.difficulty }),
+    ]);
+
+    let finalRiddle;
+    if (finalRiddleResult.status === 'fulfilled') {
+      finalRiddle = finalRiddleResult.value;
+      console.log(
+        `[rounds.createForGame] Gemini generated the final riddle live (${finalRiddle.answer.length} letters, matches ${letterCount} needed).`
+      );
+    } else {
+      console.error(
+        '[rounds.createForGame] Gemini final riddle generation failed, using fallback:',
+        finalRiddleResult.reason
+      );
+      finalRiddle = getFallbackFinalRiddle(letterCount);
+    }
+    await Games.updateAsync(gameId, { $set: { finalRiddle } });
+
+    const letterPool = assignLetters(
+      finalRiddle.answer,
+      totalRounds,
+      players.length
+    );
 
     let pool;
-    try {
-      pool = await generateRoundRiddles({
-        count: needed,
-        difficulty: game.difficulty,
-      });
+    if (roundPoolResult.status === 'fulfilled') {
+      pool = roundPoolResult.value;
       console.log(
         `[rounds.createForGame] Gemini generated ${pool.length}/${needed} round riddles live.`
       );
-    } catch (err) {
+    } else {
       console.error(
         '[rounds.createForGame] Gemini round riddle generation failed, using fallback bank:',
-        err
+        roundPoolResult.reason
       );
       pool = null;
     }

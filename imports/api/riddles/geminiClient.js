@@ -77,10 +77,22 @@ async function callGemini(prompt, schema) {
   throw lastErr;
 }
 
-// Generates the final "escape code" riddle. The answer is free-form (checked by
-// plain string match in games.submitFinalAnswer, not the vision model), so it just
-// needs to be a single clean word so assignLetters() can split it into per-round letters.
-export async function generateFinalRiddle({ difficulty = 'medium' } = {}) {
+// Generates the final "escape code" riddle. Each round rewards exactly one letter of
+// this answer, so the answer's length MUST exactly equal totalRounds * playerCount —
+// the total number of letters that can ever be revealed (see assignLetters() in
+// imports/api/rounds/roundsMethods.js). Too short and rounds go to waste; too long
+// and the tail of the word can never be revealed. `letterCount` is required for
+// exactly that reason — it can only be computed once real players have joined.
+const MAX_LENGTH_ATTEMPTS = 3;
+
+export async function generateFinalRiddle({
+  difficulty = 'medium',
+  letterCount,
+}) {
+  if (!letterCount || letterCount < 1) {
+    throw new Error('generateFinalRiddle requires a positive letterCount');
+  }
+
   const schema = {
     type: 'OBJECT',
     properties: {
@@ -91,31 +103,41 @@ export async function generateFinalRiddle({ difficulty = 'medium' } = {}) {
       },
       answer: {
         type: 'STRING',
-        description:
-          'The single-word answer to the riddle. Letters only, no spaces, hyphens, or punctuation. 3-10 letters long.',
+        description: `The single-word answer to the riddle. Letters only (A-Z), no spaces, hyphens, or punctuation. Must be EXACTLY ${letterCount} letters long.`,
       },
     },
     required: ['riddle', 'answer'],
   };
 
-  const prompt = `You are writing the final "escape code" riddle for an escape-room style mobile game.
-Write one short, fun riddle (1-3 sentences) whose answer is a single common English word.
+  const prompt = `You are writing the final "escape code" riddle for an escape-room style mobile game played
+live in a university classroom.
+Write one short, fun riddle (1-3 sentences) whose answer is a single common English word that is EXACTLY
+${letterCount} letters long — not one letter more, not one letter fewer.
 ${DIFFICULTY_HINTS[difficulty] || DIFFICULTY_HINTS.medium}
-The answer MUST be a single word made only of letters A-Z (no spaces, hyphens, or punctuation), between 3 and 10 letters long.
+The answer must be a real, common English word made only of letters A-Z (no spaces, hyphens, or punctuation).
+Count the letters in your answer carefully before responding — it must be exactly ${letterCount} letters.
 Be original — don't reuse a riddle you may have generated before.`;
 
-  const result = await callGemini(prompt, schema);
-  const answer = String(result?.answer || '')
-    .toUpperCase()
-    .replace(/[^A-Z]/g, '');
+  let lastAttempt = null;
+  for (let attempt = 1; attempt <= MAX_LENGTH_ATTEMPTS; attempt++) {
+    const result = await callGemini(prompt, schema);
+    const answer = String(result?.answer || '')
+      .toUpperCase()
+      .replace(/[^A-Z]/g, '');
+    lastAttempt = { riddle: result?.riddle, answer };
 
-  if (!result?.riddle || answer.length < 3) {
-    throw new Error(
-      `Gemini returned an invalid final riddle: ${JSON.stringify(result)}`
+    if (result?.riddle && answer.length === letterCount) {
+      return { riddle: result.riddle, answer };
+    }
+
+    console.warn(
+      `[geminiClient] Final riddle answer "${answer}" is ${answer.length} letters, expected ${letterCount}. Retrying (${attempt}/${MAX_LENGTH_ATTEMPTS})...`
     );
   }
 
-  return { riddle: result.riddle, answer };
+  throw new Error(
+    `Gemini could not produce a final riddle answer with exactly ${letterCount} letters after ${MAX_LENGTH_ATTEMPTS} attempts (last: ${JSON.stringify(lastAttempt)})`
+  );
 }
 
 // Generates `count` round riddles. Each answer is constrained (via responseSchema
