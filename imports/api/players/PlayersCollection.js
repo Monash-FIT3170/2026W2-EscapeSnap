@@ -13,6 +13,10 @@ Players.attachSchema(new SimpleSchema({
     min: 1,
     max: 20,
   },
+  photoUrl: {
+    type: String,
+    min: 1,
+  },
   joinedAt: {
     type: Date,
   },

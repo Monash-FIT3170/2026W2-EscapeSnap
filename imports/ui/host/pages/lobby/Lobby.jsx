@@ -13,7 +13,7 @@ const PlayerCard = ({ player }) => {
       style={{ background: '#0e0e0e', border: '1px solid #1c1b1b' }}
     >
       <div
-        className="flex items-center justify-center flex-shrink-0"
+        className="flex items-center justify-center flex-shrink-0 overflow-hidden"
         style={{
           width: 64, height: 64,
           background: '#1c1b1b',
@@ -24,7 +24,15 @@ const PlayerCard = ({ player }) => {
           letterSpacing: '1px',
         }}
       >
-        {initials}
+        {player.photoUrl ? (
+          <img
+            src={player.photoUrl}
+            alt={`${player.name} profile`}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          initials
+        )}
       </div>
       <div>
         <p style={{ fontWeight: 700, fontSize: 16, letterSpacing: '1.5px', color: '#e5e2e1' }}>

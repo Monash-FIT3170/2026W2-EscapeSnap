@@ -17,6 +17,7 @@ function PlayerFlow() {
   const [screen, setScreen] = useState('home');
   const [playerName, setPlayerName] = useState('');
   const [gameCode, setGameCode] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
   const [playerId, setPlayerId] = useState(null);
   const [gameId, setGameId] = useState(null);
   const [joinLoading, setJoinLoading] = useState(false);
@@ -42,9 +43,11 @@ function PlayerFlow() {
     setJoinLoading(true);
     setJoinError('');
     try {
-      const { playerId: pid, gameId: gid } = await Meteor.callAsync('players.join', code, name);
+      const { playerId: pid, gameId: gid, photoUrl: assignedPhotoUrl } =
+        await Meteor.callAsync('players.join', code, name);
       setPlayerName(name);
       setGameCode(code);
+      setPhotoUrl(assignedPhotoUrl);
       setPlayerId(pid);
       setGameId(gid);
       setScreen('lobby');
@@ -58,6 +61,7 @@ function PlayerFlow() {
   const handleExitToHome = () => {
     setPlayerName('');
     setGameCode('');
+    setPhotoUrl('');
     setPlayerId(null);
     setGameId(null);
     setJoinError('');
@@ -72,6 +76,7 @@ function PlayerFlow() {
       <PlayerLobby
         playerName={playerName}
         gameCode={gameCode}
+        photoUrl={photoUrl}
         playerCount={playerCount}
         onExit={handleExitToHome}
       />
