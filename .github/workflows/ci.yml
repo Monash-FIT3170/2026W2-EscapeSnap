@@ -1,135 +1,158 @@
 name: CI
 
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
+  CI: true
   NODE_ENV: test
   PORT: 3000
   ROOT_URL: http://localhost:3000
-  MONGO_URL: ${{ secrets.MONGO_URL || 'mongodb://127.0.0.1:27017/escapesnap' }}
+  MONGO_URL: mongodb://127.0.0.1:27017/escapesnap_test
   METEOR_SETTINGS: ${{ vars.METEOR_SETTINGS || '{}' }}
-
-on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
 
 jobs:
   branch-name:
     name: Branch naming convention
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: github.event_name == 'pull_request'
+
     steps:
-      # PMP 3.4 / QAP: feature/<name>, fix/<name>, spike/<name>, kebab-case
       - name: Check branch name
+        shell: bash
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
         run: |
-          BRANCH="${{ github.head_ref }}"
-          echo "Branch: $BRANCH"
-          if [[ ! "$BRANCH" =~ ^(feature|fix|spike)/[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
-            echo "::error::Branch '$BRANCH' does not follow the required convention: feature/<name>, fix/<name>, or spike/<name> in kebab-case (PMP 3.4)."
+          echo "Branch: $BRANCH_NAME"
+
+          if [[ ! "$BRANCH_NAME" =~ ^(feature|fix|spike)/[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+            echo "::error::Branch '$BRANCH_NAME' must use feature/<name>, fix/<name>, or spike/<name>, with the name written in kebab-case."
             exit 1
           fi
 
   commit-format:
     name: Commit message format
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: github.event_name == 'pull_request'
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out complete Git history
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      # QAP: "[Role] [Task ID] <type>: <description>", role in {RTE, PM, SA}, type in {feat, fix, docs, chore}
       - name: Check commit messages
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          PATTERN='^\[(RTE|PM|SA)\] \[[A-Z]+-[0-9]+\] (feat|fix|docs|chore): .+'
+          PATTERN='^\[(RTE|PM|SA)\] \[[A-Z][A-Z0-9]*-[0-9]+\] (feat|fix|docs|chore): .+$'
           FAILED=0
-          for sha in $(git rev-list ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}); do
-            MSG=$(git log -1 --format=%s "$sha")
-            if [[ ! "$MSG" =~ $PATTERN ]]; then
-              echo "::error::Commit $sha does not follow '[Role] [Task ID] <type>: <description>' — \"$MSG\""
-              FAILED=1
+
+          while IFS= read -r SHA; do
+            PARENT_COUNT=$(git rev-list --parents -n 1 "$SHA" | awk '{print NF - 1}')
+
+            if (( PARENT_COUNT > 1 )); then
+              echo "::notice::Skipping merge commit $SHA."
+              continue
             fi
-          done
-          exit $FAILED
 
-  lint:
-    name: Lint
+            MESSAGE=$(git log -1 --format=%s "$SHA")
+
+            if [[ ! "$MESSAGE" =~ $PATTERN ]]; then
+              echo "::error::Commit $SHA does not follow '[Role] [Task ID] <type>: <description>' — \"$MESSAGE\""
+              FAILED=1
+            else
+              echo "Valid: $MESSAGE"
+            fi
+          done < <(git rev-list "$BASE_SHA..$HEAD_SHA")
+
+          exit "$FAILED"
+
+  verify:
+    name: Lint, format, test and build
     runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Create .env file
-        run: |
-          cat > .env <<EOF
-          NODE_ENV=${NODE_ENV}
-          PORT=${PORT}
-          ROOT_URL=${ROOT_URL}
-          MONGO_URL=${MONGO_URL}
-          METEOR_SETTINGS=${METEOR_SETTINGS}
-          EOF
-
-      - run: npm ci
-      - run: npm run lint
-
-  format:
-    name: Format check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - run: npm ci
-      - run: npx prettier --check '**/*.{js,jsx,css,md}'
-
-  build:
-    name: Build (Meteor)
-    runs-on: ubuntu-latest
-    needs: lint
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Cache Meteor tool
-        uses: actions/cache@v4
+      - name: Cache Meteor
+        uses: actions/cache@v5
         with:
           path: ~/.meteor
           key: meteor-${{ runner.os }}-${{ hashFiles('.meteor/release') }}
+          restore-keys: |
+            meteor-${{ runner.os }}-
 
       - name: Install Meteor
+        shell: bash
         run: |
           if [ ! -x "$HOME/.meteor/meteor" ]; then
-            curl https://install.meteor.com/ | sh
+            curl -fsSL https://install.meteor.com/ | sh
           fi
+
           echo "$HOME/.meteor" >> "$GITHUB_PATH"
-
-      - name: Cache npm dependencies
-        uses: actions/cach
-        with:
-          path: node_modules
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-
-      - name: Create .env file
-        run: |
-          cat > .env <<EOF
-          NODE_ENV=${NODE_ENV}
-          PORT=${PORT}
-          ROOT_URL=${ROOT_URL}
-          MONGO_URL=${MONGO_URL}
-          METEOR_SETTINGS=${METEOR_SETTINGS}
-          EOF
+          "$HOME/.meteor/meteor" --version
 
       - name: Install dependencies
-        run: meteor npm install
+        run: meteor npm ci
 
-      # Verifies main can still build and boot (QAP rule M1.4 — Broken Main Branch)
-      - name: Build app
-        run: meteor build --directory /tmp/escapesnap-build --allow-superuser
+      - name: Run lint
+        run: meteor npm run lint
 
+      - name: Check formatting
+        run: meteor npm exec -- prettier --check .
+
+      - name: Run tests
+        shell: bash
+        run: |
+          TEST_SCRIPT=$(python3 -c "import json; print(json.load(open('package.json')).get('scripts', {}).get('test', ''))")
+
+          if [ -z "$TEST_SCRIPT" ]; then
+            echo "::warning::No test script is defined in package.json. Automated tests were skipped."
+            exit 0
+          fi
+
+          echo "Waiting for MongoDB..."
+          for ATTEMPT in {1..30}; do
+            if (echo > /dev/tcp/127.0.0.1/27017) >/dev/null 2>&1; then
+              echo "MongoDB is ready."
+              meteor npm test
+              exit $?
+            fi
+
+            sleep 1
+          done
+
+          echo "::error::MongoDB did not become available on port 27017."
+          exit 1
+
+      - name: Build Meteor application
+        shell: bash
+        run: |
+          rm -rf /tmp/escapesnap-build
+          meteor build --directory /tmp/escapesnap-build
