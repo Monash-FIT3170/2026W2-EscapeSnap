@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route } from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
@@ -32,8 +32,10 @@ function PlayerFlow() {
     };
   }, [gameId]);
 
+  const autoAdvancedRef = useRef(false);
   useEffect(() => {
-    if (game?.status === 'in_progress' && screen === 'lobby') {
+    if (game?.status === 'in_progress' && screen === 'lobby' && !autoAdvancedRef.current) {
+      autoAdvancedRef.current = true;
       setScreen('dashboard');
     }
   }, [game?.status, screen]);
@@ -47,6 +49,7 @@ function PlayerFlow() {
       setGameCode(code);
       setPlayerId(pid);
       setGameId(gid);
+      autoAdvancedRef.current = false;
       setScreen('lobby');
     } catch (err) {
       setJoinError(err.reason || err.message || 'Failed to join game');
@@ -73,6 +76,9 @@ function PlayerFlow() {
         playerName={playerName}
         gameCode={gameCode}
         playerCount={playerCount}
+        inSession={game?.status === 'in_progress'}
+        gameStartedAt={game?.startedAt ? new Date(game.startedAt).getTime() : null}
+        roundDuration={(game?.timerMinutes ?? 30) * 60}
         onExit={handleExitToHome}
       />
     );
