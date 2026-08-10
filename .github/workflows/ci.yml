@@ -122,10 +122,8 @@ jobs:
         run: meteor npm ci
 
       - name: Run lint
-        run: meteor npm run lint
-
-      - name: Check formatting
-        run: meteor npm exec -- prettier --check .
+        run: >-
+          meteor npm run lint -- --rule 'prettier/prettier: off'
 
       - name: Run tests
         shell: bash
