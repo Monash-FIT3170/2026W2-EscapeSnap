@@ -1,5 +1,7 @@
 # EscapeSnap
 
+![Build Status](https://github.com/Monash-FIT3170/2026W2-EscapeSnap/actions/workflows/ci.yml/badge.svg)
+
 ## Team
 
 - **Youssef Ahmed Adel Attia Hassanein**: `yahm0006@student.monash.edu`
