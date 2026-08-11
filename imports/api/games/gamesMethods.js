@@ -18,6 +18,7 @@ Meteor.methods({
     totalRounds = 3,
     capacity = 4,
     difficulty = 'medium',
+    theme = 'classroom',
   } = {}) {
     const joinCode = generateJoinCode();
 
@@ -29,6 +30,7 @@ Meteor.methods({
       timerMinutes,
       capacity,
       difficulty,
+      theme,
       createdAt: new Date(),
       startedAt: null,
       endedAt: null,

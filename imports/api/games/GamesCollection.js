@@ -1,6 +1,7 @@
 import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
 import 'meteor/aldeed:collection2/static';
+import { THEMES } from '/imports/lib/cocoClasses';
 
 export const Games = new Mongo.Collection('games');
 
@@ -37,6 +38,11 @@ Games.attachSchema(
     difficulty: {
       type: String,
       allowedValues: ['easy', 'medium', 'hard'],
+    },
+    theme: {
+      type: String,
+      allowedValues: THEMES,
+      defaultValue: 'classroom',
     },
     createdAt: {
       type: Date,
