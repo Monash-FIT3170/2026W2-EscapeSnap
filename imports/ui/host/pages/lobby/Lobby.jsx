@@ -61,6 +61,15 @@ const Lobby = () => {
   const navigate = useNavigate();
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState(null);
+  const [lanUrl, setLanUrl] = useState(null);
+
+  useEffect(() => {
+    const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    if (!isLocalhost) return;
+    Meteor.callAsync('network.getLanUrl')
+      .then(setLanUrl)
+      .catch(() => {});
+  }, []);
 
   const { game, players, loading } = useTracker(() => {
     const gameSub = Meteor.subscribe('games.current', gameId);
@@ -107,7 +116,7 @@ const Lobby = () => {
 
   const gameStarted = game.status === 'in_progress';
   const capacity = game.capacity || 4;
-  const joinUrl = `${window.location.origin}/join/${game.joinCode}`;
+  const joinUrl = `${lanUrl || window.location.origin}/join/${game.joinCode}`;
   const slots = [
     ...players,
     ...Array(Math.max(0, capacity - players.length)).fill(null),
@@ -160,8 +169,11 @@ const Lobby = () => {
             <div style={{ background: '#e5e2e1', padding: 10, lineHeight: 0 }}>
               <QRCodeSVG value={joinUrl} size={140} bgColor="#e5e2e1" fgColor="#0e0e0e" level="M" />
             </div>
-            <p style={{ fontSize: 9, color: '#555', marginTop: 10, textAlign: 'center', lineHeight: 1.5 }}>
-              Operatives scan this code to join instantly — no PIN entry required.
+            <p style={{ fontSize: 9, color: '#555', marginTop: 10, textAlign: 'center', lineHeight: 1.5, wordBreak: 'break-all' }}>
+              {joinUrl}
+            </p>
+            <p style={{ fontSize: 9, color: '#555', marginTop: 4, textAlign: 'center', lineHeight: 1.5 }}>
+              Operatives scan this code to join instantly — no PIN entry required. Phone must be on the same network.
             </p>
           </div>
 
