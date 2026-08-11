@@ -4,17 +4,23 @@ import { Players } from '../players/PlayersCollection';
 import { Games } from '../games/GamesCollection';
 import { RIDDLE_BANK } from '../../lib/riddleBank';
 import { getFallbackFinalRiddle } from '../../lib/finalRiddle';
+import { THEME_OBJECT_POOLS } from '../../lib/cocoClasses';
 import {
   generateFinalRiddle,
   generateRoundRiddles,
 } from '../riddles/geminiClient';
 
 // Tops up a short/empty AI-generated pool with the offline fallback bank, so a
-// Gemini failure never blocks round creation.
-function ensureEnoughRiddles(pool, needed) {
+// Gemini failure never blocks round creation. Filtered to the active theme's
+// object pool first, so a fallback riddle never asks for an object the chosen
+// theme doesn't allow.
+function ensureEnoughRiddles(pool, needed, theme) {
   const combined = [...(pool || [])];
   if (combined.length < needed) {
-    const fallback = [...RIDDLE_BANK].sort(() => Math.random() - 0.5);
+    const objectPool =
+      THEME_OBJECT_POOLS[theme] || THEME_OBJECT_POOLS.classroom;
+    const themedBank = RIDDLE_BANK.filter((r) => objectPool.includes(r.answer));
+    const fallback = [...themedBank].sort(() => Math.random() - 0.5);
     let i = 0;
     while (combined.length < needed) {
       combined.push(fallback[i % fallback.length]);
@@ -54,7 +60,11 @@ Meteor.methods({
     // Independent of each other — run in parallel.
     const [finalRiddleResult, roundPoolResult] = await Promise.allSettled([
       generateFinalRiddle({ difficulty: game.difficulty, letterCount }),
-      generateRoundRiddles({ count: needed, difficulty: game.difficulty }),
+      generateRoundRiddles({
+        count: needed,
+        difficulty: game.difficulty,
+        theme: game.theme,
+      }),
     ]);
 
     let finalRiddle;
@@ -91,7 +101,7 @@ Meteor.methods({
       );
       pool = null;
     }
-    const shuffled = ensureEnoughRiddles(pool, needed);
+    const shuffled = ensureEnoughRiddles(pool, needed, game.theme);
     const fromFallbackCount = pool ? Math.max(0, needed - pool.length) : needed;
     if (fromFallbackCount > 0) {
       console.warn(
