@@ -1,50 +1,20 @@
-import React from 'react';
+import { PlayerAvatar } from '../../../shared/components/PlayerAvatar';
 
-function CornerBrackets() {
+export function SurvivorIdCard({
+  photoUrl,
+  callSign = 'PLAYER',
+  status = 'AWAITING GUIDANCE',
+}) {
   return (
-    <>
-      <span className="pointer-events-none absolute -left-1 -top-1 h-5 w-5 border-l-2 border-t-2 border-red-500" />
-      <span className="pointer-events-none absolute -right-1 -top-1 h-5 w-5 border-r-2 border-t-2 border-red-500" />
-      <span className="pointer-events-none absolute -bottom-1 -left-1 h-5 w-5 border-b-2 border-l-2 border-red-500" />
-      <span className="pointer-events-none absolute -bottom-1 -right-1 h-5 w-5 border-b-2 border-r-2 border-red-500" />
-    </>
-  );
-}
+    <section className="flex w-full flex-col items-center px-2 py-1">
+      <PlayerAvatar
+        photoUrl={photoUrl}
+        playerName={callSign}
+        size="min(280px, 68vw, 36vh)"
+        className="rounded-full border-4 border-red-700 shadow-[0_0_45px_rgba(185,28,28,0.28)]"
+      />
 
-function PlayerPlaceholder() {
-  return (
-    <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" className="h-full w-full" aria-hidden="true">
-      <rect width="200" height="200" fill="#0d0d10" />
-      <circle cx="100" cy="80" r="32" fill="#2a2a30" />
-      <path d="M40 200 C 40 140, 160 140, 160 200 Z" fill="#1e1e24" />
-    </svg>
-  );
-}
-
-export function SurvivorIdCard({ photoUrl, callSign = 'PLAYER', refCode = 'REF_SEC_U012_X', zoneCode = 'C_SECTOR_X', duration = '0:00MS', status = 'AWAITING GUIDANCE' }) {
-  return (
-    <section className="flex flex-col items-center px-2 py-1 w-full">
-      <div className="relative aspect-[4/5]" style={{ width: 'min(200px, 50vw, 28vh)' }}>
-        <CornerBrackets />
-
-        <div className="absolute inset-0 overflow-hidden bg-slate-900">
-          {photoUrl
-            ? <img src={photoUrl} alt={callSign} className="h-full w-full object-cover" />
-            : <PlayerPlaceholder />
-          }
-        </div>
-
-        <div className="pointer-events-none absolute right-2 top-2 text-right font-mono text-[10px] leading-tight tracking-[0.15em] text-slate-300/80">
-          <p>{refCode}</p>
-          <p>{zoneCode}</p>
-        </div>
-
-        <div className="pointer-events-none absolute bottom-2 right-2 font-mono text-[10px] tracking-[0.15em] text-slate-300/90">
-          ⏱ {duration}
-        </div>
-      </div>
-
-      <h2 className="mt-2 font-display text-xl font-bold tracking-wide text-white">
+      <h2 className="mt-5 text-center font-display text-3xl font-bold tracking-wide text-white">
         {callSign}
       </h2>
 

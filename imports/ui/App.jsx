@@ -23,15 +23,17 @@ function PlayerFlow() {
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinError, setJoinError] = useState('');
 
-  const { game, playerCount } = useTracker(() => {
-    if (!gameId) return { game: null, playerCount: 0 };
+  const { game, playerCount, currentPlayer } = useTracker(() => {
+    if (!gameId)
+      return { game: null, playerCount: 0, currentPlayer: null };
     Meteor.subscribe('games.current', gameId);
     Meteor.subscribe('players.inGame', gameId);
     return {
       game: Games.findOne(gameId),
       playerCount: Players.find({ gameId }).count(),
+      currentPlayer: playerId ? Players.findOne(playerId) : null,
     };
-  }, [gameId]);
+  }, [gameId, playerId]);
 
   useEffect(() => {
     if (game?.status === 'in_progress' && screen === 'lobby') {
@@ -74,9 +76,9 @@ function PlayerFlow() {
   if (screen === 'lobby') {
     return (
       <PlayerLobby
-        playerName={playerName}
+        playerName={currentPlayer?.name || playerName}
         gameCode={gameCode}
-        photoUrl={photoUrl}
+        photoUrl={currentPlayer?.photoUrl || photoUrl}
         playerCount={playerCount}
         onExit={handleExitToHome}
       />

@@ -6,6 +6,7 @@ import { Games } from '../../../../api/games/GamesCollection';
 import { Rounds } from '../../../../api/rounds/RoundsCollection';
 import { Players } from '../../../../api/players/PlayersCollection';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
+import { PlayerAvatar } from '../../../shared/components/PlayerAvatar';
 
 const MOCK_EVENTS = [
   { time: '14:22:10', message: 'DYLAN HAS COMPLETED THE PUZZLE', highlight: true },
@@ -213,8 +214,14 @@ const ProgressPage = () => {
 
             return (
               <div key={player._id} className="flex items-center px-6 py-4" style={{ borderTop: i > 0 ? '1px solid #353534' : 'none' }}>
-                <div style={{ width: 160, fontWeight: 700, fontSize: 12, color: '#e5e2e1' }}>
-                  {player.name.toUpperCase()}
+                <div className="flex items-center gap-3" style={{ width: 160, fontWeight: 700, fontSize: 12, color: '#e5e2e1' }}>
+                  <PlayerAvatar
+                    photoUrl={player.photoUrl}
+                    playerName={player.name}
+                    size={36}
+                    className="rounded-full border border-slate-700 text-[10px]"
+                  />
+                  <span>{player.name.toUpperCase()}</span>
                 </div>
 
                 {Array.from({ length: game.totalRounds }, (_, ri) => {

@@ -4,36 +4,20 @@ import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Games } from '../../../../api/games/GamesCollection';
 import { Players } from '../../../../api/players/PlayersCollection';
+import { PlayerAvatar } from '../../../shared/components/PlayerAvatar';
 
 const PlayerCard = ({ player }) => {
-  const initials = player.name?.slice(0, 2).toUpperCase() || '??';
   return (
     <div
       className="flex items-center gap-4 p-4"
       style={{ background: '#0e0e0e', border: '1px solid #1c1b1b' }}
     >
-      <div
-        className="flex items-center justify-center flex-shrink-0 overflow-hidden"
-        style={{
-          width: 64, height: 64,
-          background: '#1c1b1b',
-          border: '1px solid #2a2a2a',
-          fontSize: 20,
-          fontWeight: 700,
-          color: '#e5e2e1',
-          letterSpacing: '1px',
-        }}
-      >
-        {player.photoUrl ? (
-          <img
-            src={player.photoUrl}
-            alt={`${player.name} profile`}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          initials
-        )}
-      </div>
+      <PlayerAvatar
+        photoUrl={player.photoUrl}
+        playerName={player.name}
+        size={64}
+        className="rounded-full border border-slate-700 text-lg"
+      />
       <div>
         <p style={{ fontWeight: 700, fontSize: 16, letterSpacing: '1.5px', color: '#e5e2e1' }}>
           {player.name?.toUpperCase()}
