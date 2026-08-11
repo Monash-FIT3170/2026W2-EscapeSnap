@@ -5,51 +5,61 @@ const FINAL_RIDDLE_BANK = [
   {
     riddle:
       'I have cities, but no houses live there. I have mountains, but no trees grow there. I have water, but no fish swim there. I have roads, but no cars drive there. What am I?',
+    hint: 'Something that shows you where places are.',
     answer: 'MAP',
   },
   {
     riddle:
       'I have pages but I am not a diary, and a spine but no bones. What am I?',
+    hint: 'Something with pages that you read.',
     answer: 'BOOK',
   },
   {
     riddle:
       'I have four legs but I never walk, and you rest your things on my back. What am I?',
+    hint: 'Furniture you put things on top of.',
     answer: 'TABLE',
   },
   {
     riddle:
       'I fold shut but I never sleep, and I open up to a glowing screen. What am I?',
+    hint: 'A computer you can carry around and open like a book.',
     answer: 'LAPTOP',
   },
   {
     riddle:
       'I stand at the front of the room and ask the questions, but I already know the answers. What am I?',
+    hint: 'The person who leads the class.',
     answer: 'TEACHER',
   },
   {
     riddle:
       'I ride on your shoulders and hold everything you need for class. What am I?',
+    hint: 'What students carry their things in.',
     answer: 'BACKPACK',
   },
   {
     riddle:
       'I am full of desks and chairs, and I am where lessons happen every day. What am I?',
+    hint: 'The room where lessons happen.',
     answer: 'CLASSROOM',
   },
   {
     riddle:
       'I hang at the front of the room, covered in marker until someone wipes me clean. What am I?',
+    hint: 'What a teacher writes on at the front of the room.',
     answer: 'WHITEBOARD',
   },
   {
     riddle:
       'I am the process of working out a problem, though I am not a calculator myself. What am I?',
+    hint: 'What you do when solving a math problem.',
     answer: 'CALCULATION',
   },
   {
     riddle:
       'I am what you deliver at the front of the class, complete with slides and nerves. What am I?',
+    hint: 'What you give in front of the class with slides.',
     answer: 'PRESENTATION',
   },
 ];
