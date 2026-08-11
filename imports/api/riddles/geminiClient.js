@@ -1,5 +1,5 @@
 // Server-only — reads GEMINI_API_KEY from process.env; never import from imports/ui.
-import { ROUND_RIDDLE_CLASSES } from '/imports/lib/cocoClasses';
+import { THEME_OBJECT_POOLS } from '/imports/lib/cocoClasses';
 
 // gemini-2.0-flash/2.5-flash return 404/zero-quota on free-tier keys as of writing;
 // gemini-flash-latest works. Override via GEMINI_MODEL if that changes.
@@ -138,10 +138,31 @@ Be original — don't reuse a riddle you may have generated before.`;
   );
 }
 
-// Generates `count` round riddles. `answer` is enum-constrained to
-// ROUND_RIDDLE_CLASSES so it's always a class the vision model can detect.
-export async function generateRoundRiddles({ count, difficulty = 'medium' }) {
+const THEME_SETTINGS = {
+  classroom: {
+    label: 'a university classroom',
+    findWhere:
+      'something a student would realistically have on them or nearby in that room (in their bag, on the desk, or in the room itself)',
+  },
+  home: {
+    label: "a player's home",
+    findWhere:
+      'something realistically found around a home (kitchen, living room, or bedroom)',
+  },
+};
+
+// Generates `count` round riddles. `answer` is enum-constrained to the selected
+// theme's THEME_OBJECT_POOLS entry, so it's always a class the vision model can
+// actually detect (see imports/lib/cocoClasses.js for why theme = object pool).
+export async function generateRoundRiddles({
+  count,
+  difficulty = 'medium',
+  theme = 'classroom',
+}) {
   if (!count || count < 1) return [];
+
+  const objectPool = THEME_OBJECT_POOLS[theme] || THEME_OBJECT_POOLS.classroom;
+  const settings = THEME_SETTINGS[theme] || THEME_SETTINGS.classroom;
 
   const schema = {
     type: 'OBJECT',
@@ -158,7 +179,7 @@ export async function generateRoundRiddles({ count, difficulty = 'medium' }) {
             },
             answer: {
               type: 'STRING',
-              enum: ROUND_RIDDLE_CLASSES,
+              enum: objectPool,
               description:
                 'The object the riddle describes. Must be exactly one of the allowed values.',
             },
@@ -175,12 +196,11 @@ export async function generateRoundRiddles({ count, difficulty = 'medium' }) {
     required: ['riddles'],
   };
 
-  const prompt = `You are writing short object-finding riddles for a mobile escape-room game played live
-in a university classroom. Players read a riddle, then find and photograph the real-world object it
-describes — something a student would realistically have on them or nearby in that room (in their bag,
-on the desk, or in the room itself). A vision model checks whether the photo matches, so the answer must
-EXACTLY be one of this fixed list of object names:
-${ROUND_RIDDLE_CLASSES.join(', ')}.
+  const prompt = `You are writing short object-finding riddles for a mobile escape-room game played live in
+${settings.label}. Players read a riddle, then find and photograph the real-world object it describes —
+${settings.findWhere}. A vision model checks whether the photo matches, so the answer must EXACTLY be one
+of this fixed list of object names:
+${objectPool.join(', ')}.
 
 Write exactly ${count} riddles. Each riddle:
 - Is 1-2 sentences, playful, and describes the object without naming it outright.
@@ -199,7 +219,7 @@ Vary the objects used across the set — don't repeat the same answer more than 
         r &&
         typeof r.text === 'string' &&
         typeof r.hint === 'string' &&
-        ROUND_RIDDLE_CLASSES.includes(r.answer)
+        objectPool.includes(r.answer)
     )
     .map((r) => ({ text: r.text, answer: r.answer, hint: r.hint }));
 
