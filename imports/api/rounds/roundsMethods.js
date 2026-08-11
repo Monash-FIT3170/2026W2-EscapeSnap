@@ -113,6 +113,7 @@ Meteor.methods({
             playerId: players[p]._id,
             roundNumber: round,
             riddleText: riddle.text,
+            hint: riddle.hint,
             answer: riddle.answer,
             letter,
             status: 'pending',
