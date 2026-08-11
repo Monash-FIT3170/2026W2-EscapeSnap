@@ -22,7 +22,9 @@ env:
   PORT: 3000
   ROOT_URL: http://localhost:3000
   MONGO_URL: mongodb://127.0.0.1:27017/escapesnap_test
-  METEOR_SETTINGS: ${{ vars.METEOR_SETTINGS || '{}' }}
+  # Store private CI settings and API keys in the CI_METEOR_SETTINGS
+  # repository secret. Never use production credentials in this workflow.
+  METEOR_SETTINGS: ${{ secrets.CI_METEOR_SETTINGS || '{}' }}
 
 jobs:
   branch-name:
@@ -86,7 +88,7 @@ jobs:
           exit "$FAILED"
 
   verify:
-    name: Lint, format, test and build
+    name: Lint, test and build
     runs-on: ubuntu-latest
     timeout-minutes: 35
 
@@ -99,6 +101,12 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+
+      - name: Validate environment configuration
+        shell: bash
+        run: |
+          python3 -c 'import json, os; json.loads(os.environ["METEOR_SETTINGS"])'
+          echo "CI environment configuration is valid."
 
       - name: Cache Meteor
         uses: actions/cache@v5
