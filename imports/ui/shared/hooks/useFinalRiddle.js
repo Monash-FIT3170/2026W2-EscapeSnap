@@ -9,6 +9,7 @@ export function useFinalRiddle(gameId) {
     return {
       loading: !sub.ready(),
       finalRiddle: game?.finalRiddle.riddle ?? null,
+      finalRiddleHint: game?.finalRiddle.hint ?? null,
       gameStatus: game?.status ?? null,
     };
   }, [gameId]);

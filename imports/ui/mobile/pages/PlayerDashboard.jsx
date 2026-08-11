@@ -111,6 +111,7 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
   const [revealedLetter, setRevealedLetter] = useState(null);
   const [answerCorrect, setAnswerCorrect] = useState(null);
   const [timeLeft, setTimeLeft] = useState(null);
+  const [hintRevealed, setHintRevealed] = useState(false);
 
   const showResult = revealedLetter !== null;
 
@@ -154,6 +155,7 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
     setCurrentRound(r => r + 1);
     setRevealedLetter(null);
     setAnswerCorrect(null);
+    setHintRevealed(false);
     setActiveTab('scanner');
   };
 
@@ -192,6 +194,22 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
           <p className="font-mono text-xs leading-5 text-slate-300">
             {round?.riddleText ?? 'Loading riddle...'}
           </p>
+        </div>
+      )}
+
+      {!showResult && activeTab === 'scanner' && round?.hint && (
+        <div className="flex-shrink-0 border-b border-slate-800 px-5 py-2">
+          {hintRevealed ? (
+            <p className="font-mono text-xs text-amber-400">💡 {round.hint}</p>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setHintRevealed(true)}
+              className="font-mono text-[10px] uppercase tracking-widest text-amber-500 transition hover:text-amber-300"
+            >
+              💡 Reveal Hint
+            </button>
+          )}
         </div>
       )}
 
