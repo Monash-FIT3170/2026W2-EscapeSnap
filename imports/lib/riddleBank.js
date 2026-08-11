@@ -1,5 +1,6 @@
-// Offline fallback riddles, used if live Gemini generation fails. Every `answer`
-// must exactly match a ROUND_RIDDLE_CLASSES entry (imports/lib/cocoClasses.js).
+// Offline fallback riddles, used if live Gemini generation fails. Shared across
+// themes — rounds.createForGame filters by THEME_OBJECT_POOLS before picking, so
+// every `answer` must belong to at least one theme's pool.
 export const RIDDLE_BANK = [
   {
     text: 'I breathe, I think, and I might be reading this riddle right now. Capture me.',
@@ -105,5 +106,97 @@ export const RIDDLE_BANK = [
     text: 'I carry your things but I am not a backpack, and I hang from your shoulder. What am I?',
     hint: 'A small bag carried over the shoulder.',
     answer: 'handbag',
+  },
+  // Home-only entries — not in the classroom object pool, only used when the
+  // home theme is selected.
+  {
+    text: 'I purr when happy and always seem to land on my feet. What am I?',
+    hint: 'A small furry pet that meows.',
+    answer: 'cat',
+  },
+  {
+    text: 'I bark, wag my tail, and love to fetch. What am I?',
+    hint: 'A furry pet that barks and loves walks.',
+    answer: 'dog',
+  },
+  {
+    text: 'I have a long stem and a wide bowl, but I hold no flowers. What am I?',
+    hint: 'A tall glass used for drinking wine.',
+    answer: 'wine glass',
+  },
+  {
+    text: 'I have prongs but I am not a plant, and I help you eat. What am I?',
+    hint: 'A utensil used to spear your food.',
+    answer: 'fork',
+  },
+  {
+    text: 'I am sharp but I am not a sword, and I sit beside your plate. What am I?',
+    hint: 'A utensil used to cut your food.',
+    answer: 'knife',
+  },
+  {
+    text: 'I am curved and hollow, perfect for scooping soup. What am I?',
+    hint: 'A utensil used to eat soup or cereal.',
+    answer: 'spoon',
+  },
+  {
+    text: 'I am round, I hold your cereal, and I am not a plate. What am I?',
+    hint: 'A round dish that holds food like cereal or soup.',
+    answer: 'bowl',
+  },
+  {
+    text: 'I am soft, I seat many, and I am bigger than a chair. What am I?',
+    hint: 'Comfortable furniture you sit or lie on in the living room.',
+    answer: 'couch',
+  },
+  {
+    text: 'I have a mattress and pillows, and you sleep on me every night. What am I?',
+    hint: 'Furniture you sleep on.',
+    answer: 'bed',
+  },
+  {
+    text: 'I heat your food in seconds, and I beep when I am done. What am I?',
+    hint: 'An appliance that heats food quickly.',
+    answer: 'microwave',
+  },
+  {
+    text: 'I get very hot, and I bake your food low and slow. What am I?',
+    hint: 'A kitchen appliance used for baking.',
+    answer: 'oven',
+  },
+  {
+    text: 'I make your bread warm and crispy, and I sometimes pop it out suddenly. What am I?',
+    hint: 'An appliance that browns your bread.',
+    answer: 'toaster',
+  },
+  {
+    text: 'I have a tap and a drain, and you wash your dishes in me. What am I?',
+    hint: 'Where you wash your hands or dishes.',
+    answer: 'sink',
+  },
+  {
+    text: 'I am cold inside, and I keep your food fresh. What am I?',
+    hint: 'A large appliance that keeps food cold.',
+    answer: 'refrigerator',
+  },
+  {
+    text: 'I hold flowers but I never drink the water myself. What am I?',
+    hint: 'A container used to display flowers.',
+    answer: 'vase',
+  },
+  {
+    text: 'I am soft, stitched, and I never grow up. What am I?',
+    hint: 'A stuffed toy bear.',
+    answer: 'teddy bear',
+  },
+  {
+    text: 'I blow hot air to dry your hair after a shower. What am I?',
+    hint: 'A device used to dry your hair.',
+    answer: 'hair drier',
+  },
+  {
+    text: 'I have bristles, and you use me every morning and night to clean your teeth. What am I?',
+    hint: 'A small brush used to clean your teeth.',
+    answer: 'toothbrush',
   },
 ];
