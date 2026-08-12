@@ -9,6 +9,7 @@ import '../imports/api/players/playersPublications';
 import '../imports/api/rounds/roundsMethods';
 import '../imports/api/rounds/roundsPublications';
 import '/imports/api/rounds/RoundSessions';
+import '../imports/api/submissions/submissionsPublications';
 import { Games } from '../imports/api/games/GamesCollection';
 import { Rounds } from '../imports/api/rounds/RoundsCollection';
 import { Submissions, photoExpiryFrom } from '../imports/api/submissions/SubmissionsCollection';

@@ -11,6 +11,7 @@ import CreateGame from './host/pages/create-game/CreateGame';
 import Lobby from './host/pages/lobby/Lobby';
 import ProgressPage from './host/pages/progress/ProgressPage';
 import FinalRiddlePage from './host/pages/riddle/FinalRiddlePage';
+import SummaryPage from './host/pages/summary/SummaryPage';
 import LandingPage from './host/pages/landing/Landing';
 
 function PlayerFlow() {
@@ -98,6 +99,7 @@ export function App() {
       <Route path="/game/:gameId/lobby" element={<Lobby />} />
       <Route path="/game/:gameId/progress" element={<ProgressPage />} />
       <Route path="/game/:gameId/final-riddle" element={<FinalRiddlePage />} />
+      <Route path="/game/:gameId/summary" element={<SummaryPage />} />
     </Routes>
   );
 }

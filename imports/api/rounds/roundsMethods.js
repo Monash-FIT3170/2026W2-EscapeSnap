@@ -59,6 +59,16 @@ Meteor.methods({
 
 
 
+  // Idempotent — the selector only matches while startedAt is unset, so a
+  // remount or refresh cannot restart the clock.
+  async 'rounds.markStarted'(roundId) {
+    if (!roundId) return;
+    await Rounds.updateAsync(
+      { _id: roundId, startedAt: null },
+      { $set: { startedAt: new Date() } }
+    );
+  },
+
   async 'rounds.submit'(roundId, isCorrect = true) {
     const round = await Rounds.findOneAsync(roundId);
     if (!round) throw new Meteor.Error('not-found', 'Round not found');

@@ -12,6 +12,29 @@ function generateJoinCode() {
   return String(Math.floor(1000 + Math.random() * 9000));
 }
 
+// Mark every still-pending round matching `selector` as wrong.
+// The status is part of the update selector, so a round can only make the
+// pending -> wrong transition once and can never push a duplicate '?'.
+async function resolvePendingRounds(selector) {
+  const pending = await Rounds.find({ ...selector, status: 'pending' }).fetchAsync();
+  let resolved = 0;
+
+  for (const round of pending) {
+    const updated = await Rounds.updateAsync(
+      { _id: round._id, status: 'pending' },
+      { $set: { status: 'wrong', submittedAt: new Date() } }
+    );
+    if (updated === 1) {
+      await Players.updateAsync(round.playerId, {
+        $push: { revealedLetters: '?' },
+      });
+      resolved++;
+    }
+  }
+
+  return resolved;
+}
+
 Meteor.methods({
   async 'games.create'({ timerMinutes = 30, totalRounds = 3, capacity = 4, difficulty = 'medium' } = {}) {
     const joinCode = generateJoinCode();
@@ -75,21 +98,7 @@ Meteor.methods({
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
     if (game.currentRound >= game.totalRounds) return;
 
-    // Mark every still-pending round for the current round as wrong
-    const pendingRounds = await Rounds.find({
-      gameId,
-      roundNumber: game.currentRound,
-      status: 'pending',
-    }).fetchAsync();
-
-    await Promise.all(pendingRounds.map(async r => {
-      await Rounds.updateAsync(r._id, {
-        $set: { status: 'wrong', submittedAt: new Date() },
-      });
-      await Players.updateAsync(r.playerId, {
-        $push: { revealedLetters: '?' },
-      });
-    }));
+    await resolvePendingRounds({ gameId, roundNumber: game.currentRound });
 
     await Games.updateAsync(gameId, {
       $set: { currentRound: game.currentRound + 1 },
@@ -108,13 +117,25 @@ Meteor.methods({
     const isCorrect =
       guess.trim().toLowerCase() === game.finalRiddle.answer.toLowerCase();
 
-    if (isCorrect || attempts >= MAX_ATTEMPTS) {
-      await Games.updateAsync(gameId, {
-        $set: { status: isCorrect ? 'won' : 'lost', endedAt: new Date() },
-      });
-    } else {
-      await Games.updateAsync(gameId, {
-        $set: { finalRiddleAttempts: attempts },
+    // finalRiddleAttempts is persisted on every attempt including the deciding
+    // one, so the summary can report how many were used.
+    const isDecided = isCorrect || attempts >= MAX_ATTEMPTS;
+    const update = { finalRiddleAttempts: attempts };
+    if (isDecided) {
+      update.status = isCorrect ? 'won' : 'lost';
+      update.endedAt = new Date();
+    }
+
+    await Games.updateAsync(gameId, { $set: update });
+
+    // The last round never goes through advanceRound, so its rounds would stay
+    // pending forever. Only resolve rounds a player was actually shown —
+    // startedAt is the per-player proof of that. Rounds never put on screen
+    // stay pending so the summary can tell "failed" from "never attempted".
+    if (isDecided) {
+      await resolvePendingRounds({
+        gameId,
+        startedAt: { $ne: null },
       });
     }
 

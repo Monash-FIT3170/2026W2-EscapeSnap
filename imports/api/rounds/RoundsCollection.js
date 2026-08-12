@@ -29,6 +29,12 @@ Rounds.attachSchema(new SimpleSchema({
     allowedValues: ['pending', 'correct', 'wrong', 'timeout'],
     defaultValue: 'pending',
   },
+  // Set once, when the riddle is first shown to the player. Measures against
+  // submittedAt to give time-per-round.
+  startedAt: {
+    type: Date,
+    optional: true,
+  },
   submittedAt: {
     type: Date,
     optional: true,

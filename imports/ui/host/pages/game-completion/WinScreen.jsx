@@ -1,6 +1,6 @@
 import React from 'react';
 
-const WinScreen = ({ onPlayAgain }) => {
+const WinScreen = ({ onPlayAgain, onViewSummary }) => {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#0e0e0e', color: '#e5e2e1' }}>
 
@@ -36,23 +36,45 @@ const WinScreen = ({ onPlayAgain }) => {
           THE RIDDLE HAS BEEN SOLVED.
         </p>
 
-        <button
-          onClick={onPlayAgain}
-          className="font-bold uppercase transition-colors duration-200"
-          style={{
-            background: '#8b0000',
-            color: '#e5e2e1',
-            letterSpacing: '0.2em',
-            fontSize: '1rem',
-            padding: '1rem 4rem',
-            border: 'none',
-            cursor: 'pointer',
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
-          onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
-        >
-          PLAY AGAIN
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onPlayAgain}
+            className="font-bold uppercase transition-colors duration-200"
+            style={{
+              background: '#8b0000',
+              color: '#e5e2e1',
+              letterSpacing: '0.2em',
+              fontSize: '1rem',
+              padding: '1rem 4rem',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
+            onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
+          >
+            PLAY AGAIN
+          </button>
+
+          {onViewSummary && (
+            <button
+              onClick={onViewSummary}
+              className="font-bold uppercase transition-colors duration-200"
+              style={{
+                background: 'transparent',
+                color: '#aa8984',
+                letterSpacing: '0.2em',
+                fontSize: '1rem',
+                padding: '1rem 4rem',
+                border: '1px solid #353534',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={e => e.currentTarget.style.color = '#e5e2e1'}
+              onMouseLeave={e => e.currentTarget.style.color = '#aa8984'}
+            >
+              VIEW DEBRIEF
+            </button>
+          )}
+        </div>
       </div>
 
     </div>
