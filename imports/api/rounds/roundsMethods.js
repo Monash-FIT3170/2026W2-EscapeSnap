@@ -48,7 +48,6 @@ Meteor.methods({
             answer: riddle.answer,
             letter,
             status: 'pending',
-            photoUrl: null,
             submittedAt: null,
           })
         );
@@ -60,7 +59,7 @@ Meteor.methods({
 
 
 
-  async 'rounds.submit'(roundId, photoUrl, isCorrect = true) {
+  async 'rounds.submit'(roundId, isCorrect = true) {
     const round = await Rounds.findOneAsync(roundId);
     if (!round) throw new Meteor.Error('not-found', 'Round not found');
     if (round.status !== 'pending')
@@ -72,7 +71,7 @@ Meteor.methods({
 
     if (expired) {
       await Rounds.updateAsync(roundId, {
-        $set: { status: 'timeout', photoUrl, submittedAt: new Date() },
+        $set: { status: 'timeout', submittedAt: new Date() },
       });
       await Players.updateAsync(round.playerId, {
         $push: { revealedLetters: '?' },
@@ -85,7 +84,6 @@ Meteor.methods({
     await Rounds.updateAsync(roundId, {
       $set: {
         status: isCorrect ? 'correct' : 'wrong',
-        photoUrl,
         submittedAt: new Date(),
       },
     });

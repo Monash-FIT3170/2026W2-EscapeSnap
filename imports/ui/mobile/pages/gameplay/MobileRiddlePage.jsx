@@ -98,7 +98,7 @@ const MobileRiddlePage = ({
 
       const base64 = await blobToBase64(blob);
 
-      Meteor.call('submissions.detect', base64, targetObject ?? 'object', async (err, result) => {
+      Meteor.call('submissions.detect', base64, targetObject ?? 'object', roundId, async (err, result) => {
         if (err) {
           setUploading(false);
           setValidationState('fail');
@@ -111,7 +111,7 @@ const MobileRiddlePage = ({
         setValidationState(outcome);
 
         if (outcome === 'pass') {
-          await submitRiddle(base64);
+          await submitRiddle();
         } else {
           setUploading(false);
           if (onCorrect) onCorrect('?', false);
@@ -120,10 +120,10 @@ const MobileRiddlePage = ({
     }, 'image/jpeg', 0.85);
   }
 
-  async function submitRiddle(photoUrl) {
+  async function submitRiddle() {
     if (isExpired || !roundId) return;
     try {
-      const letter = await Meteor.callAsync('rounds.submit', roundId, photoUrl, true);
+      const letter = await Meteor.callAsync('rounds.submit', roundId, true);
       if (onCorrect) onCorrect(letter, true);
     } catch {
       if (onCorrect) onCorrect('?', false);

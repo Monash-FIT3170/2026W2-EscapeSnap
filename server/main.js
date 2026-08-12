@@ -11,7 +11,11 @@ import '../imports/api/rounds/roundsPublications';
 import '/imports/api/rounds/RoundSessions';
 import { Games } from '../imports/api/games/GamesCollection';
 import { Rounds } from '../imports/api/rounds/RoundsCollection';
-import { Submissions } from '../imports/api/submissions/SubmissionsCollection';
+import { Submissions, photoExpiryFrom } from '../imports/api/submissions/SubmissionsCollection';
+
+const MAX_UPLOAD_CHARS = 10 * 1024 * 1024; // ~7.5MB of image data
+const STORED_PHOTO_WIDTH = 900;
+const STORED_PHOTO_QUALITY = 65;
 
 let detectionModel = null;
 let modelLoadPromise = null;
@@ -40,7 +44,14 @@ Meteor.startup(async () => {
 });
 
 Meteor.methods({
-  async 'submissions.detect'(imageBase64, targetObject) {
+  async 'submissions.detect'(imageBase64, targetObject, roundId) {
+    if (typeof imageBase64 !== 'string' || imageBase64.length === 0) {
+      throw new Meteor.Error('invalid-image', 'No image data supplied');
+    }
+    if (imageBase64.length > MAX_UPLOAD_CHARS) {
+      throw new Meteor.Error('image-too-large', 'Image exceeds the maximum upload size');
+    }
+
     const model = await ensureModel();
     const buf = Buffer.from(imageBase64, 'base64');
     const { data, info } = await sharp(buf).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -48,6 +59,14 @@ Meteor.methods({
     const predictions = await model.detect(pixelData);
     console.log(`[COCO-SSD] target="${targetObject}" detections:`, predictions.map(p => `${p.class} (${(p.score * 100).toFixed(1)}%)`));
     const outcome = evaluatePredictions(predictions, targetObject);
+
+    // Record every attempt, pass or fail. Never let this break the capture flow.
+    try {
+      await recordSubmission({ buf, roundId, targetObject, outcome, predictions });
+    } catch (err) {
+      console.error('[EscapeSnap] submission not recorded:', err);
+    }
+
     return { outcome, predictions };
   },
 
@@ -58,6 +77,46 @@ Meteor.methods({
     return { outcome: 'fail', explanation: 'stub - Gemini integration pending' };
   },
 });
+
+// Detection runs on the full-resolution buffer; only the stored copy is downscaled.
+async function compressForStorage(buf) {
+  const jpeg = await sharp(buf)
+    .rotate()
+    .resize({ width: STORED_PHOTO_WIDTH, withoutEnlargement: true })
+    .jpeg({ quality: STORED_PHOTO_QUALITY })
+    .toBuffer();
+  return `data:image/jpeg;base64,${jpeg.toString('base64')}`;
+}
+
+async function recordSubmission({ buf, roundId, targetObject, outcome, predictions }) {
+  if (!roundId) return;
+  const round = await Rounds.findOneAsync(roundId);
+  if (!round) return;
+
+  const photoUrl = await compressForStorage(buf);
+  const priorAttempts = await Submissions.find({ roundId }).countAsync();
+  const createdAt = new Date();
+
+  await Submissions.insertAsync({
+    gameId: round.gameId,
+    playerId: round.playerId,
+    roundId,
+    roundNumber: round.roundNumber,
+    attemptNumber: priorAttempts + 1,
+    targetObject: targetObject ?? round.answer,
+    outcome,
+    photoUrl,
+    detections: predictions.map((p) => ({
+      label: p.class,
+      confidence: Math.min(1, Math.max(0, p.score)),
+    })),
+    createdAt,
+    expiresAt: photoExpiryFrom(createdAt),
+  });
+
+  const kb = Math.round((photoUrl.length * 3) / 4 / 1024);
+  console.log(`[EscapeSnap] submission stored round=${roundId} attempt=${priorAttempts + 1} outcome=${outcome} ~${kb}KB`);
+}
 
 function evaluatePredictions(predictions, target) {
   const match = predictions.find((p) => p.class === target);

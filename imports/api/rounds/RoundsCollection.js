@@ -29,10 +29,6 @@ Rounds.attachSchema(new SimpleSchema({
     allowedValues: ['pending', 'correct', 'wrong', 'timeout'],
     defaultValue: 'pending',
   },
-  photoUrl: {
-    type: String,
-    optional: true,
-  },
   submittedAt: {
     type: Date,
     optional: true,
