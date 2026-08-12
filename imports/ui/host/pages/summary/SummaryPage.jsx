@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router';
 import { useGameSummary } from '/imports/ui/shared/hooks/useGameSummary.js';
 import GameNotFound from '/imports/ui/shared/components/GameNotFound.jsx';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
+import PhotoGallery from '/imports/ui/host/components/summary/PhotoGallery.jsx';
 
 const BG = '#131313';
 const PANEL = '#1c1b1b';
@@ -99,7 +100,7 @@ const Shell = ({ gameId, children }) => (
 const SummaryPage = () => {
   const { gameId } = useParams();
   const navigate = useNavigate();
-  const { loading, gameFound, ended, outcome, team, players } = useGameSummary(gameId);
+  const { loading, gameFound, ended, outcome, team, players, photos } = useGameSummary(gameId);
 
   if (loading) {
     return (
@@ -310,20 +311,7 @@ const SummaryPage = () => {
           )}
         </div>
 
-        {/* Gallery — Stage 6 */}
-        <div style={{ background: PANEL, padding: 24 }}>
-          <SectionHeader label="PHOTO_ARCHIVE" />
-          <div style={{ background: INNER, border: `1px dashed ${BORDER}`, padding: '48px 24px', textAlign: 'center' }}>
-            <p style={{ fontSize: 11, letterSpacing: '1px', color: MUTED }}>
-              {team.photosExpired
-                ? 'PHOTO ARCHIVE PURGED — IMAGES ARE RETAINED FOR 6 HOURS'
-                : `${team.totalPhotos} PHOTO${team.totalPhotos === 1 ? '' : 'S'} ON RECORD`}
-            </p>
-            <p style={{ fontSize: 10, letterSpacing: '0.5px', color: DIM, marginTop: 8 }}>
-              GALLERY PENDING
-            </p>
-          </div>
-        </div>
+        <PhotoGallery photos={photos} players={players} photosExpired={team.photosExpired} />
 
       </div>
     </Shell>
