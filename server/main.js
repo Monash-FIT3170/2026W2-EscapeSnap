@@ -11,6 +11,7 @@ import '../imports/api/rounds/roundsPublications';
 import '/imports/api/rounds/RoundSessions';
 import { Games } from '../imports/api/games/GamesCollection';
 import { Rounds } from '../imports/api/rounds/RoundsCollection';
+import { Submissions } from '../imports/api/submissions/SubmissionsCollection';
 
 let detectionModel = null;
 let modelLoadPromise = null;
@@ -33,6 +34,9 @@ Meteor.startup(async () => {
   await Games.createIndexAsync({ status: 1 });
   await Rounds.createIndexAsync({ gameId: 1, roundNumber: 1 });
   await Rounds.createIndexAsync({ playerId: 1, roundNumber: 1 });
+  await Submissions.createIndexAsync({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+  await Submissions.createIndexAsync({ gameId: 1, roundNumber: 1, playerId: 1 });
+  await Submissions.createIndexAsync({ roundId: 1, attemptNumber: 1 });
 });
 
 Meteor.methods({
