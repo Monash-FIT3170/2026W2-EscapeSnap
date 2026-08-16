@@ -79,7 +79,7 @@ function PlayerFlow() {
         inSession={game?.status === 'in_progress'}
         gameStartedAt={game?.startedAt ? new Date(game.startedAt).getTime() : null}
         roundDuration={(game?.timerMinutes ?? 30) * 60}
-        onExit={handleExitToHome}
+        onExit={game?.status === 'in_progress' ? () => setScreen('dashboard') : handleExitToHome}
       />
     );
   }

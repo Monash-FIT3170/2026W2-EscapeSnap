@@ -55,6 +55,11 @@ const MobileRiddlePage = ({
   }, [isExpired]);
 
   async function startCamera() {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      console.error('[camera] navigator.mediaDevices is unavailable - likely an insecure (non-HTTPS) context');
+      setCameraError('Camera requires a secure connection (HTTPS).');
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' },
@@ -64,8 +69,14 @@ const MobileRiddlePage = ({
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-    } catch {
-      setCameraError('Camera access denied or unavailable.');
+    } catch (err) {
+      console.error('[camera] getUserMedia failed:', err.name, err.message);
+      const message = err.name === 'NotAllowedError'
+        ? 'Camera permission denied - check your browser settings.'
+        : err.name === 'NotFoundError'
+          ? 'No camera found on this device.'
+          : 'Camera access denied or unavailable.';
+      setCameraError(message);
     }
   }
 
