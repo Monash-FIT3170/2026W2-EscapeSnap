@@ -43,6 +43,7 @@ const MobileRiddlePage = ({
   const [capturedUrl, setCapturedUrl] = useState(null);
   const [predictions, setPredictions] = useState(null);
   const [validationState, setValidationState] = useState(null);
+  const [submitError, setSubmitError] = useState(null);
 
   useEffect(() => {
     if (isExpired) return;
@@ -98,12 +99,14 @@ const MobileRiddlePage = ({
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
     setCapturedUrl(dataUrl);
     setValidationState(null);
+    setSubmitError(null);
     setUploading(true);
 
     canvas.toBlob(async blob => {
       if (!blob) {
         setUploading(false);
-        if (onCorrect) onCorrect('?', false);
+        setCapturedUrl(null);
+        setSubmitError('Could not process the photo - please try again.');
         return;
       }
 
@@ -111,9 +114,10 @@ const MobileRiddlePage = ({
 
       Meteor.call('submissions.detect', base64, targetObject ?? 'object', async (err, result) => {
         if (err) {
+          console.error('[submissions.detect] failed:', err.error || err.reason || err.message);
           setUploading(false);
-          setValidationState('fail');
-          if (onCorrect) onCorrect('?', false);
+          setCapturedUrl(null);
+          setSubmitError('Connection error - please try again.');
           return;
         }
 
@@ -136,8 +140,11 @@ const MobileRiddlePage = ({
     try {
       const letter = await Meteor.callAsync('rounds.submit', roundId, photoUrl, true);
       if (onCorrect) onCorrect(letter, true);
-    } catch {
-      if (onCorrect) onCorrect('?', false);
+    } catch (err) {
+      console.error('[rounds.submit] failed:', err.error || err.reason || err.message);
+      setPredictions(null);
+      setCapturedUrl(null);
+      setSubmitError('Connection error - your submission was not saved. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -194,6 +201,21 @@ const MobileRiddlePage = ({
             <span className="bg-black/70 px-4 py-2 font-mono text-sm uppercase tracking-widest text-slate-300">
               Analysing...
             </span>
+          </div>
+        )}
+
+        {submitError && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/80 px-8 text-center">
+            <p className="font-mono text-xs uppercase tracking-widest text-red-400">
+              {submitError}
+            </p>
+            <button
+              type="button"
+              onClick={() => setSubmitError(null)}
+              className="border border-red-600 bg-red-600/10 px-4 py-2 font-mono text-xs font-semibold uppercase tracking-widest text-red-400 transition hover:bg-red-600 hover:text-white"
+            >
+              Dismiss
+            </button>
           </div>
         )}
 
