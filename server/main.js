@@ -26,6 +26,24 @@ function ensureModel() {
   return modelLoadPromise;
 }
 
+// Meteor's DDP (WebSocket) endpoint accepts connections from any origin by
+// default - there's no traditional CORS surface here (no REST endpoints),
+// but the same "only our frontend may talk to the backend" concern applies
+// to DDP. Reject browser connections whose Origin isn't our own deployed
+// app. Skipped in development so localhost/ngrok testing isn't affected.
+Meteor.onConnection((connection) => {
+  if (Meteor.isDevelopment) return;
+
+  const origin = connection.httpHeaders?.origin;
+  if (!origin) return; // non-browser DDP clients don't send an Origin header
+
+  const allowedOrigin = Meteor.absoluteUrl().replace(/\/$/, '');
+  if (origin !== allowedOrigin) {
+    console.warn(`[CORS] Rejected DDP connection from unauthorized origin: ${origin}`);
+    connection.close();
+  }
+});
+
 Meteor.startup(async () => {
   console.log('[EscapeSnap] server ready — warming COCO-SSD');
   ensureModel().catch((err) => console.error('[EscapeSnap] model load failed:', err));
