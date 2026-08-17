@@ -198,6 +198,9 @@ const Lobby = () => {
           {/* Header row */}
           <div className="flex items-center justify-between">
             <div>
+              <p style={{ fontSize: 10, letterSpacing: '1.5px', color: '#8b0000', marginBottom: 4 }}>
+                {game.groupName?.toUpperCase()}
+              </p>
               <h1 style={{ fontWeight: 700, fontSize: 28, letterSpacing: '2px', color: '#e5e2e1' }}>
                 GAME LOBBY
               </h1>
