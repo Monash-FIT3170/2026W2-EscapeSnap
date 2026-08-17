@@ -12,6 +12,7 @@ import Lobby from './host/pages/lobby/Lobby';
 import ProgressPage from './host/pages/progress/ProgressPage';
 import FinalRiddlePage from './host/pages/riddle/FinalRiddlePage';
 import LandingPage from './host/pages/landing/Landing';
+import Leaderboard from './host/pages/leaderboard/Leaderboard';
 
 function PlayerFlow() {
   const [screen, setScreen] = useState('home');
@@ -98,6 +99,7 @@ export function App() {
       <Route path="/game/:gameId/lobby" element={<Lobby />} />
       <Route path="/game/:gameId/progress" element={<ProgressPage />} />
       <Route path="/game/:gameId/final-riddle" element={<FinalRiddlePage />} />
+      <Route path="/leaderboard" element={<Leaderboard />} />
     </Routes>
   );
 }
