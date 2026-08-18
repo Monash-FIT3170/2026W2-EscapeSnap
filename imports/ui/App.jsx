@@ -7,6 +7,7 @@ import { Players } from '../api/players/PlayersCollection';
 import { PlayerHome } from './mobile/pages/PlayerHome';
 import { PlayerLobby } from './mobile/pages/lobby/PlayerLobby';
 import { PlayerDashboard } from './mobile/pages/PlayerDashboard';
+import { HelpTutorial } from './mobile/components/gameplay/HelpTutorial';
 import CreateGame from './host/pages/create-game/CreateGame';
 import Lobby from './host/pages/lobby/Lobby';
 import ProgressPage from './host/pages/progress/ProgressPage';
@@ -34,7 +35,7 @@ function PlayerFlow() {
 
   useEffect(() => {
     if (game?.status === 'in_progress' && screen === 'lobby') {
-      setScreen('dashboard');
+      setScreen('tutorial');
     }
   }, [game?.status, screen]);
 
@@ -68,15 +69,18 @@ function PlayerFlow() {
     return <PlayerHome onStart={handleJoin} loading={joinLoading} serverError={joinError} />;
   }
   if (screen === 'lobby') {
-    return (
-      <PlayerLobby
-        playerName={playerName}
-        gameCode={gameCode}
-        playerCount={playerCount}
-        onExit={handleExitToHome}
-      />
-    );
-  }
+  return (
+    <PlayerLobby
+      playerName={playerName}
+      gameCode={gameCode}
+      playerCount={playerCount}
+      onExit={handleExitToHome}
+    />
+  );
+}
+if (screen === 'tutorial') {
+  return <HelpTutorial onComplete={() => setScreen('dashboard')} />;
+}
   return (
     <PlayerDashboard
       playerName={playerName}
