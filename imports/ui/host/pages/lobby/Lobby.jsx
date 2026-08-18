@@ -61,15 +61,6 @@ const Lobby = () => {
   const navigate = useNavigate();
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState(null);
-  const [lanUrl, setLanUrl] = useState(null);
-
-  useEffect(() => {
-    const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-    if (!isLocalhost) return;
-    Meteor.callAsync('network.getLanUrl')
-      .then(setLanUrl)
-      .catch(() => {});
-  }, []);
 
   const { game, players, loading } = useTracker(() => {
     const gameSub = Meteor.subscribe('games.current', gameId);
@@ -116,7 +107,7 @@ const Lobby = () => {
 
   const gameStarted = game.status === 'in_progress';
   const capacity = game.capacity || 4;
-  const joinUrl = `${lanUrl || window.location.origin}/join/${game.joinCode}`;
+  const joinUrl = `${window.location.origin}/join/${game.joinCode}`;
   const slots = [
     ...players,
     ...Array(Math.max(0, capacity - players.length)).fill(null),
