@@ -1,0 +1,108 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Never cancel a deploy that is already talking to Galaxy — a half-finished
+# deploy is worse than a queued one.
+concurrency:
+  group: deploy-galaxy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Meteor Galaxy
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    # Configure required reviewers / secrets on this environment in
+    # Settings > Environments > production.
+    environment:
+      name: production
+      url: https://${{ vars.GALAXY_APP_URL }}
+
+    env:
+      GALAXY_APP_URL: ${{ vars.GALAXY_APP_URL }}
+      GALAXY_SESSION: ${{ secrets.GALAXY_SESSION }}
+      GALAXY_METEOR_SETTINGS: ${{ secrets.GALAXY_METEOR_SETTINGS }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Validate deployment configuration
+        shell: bash
+        run: |
+          MISSING=0
+
+          if [ -z "$GALAXY_APP_URL" ]; then
+            echo "::error::Repository variable GALAXY_APP_URL is not set (e.g. escapesnap.meteorapp.com)."
+            MISSING=1
+          fi
+
+          if [ -z "$GALAXY_SESSION" ]; then
+            echo "::error::Secret GALAXY_SESSION is not set. Generate it with 'meteor login' and copy ~/.meteorsession."
+            MISSING=1
+          fi
+
+          if [ -z "$GALAXY_METEOR_SETTINGS" ]; then
+            echo "::error::Secret GALAXY_METEOR_SETTINGS is not set. It must hold the production Meteor settings JSON."
+            MISSING=1
+          fi
+
+          exit "$MISSING"
+
+      - name: Validate settings JSON
+        shell: bash
+        run: |
+          # Parses without printing, so the secret never reaches the log.
+          python3 -c 'import json, os; json.loads(os.environ["GALAXY_METEOR_SETTINGS"])'
+          echo "Production settings JSON is valid."
+
+      - name: Cache Meteor
+        uses: actions/cache@v5
+        with:
+          path: ~/.meteor
+          key: meteor-${{ runner.os }}-${{ hashFiles('.meteor/release') }}
+          restore-keys: |
+            meteor-${{ runner.os }}-
+
+      - name: Install Meteor
+        shell: bash
+        run: |
+          if [ ! -x "$HOME/.meteor/meteor" ]; then
+            curl -fsSL https://install.meteor.com/ | sh
+          fi
+
+          echo "$HOME/.meteor" >> "$GITHUB_PATH"
+          "$HOME/.meteor/meteor" --version
+
+      - name: Install dependencies
+        run: meteor npm ci
+
+      - name: Write deploy credentials
+        shell: bash
+        run: |
+          umask 077
+          printf '%s' "$GALAXY_SESSION" > "$RUNNER_TEMP/meteor-session.json"
+          printf '%s' "$GALAXY_METEOR_SETTINGS" > "$RUNNER_TEMP/settings.json"
+
+      - name: Deploy to Galaxy
+        shell: bash
+        env:
+          METEOR_SESSION_FILE: ${{ runner.temp }}/meteor-session.json
+          DEPLOY_HOSTNAME: galaxy.meteor.com
+        run: |
+          meteor deploy "$GALAXY_APP_URL" \
+            --settings "$RUNNER_TEMP/settings.json"
+
+      - name: Remove deploy credentials
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/meteor-session.json" "$RUNNER_TEMP/settings.json"
