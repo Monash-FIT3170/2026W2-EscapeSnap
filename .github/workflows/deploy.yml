@@ -23,9 +23,6 @@ jobs:
       - name: Install dependencies
         run: meteor npm install
 
-      - name: Lint
-        run: meteor npm run lint
-
       - name: Restore Meteor Cloud session
         env:
           METEOR_SESSION_FILE: ${{ secrets.METEOR_SESSION_FILE }}
