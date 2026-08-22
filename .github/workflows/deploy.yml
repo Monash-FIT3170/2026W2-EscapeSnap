@@ -11,9 +11,6 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: 2026W2-EscapeSnap
     steps:
       - name: Checkout
         uses: actions/checkout@v4
