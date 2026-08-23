@@ -28,5 +28,13 @@ jobs:
           METEOR_SESSION_FILE: ${{ secrets.METEOR_SESSION_FILE }}
         run: printf '%s' "$METEOR_SESSION_FILE" > "$HOME/.meteorsession"
 
+      - name: Write Galaxy settings
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          jq -n --arg key "$GEMINI_API_KEY" \
+            '{"galaxy.meteor.com": {"env": {"GEMINI_API_KEY": $key}}}' \
+            > galaxy-settings.json
+
       - name: Deploy
-        run: meteor deploy "$DEPLOY_DOMAIN" --deploy-polling-timeout 600000
+        run: meteor deploy "$DEPLOY_DOMAIN" --settings galaxy-settings.json --deploy-polling-timeout 600000
