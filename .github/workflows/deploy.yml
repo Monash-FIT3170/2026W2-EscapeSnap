@@ -16,6 +16,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Ships main to Meteor Galaxy. Credentials are written to a temporary file
+  # for the length of the deploy and removed afterwards, and the production
+  # environment gate allows a reviewer to hold the release.
   deploy:
     name: Deploy to Meteor Galaxy
     runs-on: ubuntu-latest
@@ -25,11 +28,16 @@ jobs:
     # Settings > Environments > production.
     environment:
       name: production
-      url: https://${{ vars.GALAXY_APP_URL }}
+      url: https://${{ vars.GALAXY_APP_URL || 'escape-snap.sandbox.galaxycloud.app' }}
 
     env:
-      GALAXY_APP_URL: ${{ vars.GALAXY_APP_URL }}
-      GALAXY_SESSION: ${{ secrets.GALAXY_SESSION }}
+      # Defaults to the sandbox domain already deployed from main, so the
+      # workflow runs without extra repository configuration.
+      GALAXY_APP_URL: ${{ vars.GALAXY_APP_URL || 'escape-snap.sandbox.galaxycloud.app' }}
+      # METEOR_SESSION_FILE is the secret name the existing deploy on main
+      # uses; accept either so this workflow drops in without a secret rename.
+      GALAXY_SESSION: ${{ secrets.GALAXY_SESSION || secrets.METEOR_SESSION_FILE }}
+      # Optional: nothing in the app reads Meteor.settings yet.
       GALAXY_METEOR_SETTINGS: ${{ secrets.GALAXY_METEOR_SETTINGS }}
 
     steps:
@@ -39,26 +47,17 @@ jobs:
       - name: Validate deployment configuration
         shell: bash
         run: |
-          MISSING=0
-
-          if [ -z "$GALAXY_APP_URL" ]; then
-            echo "::error::Repository variable GALAXY_APP_URL is not set (e.g. escapesnap.meteorapp.com)."
-            MISSING=1
-          fi
-
           if [ -z "$GALAXY_SESSION" ]; then
-            echo "::error::Secret GALAXY_SESSION is not set. Generate it with 'meteor login' and copy ~/.meteorsession."
-            MISSING=1
+            echo "::error::No deploy session found. Set the METEOR_SESSION_FILE secret to the contents of ~/.meteorsession after running 'meteor login'."
+            exit 1
           fi
 
-          if [ -z "$GALAXY_METEOR_SETTINGS" ]; then
-            echo "::error::Secret GALAXY_METEOR_SETTINGS is not set. It must hold the production Meteor settings JSON."
-            MISSING=1
-          fi
-
-          exit "$MISSING"
+          echo "Deploy target: $GALAXY_APP_URL"
 
       - name: Validate settings JSON
+        # Settings are optional: no server code reads Meteor.settings today, so
+        # a missing secret must not block the deploy. Validate only if present.
+        if: env.GALAXY_METEOR_SETTINGS != ''
         shell: bash
         run: |
           # Parses without printing, so the secret never reaches the log.
@@ -91,7 +90,10 @@ jobs:
         run: |
           umask 077
           printf '%s' "$GALAXY_SESSION" > "$RUNNER_TEMP/meteor-session.json"
-          printf '%s' "$GALAXY_METEOR_SETTINGS" > "$RUNNER_TEMP/settings.json"
+
+          if [ -n "$GALAXY_METEOR_SETTINGS" ]; then
+            printf '%s' "$GALAXY_METEOR_SETTINGS" > "$RUNNER_TEMP/settings.json"
+          fi
 
       - name: Deploy to Galaxy
         shell: bash
@@ -99,8 +101,17 @@ jobs:
           METEOR_SESSION_FILE: ${{ runner.temp }}/meteor-session.json
           DEPLOY_HOSTNAME: galaxy.meteor.com
         run: |
-          meteor deploy "$GALAXY_APP_URL" \
-            --settings "$RUNNER_TEMP/settings.json"
+          # --deploy-polling-timeout stops the step hanging for the job's full
+          # 40 minutes when Galaxy is slow to report the container as ready.
+          DEPLOY_ARGS=("$GALAXY_APP_URL" --deploy-polling-timeout 600000)
+
+          if [ -f "$RUNNER_TEMP/settings.json" ]; then
+            DEPLOY_ARGS+=(--settings "$RUNNER_TEMP/settings.json")
+          else
+            echo "::notice::Deploying without a settings file."
+          fi
+
+          meteor deploy "${DEPLOY_ARGS[@]}"
 
       - name: Remove deploy credentials
         if: always()

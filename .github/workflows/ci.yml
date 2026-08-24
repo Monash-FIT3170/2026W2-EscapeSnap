@@ -27,6 +27,8 @@ env:
   METEOR_SETTINGS: ${{ secrets.CI_METEOR_SETTINGS || '{}' }}
 
 jobs:
+  # Rejects PRs whose branch is not feature/<name>, fix/<name> or spike/<name>
+  # in kebab-case. Keeps the branch list readable and matches the PMP.
   branch-name:
     name: Branch naming convention
     runs-on: ubuntu-latest
@@ -46,6 +48,9 @@ jobs:
             exit 1
           fi
 
+  # Checks every non-merge commit in the PR against
+  # "[Role] [Task ID] <type>: <description>" so the history stays traceable
+  # back to the board. Merge commits are skipped.
   commit-format:
     name: Commit message format
     runs-on: ubuntu-latest
@@ -87,6 +92,9 @@ jobs:
 
           exit "$FAILED"
 
+  # The actual build gate: installs dependencies, lints, runs the test suite
+  # against a throwaway MongoDB, and proves the app still bundles. Runs on
+  # every trigger, not just PRs, so a broken main is caught immediately.
   verify:
     name: Lint, test and build
     runs-on: ubuntu-latest
