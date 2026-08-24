@@ -2,7 +2,9 @@
   "name": "2026W2-EscapeSnap",
   "private": true,
   "scripts": {
-    "start": "export $(cat .env | xargs) && meteor run",
+    "start": "node scripts/start.mjs",
+    "patch:meteor-win": "powershell -ExecutionPolicy Bypass -File ./scripts/patch-meteor-win-npm.ps1",
+    "start:windows": "powershell -ExecutionPolicy Bypass -File ./scripts/start-windows.ps1",
     "lint": "eslint . --ext .js,.jsx",
     "format": "prettier --write '**/*.{js,jsx,css,md}'"
   },
