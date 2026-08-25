@@ -2,15 +2,13 @@
   "name": "2026W2-EscapeSnap",
   "private": true,
   "scripts": {
-    "start": "export $(cat .env | xargs) && meteor run",
+    "start": "set -a; . ./.env; set +a; meteor run",
     "lint": "eslint . --ext .js,.jsx",
     "format": "prettier --write '**/*.{js,jsx,css,md}'"
   },
   "dependencies": {
     "@babel/runtime": "^7.23.5",
     "@tailwindcss/postcss": "^4.2.2",
-    "@tensorflow-models/coco-ssd": "^2.2.3",
-    "@tensorflow/tfjs": "^4.22.0",
     "daisyui": "^5.5.19",
     "meteor-node-stubs": "^1.2.12",
     "postcss": "^8.5.6",
@@ -19,7 +17,6 @@
     "react-dom": "^19.2.5",
     "react-router": "^6.30.3",
     "react-router-dom": "^6.30.3",
-    "sharp": "^0.34.5",
     "simpl-schema": "^3.4.7",
     "tailwindcss": "^4.2.2"
   },
