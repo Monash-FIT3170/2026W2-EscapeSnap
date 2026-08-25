@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+// Meteor's JSX transform still requires React in module scope.
+// eslint-disable-next-line no-unused-vars
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Rounds } from '/imports/api/rounds/RoundsCollection';
@@ -9,6 +11,7 @@ import { MobileBottomNav } from '../components/navigation/MobileBottomNav';
 import { RoundTimer } from '../components/gameplay/RoundTimer';
 import { PlayerWinScreen } from './result/PlayerWinScreen';
 import { PlayerLoseScreen } from './result/PlayerLoseScreen';
+import { buildEndgameShareSnapshot } from '../components/result/shareSnapshot';
 
 const MAX_ROUNDS = 3;
 
@@ -16,9 +19,12 @@ function LettersScreen({ revealedLetters }) {
   return (
     <section className="flex flex-col gap-5 pt-5">
       <div>
-        <p className="font-mono text-xs uppercase tracking-widest text-red-500">Letters Collected</p>
+        <p className="font-mono text-xs uppercase tracking-widest text-red-500">
+          Letters Collected
+        </p>
         <h2 className="mt-1 font-mono text-xl font-bold tracking-wide text-white">
-          {revealedLetters.filter(l => l && l !== '?').length} / {MAX_ROUNDS} Rounds Complete
+          {revealedLetters.filter((l) => l && l !== '?').length} / {MAX_ROUNDS}{' '}
+          Rounds Complete
         </h2>
       </div>
       <div className="flex gap-3 mt-2">
@@ -29,7 +35,9 @@ function LettersScreen({ revealedLetters }) {
             <div
               key={i}
               className={`flex-1 border py-6 text-center ${
-                hasLetter ? 'border-red-900/60 bg-red-950/20' : 'border-slate-800 bg-slate-950/40'
+                hasLetter
+                  ? 'border-red-900/60 bg-red-950/20'
+                  : 'border-slate-800 bg-slate-950/40'
               }`}
             >
               <p className="font-mono text-[10px] uppercase tracking-widest text-slate-500 mb-3">
@@ -46,7 +54,14 @@ function LettersScreen({ revealedLetters }) {
   );
 }
 
-function ResultScreen({ revealedLetter, answerCorrect, isExpired, currentRound, onRetry, onNextRound }) {
+function ResultScreen({
+  revealedLetter,
+  answerCorrect,
+  isExpired,
+  currentRound,
+  onRetry,
+  onNextRound,
+}) {
   return (
     <div className="flex-1 overflow-y-auto px-5">
       <section className="flex flex-col gap-6 pt-5">
@@ -105,7 +120,7 @@ function ResultScreen({ revealedLetter, answerCorrect, isExpired, currentRound, 
   );
 }
 
-export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit }) {
+export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   const [activeTab, setActiveTab] = useState('scanner');
   const [currentRound, setCurrentRound] = useState(1);
   const [revealedLetter, setRevealedLetter] = useState(null);
@@ -114,16 +129,50 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
 
   const showResult = revealedLetter !== null;
 
-  const { round, revealedLetters, game } = useTracker(() => {
+  const {
+    round,
+    revealedLetters,
+    game,
+    sharePlayers,
+    shareRounds,
+    shareLoading,
+  } = useTracker(() => {
     Meteor.subscribe('rounds.forPlayer', playerId, currentRound);
     Meteor.subscribe('player.self', playerId);
-    Meteor.subscribe('games.current', gameId);
+    const gameSubscription = Meteor.subscribe('games.current', gameId);
+    const trackedGame = Games.findOne(gameId);
+    const gameEnded = ['won', 'lost'].includes(trackedGame?.status);
+    const playersSubscription = gameEnded
+      ? Meteor.subscribe('players.inGame', gameId)
+      : null;
+    const roundsSubscription = gameEnded
+      ? Meteor.subscribe('rounds.forGame', gameId)
+      : null;
     return {
       round: Rounds.findOne({ playerId, roundNumber: currentRound }),
       revealedLetters: Players.findOne(playerId)?.revealedLetters ?? [],
-      game: Games.findOne(gameId),
+      game: trackedGame,
+      sharePlayers: gameEnded ? Players.find({ gameId }).fetch() : [],
+      shareRounds: gameEnded ? Rounds.find({ gameId }).fetch() : [],
+      shareLoading:
+        gameEnded &&
+        (!gameSubscription.ready() ||
+          !playersSubscription?.ready() ||
+          !roundsSubscription?.ready()),
     };
   }, [playerId, currentRound, gameId]);
+
+  const shareSnapshot = useMemo(
+    () =>
+      buildEndgameShareSnapshot({
+        game,
+        playerId,
+        playerName,
+        players: sharePlayers,
+        rounds: shareRounds,
+      }),
+    [game, playerId, playerName, sharePlayers, shareRounds]
+  );
 
   useEffect(() => {
     if (!game?.startedAt || !game?.timerMinutes) return;
@@ -149,9 +198,11 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
     if (!answerCorrect) {
       try {
         await Meteor.callAsync('games.advanceRound', gameId);
-      } catch {}
+      } catch (error) {
+        console.error('[EscapeSnap] Could not advance the round:', error);
+      }
     }
-    setCurrentRound(r => r + 1);
+    setCurrentRound((r) => r + 1);
     setRevealedLetter(null);
     setAnswerCorrect(null);
     setActiveTab('scanner');
@@ -163,8 +214,12 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
     setActiveTab('scanner');
   };
 
-  if (game?.status === 'won') return <PlayerWinScreen />;
-  if (game?.status === 'lost') return <PlayerLoseScreen />;
+  if (game?.status === 'won') {
+    return <PlayerWinScreen snapshot={shareSnapshot} loading={shareLoading} />;
+  }
+  if (game?.status === 'lost') {
+    return <PlayerLoseScreen snapshot={shareSnapshot} loading={shareLoading} />;
+  }
 
   return (
     <div className="h-screen flex flex-col bg-black text-slate-100 overflow-hidden">
@@ -173,7 +228,11 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
           <span className="font-mono text-xs font-bold uppercase tracking-widest text-white">
             Round {currentRound}
           </span>
-          <RoundTimer timeLeft={timeLeft ?? totalGameSeconds} totalTime={totalGameSeconds} compact />
+          <RoundTimer
+            timeLeft={timeLeft ?? totalGameSeconds}
+            totalTime={totalGameSeconds}
+            compact
+          />
         </div>
         <button
           type="button"
@@ -203,7 +262,9 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
         </div>
       )}
 
-      <div className={`flex-1 min-h-0 flex flex-col ${showResult ? '' : 'pb-16'}`}>
+      <div
+        className={`flex-1 min-h-0 flex flex-col ${showResult ? '' : 'pb-16'}`}
+      >
         {showResult ? (
           <ResultScreen
             revealedLetter={revealedLetter}
