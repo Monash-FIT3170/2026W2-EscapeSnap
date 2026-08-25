@@ -1,7 +1,8 @@
 import React from 'react';
 import PostGameLeaderboard from '../../components/leaderboard/PostGameLeaderboard';
+import GameCompletionActions from '../../components/game-completion/GameCompletionActions';
 
-const WinScreen = ({ gameId, onPlayAgain }) => {
+const WinScreen = ({ gameId, onPlayAgain, onViewLeaderboard }) => {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#0e0e0e', color: '#e5e2e1' }}>
 
@@ -42,23 +43,11 @@ const WinScreen = ({ gameId, onPlayAgain }) => {
             <PostGameLeaderboard gameId={gameId} />
           </div>
 
-          <button
-            onClick={onPlayAgain}
-            className="mt-10 font-bold uppercase transition-colors duration-200"
-            style={{
-              background: '#8b0000',
-              color: '#e5e2e1',
-              letterSpacing: '0.2em',
-              fontSize: '1rem',
-              padding: '1rem 4rem',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
-            onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
-          >
-            PLAY AGAIN
-          </button>
+          <GameCompletionActions
+            playAgainLabel="PLAY AGAIN"
+            onPlayAgain={onPlayAgain}
+            onViewLeaderboard={onViewLeaderboard}
+          />
         </div>
       </div>
 

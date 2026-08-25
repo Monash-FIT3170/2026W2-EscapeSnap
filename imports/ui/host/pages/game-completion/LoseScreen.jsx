@@ -1,7 +1,8 @@
 import React from 'react';
 import PostGameLeaderboard from '../../components/leaderboard/PostGameLeaderboard';
+import GameCompletionActions from '../../components/game-completion/GameCompletionActions';
 
-const LoseScreen = ({ gameId, onPlayAgain }) => {
+const LoseScreen = ({ gameId, onPlayAgain, onViewLeaderboard }) => {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#0e0e0e', color: '#e5e2e1' }}>
 
@@ -40,24 +41,11 @@ const LoseScreen = ({ gameId, onPlayAgain }) => {
             <PostGameLeaderboard gameId={gameId} />
           </div>
 
-          <button
-            onClick={onPlayAgain}
-            className="font-bold uppercase"
-            style={{
-              marginTop: 24,
-              padding: '14px 64px',
-              background: '#8b0000',
-              color: '#e5e2e1',
-              fontSize: 13,
-              letterSpacing: '1.5px',
-              cursor: 'pointer',
-              border: 'none',
-            }}
-            onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
-            onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
-          >
-            TRY AGAIN
-          </button>
+          <GameCompletionActions
+            playAgainLabel="TRY AGAIN"
+            onPlayAgain={onPlayAgain}
+            onViewLeaderboard={onViewLeaderboard}
+          />
         </div>
       </div>
 
