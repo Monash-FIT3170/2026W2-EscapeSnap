@@ -8,9 +8,11 @@ import '../imports/api/players/playersMethods';
 import '../imports/api/players/playersPublications';
 import '../imports/api/rounds/roundsMethods';
 import '../imports/api/rounds/roundsPublications';
+import '../imports/api/achievements/achievementsPublications';
 import '/imports/api/rounds/RoundSessions';
 import { Games } from '../imports/api/games/GamesCollection';
 import { Rounds } from '../imports/api/rounds/RoundsCollection';
+import { GameResults } from '../imports/api/achievements/GameResultsCollection';
 
 let detectionModel = null;
 let modelLoadPromise = null;
@@ -33,6 +35,7 @@ Meteor.startup(async () => {
   await Games.createIndexAsync({ status: 1 });
   await Rounds.createIndexAsync({ gameId: 1, roundNumber: 1 });
   await Rounds.createIndexAsync({ playerId: 1, roundNumber: 1 });
+  await GameResults.createIndexAsync({ gameId: 1, playerId: 1 }, { unique: true });
 });
 
 Meteor.methods({

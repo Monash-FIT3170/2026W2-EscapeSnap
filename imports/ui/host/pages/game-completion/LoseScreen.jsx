@@ -1,6 +1,7 @@
 import React from 'react';
+import PostGameLeaderboard from '../../components/leaderboard/PostGameLeaderboard';
 
-const LoseScreen = ({ onPlayAgain }) => {
+const LoseScreen = ({ gameId, onPlayAgain }) => {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#0e0e0e', color: '#e5e2e1' }}>
 
@@ -13,45 +14,51 @@ const LoseScreen = ({ onPlayAgain }) => {
         </span>
       </header>
 
-      <div className="flex-1 flex flex-col items-center justify-center gap-6">
-        <p className="text-xs tracking-widest" style={{ color: '#8b0000' }}>
-          MISSION FAILED
-        </p>
+      <div className="flex-1 px-6 py-12">
+        <div className="mx-auto flex w-full max-w-5xl flex-col items-center gap-6">
+          <p className="text-xs tracking-widest" style={{ color: '#8b0000' }}>
+            MISSION FAILED
+          </p>
 
-        <h1
-          className="font-bold uppercase"
-          style={{
-            fontSize: '5rem',
-            letterSpacing: '0.1em',
-            lineHeight: 1,
-            color: '#e5e2e1',
-          }}
-        >
-          NO ESCAPE.
-        </h1>
+          <h1
+            className="text-center font-bold uppercase"
+            style={{
+              fontSize: 'clamp(3rem, 7vw, 5rem)',
+              letterSpacing: '0.1em',
+              lineHeight: 1,
+              color: '#e5e2e1',
+            }}
+          >
+            NO ESCAPE.
+          </h1>
 
-        <p className="uppercase" style={{ fontSize: 12, letterSpacing: '2px', color: '#aa8984' }}>
-          THE RIDDLE REMAINS UNSOLVED.
-        </p>
+          <p className="uppercase" style={{ fontSize: 12, letterSpacing: '2px', color: '#aa8984' }}>
+            THE RIDDLE REMAINS UNSOLVED.
+          </p>
 
-        <button
-          onClick={onPlayAgain}
-          className="font-bold uppercase"
-          style={{
-            marginTop: 32,
-            padding: '14px 64px',
-            background: '#8b0000',
-            color: '#e5e2e1',
-            fontSize: 13,
-            letterSpacing: '1.5px',
-            cursor: 'pointer',
-            border: 'none',
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
-          onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
-        >
-          TRY AGAIN
-        </button>
+          <div className="mt-6 w-full">
+            <PostGameLeaderboard gameId={gameId} />
+          </div>
+
+          <button
+            onClick={onPlayAgain}
+            className="font-bold uppercase"
+            style={{
+              marginTop: 24,
+              padding: '14px 64px',
+              background: '#8b0000',
+              color: '#e5e2e1',
+              fontSize: 13,
+              letterSpacing: '1.5px',
+              cursor: 'pointer',
+              border: 'none',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
+            onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
+          >
+            TRY AGAIN
+          </button>
+        </div>
       </div>
 
     </div>

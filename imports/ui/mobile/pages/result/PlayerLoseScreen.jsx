@@ -1,6 +1,7 @@
 import React from 'react';
+import { PlayerResultSummary } from '../../components/result/PlayerResultSummary';
 
-export function PlayerLoseScreen() {
+export function PlayerLoseScreen({ playerId }) {
   return (
     <div
       className="h-screen flex flex-col items-center justify-center px-8 gap-6 text-center"
@@ -16,6 +17,7 @@ export function PlayerLoseScreen() {
       <p className="text-sm leading-7" style={{ color: '#6b7280' }}>
         Your team ran out of attempts.<br />The escape has failed.
       </p>
+      <PlayerResultSummary playerId={playerId} />
     </div>
   );
 }

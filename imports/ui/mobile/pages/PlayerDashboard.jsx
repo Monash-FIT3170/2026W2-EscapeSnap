@@ -163,8 +163,8 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
     setActiveTab('scanner');
   };
 
-  if (game?.status === 'won') return <PlayerWinScreen />;
-  if (game?.status === 'lost') return <PlayerLoseScreen />;
+  if (game?.status === 'won') return <PlayerWinScreen playerId={playerId} />;
+  if (game?.status === 'lost') return <PlayerLoseScreen playerId={playerId} />;
 
   return (
     <div className="h-screen flex flex-col bg-black text-slate-100 overflow-hidden">

@@ -5,6 +5,8 @@ import { Rounds } from '../rounds/RoundsCollection';
 import { RoundSessions } from '/imports/api/rounds/RoundSessions';
 import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 import { FINAL_RIDDLE } from '../../lib/finalRiddle';
+import { advanceGameRound } from '../rounds/roundProgression';
+import { finalizeGameResults } from '../achievements/achievementService';
 
 const ROUND_DURATION_MS = 60 * 1000;
 
@@ -36,10 +38,11 @@ Meteor.methods({
     if (game.status !== 'lobby')
       throw new Meteor.Error('invalid-state', 'Game is not in lobby state');
 
-    await Meteor.callAsync('rounds.createForGame', gameId);
+    const startedAt = new Date();
+    await Meteor.callAsync('rounds.createForGame', gameId, startedAt);
 
     await Games.updateAsync(gameId, {
-      $set: { status: 'in_progress', startedAt: new Date() },
+      $set: { status: 'in_progress', startedAt },
     });
   },
 
@@ -91,9 +94,7 @@ Meteor.methods({
       });
     }));
 
-    await Games.updateAsync(gameId, {
-      $set: { currentRound: game.currentRound + 1 },
-    });
+    await advanceGameRound(gameId, game.currentRound);
   },
 
   async 'games.submitFinalAnswer'(gameId, guess) {
@@ -109,8 +110,11 @@ Meteor.methods({
       guess.trim().toLowerCase() === game.finalRiddle.answer.toLowerCase();
 
     if (isCorrect || attempts >= MAX_ATTEMPTS) {
+      const outcome = isCorrect ? 'won' : 'lost';
+      const endedAt = new Date();
+      await finalizeGameResults(gameId, outcome, endedAt);
       await Games.updateAsync(gameId, {
-        $set: { status: isCorrect ? 'won' : 'lost', endedAt: new Date() },
+        $set: { status: outcome, endedAt, finalRiddleAttempts: attempts },
       });
     } else {
       await Games.updateAsync(gameId, {
