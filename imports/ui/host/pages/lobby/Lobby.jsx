@@ -140,26 +140,24 @@ const Lobby = () => {
               ACCESS AUTHORIZATION
             </p>
             <p style={{ fontSize: 9, letterSpacing: '1px', color: '#555', marginBottom: 8 }}>
-              SECURE ENTRY PIN
-            </p>
-            <p style={{ fontSize: 48, fontWeight: 700, letterSpacing: '4px', lineHeight: 1, color: '#e5e2e1' }}>
-              {game.joinCode || '----'}
-            </p>
-          </div>
-
-          {/* Game code box */}
-          <div
-            className="p-4"
-            style={{ background: '#1c1b1b', border: '1px solid #2a2a2a' }}
-          >
-            <p style={{ fontSize: 9, letterSpacing: '1px', color: '#aa8984', marginBottom: 8 }}>
               GAME CODE
             </p>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#e5e2e1', letterSpacing: '1px', wordBreak: 'break-all' }}>
-              {gameId}
+            <p
+              title="Select and copy this 4-digit game code"
+              style={{
+                fontSize: 48,
+                fontWeight: 700,
+                letterSpacing: '4px',
+                lineHeight: 1,
+                color: '#e5e2e1',
+                cursor: 'text',
+                userSelect: 'all',
+              }}
+            >
+              {game.joinCode || '----'}
             </p>
-            <p style={{ fontSize: 9, color: '#555', marginTop: 8, lineHeight: 1.5 }}>
-              Distribute the PIN or share the game code to sync operatives to this terminal.
+            <p style={{ fontSize: 9, color: '#555', marginTop: 10, lineHeight: 1.5 }}>
+              Share this 4-digit code with players.
             </p>
           </div>
 
