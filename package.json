@@ -6,6 +6,7 @@
     "patch:meteor-win": "powershell -ExecutionPolicy Bypass -File ./scripts/patch-meteor-win-npm.ps1",
     "start:windows": "powershell -ExecutionPolicy Bypass -File ./scripts/start-windows.ps1",
     "lint": "eslint . --ext .js,.jsx",
+    "test": "node --experimental-default-type=module --test imports/api/achievements/calculateGameResults.test.js",
     "format": "prettier --write '**/*.{js,jsx,css,md}'"
   },
   "dependencies": {

@@ -1,6 +1,7 @@
 import React from 'react';
+import { PlayerResultSummary } from '../../components/result/PlayerResultSummary';
 
-export function PlayerWinScreen() {
+export function PlayerWinScreen({ playerId }) {
   return (
     <div
       className="h-screen flex flex-col items-center justify-center px-8 gap-6 text-center"
@@ -16,6 +17,7 @@ export function PlayerWinScreen() {
       <p className="text-sm leading-7" style={{ color: '#6b7280' }}>
         Your team cracked the code.<br />The escape is complete.
       </p>
+      <PlayerResultSummary playerId={playerId} />
     </div>
   );
 }

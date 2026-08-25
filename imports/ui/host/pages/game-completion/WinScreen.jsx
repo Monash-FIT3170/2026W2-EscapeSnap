@@ -1,6 +1,8 @@
 import React from 'react';
+import PostGameLeaderboard from '../../components/leaderboard/PostGameLeaderboard';
+import GameCompletionActions from '../../components/game-completion/GameCompletionActions';
 
-const WinScreen = ({ onPlayAgain, onViewLeaderboard }) => {
+const WinScreen = ({ gameId, onPlayAgain, onViewLeaderboard }) => {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#0e0e0e', color: '#e5e2e1' }}>
 
@@ -13,63 +15,40 @@ const WinScreen = ({ onPlayAgain, onViewLeaderboard }) => {
         </span>
       </header>
 
-      <div className="flex-1 flex flex-col items-center justify-center">
-        <p className="text-xs tracking-widest mb-3" style={{ color: '#8b0000' }}>
-          MISSION SUCCESS
-        </p>
-        <h1
-          className="font-extrabold uppercase mb-4"
-          style={{
-            color: '#e5e2e1',
-            fontSize: '6rem',
-            letterSpacing: '0.1em',
-            lineHeight: 1,
-          }}
-        >
-          YOU ESCAPED
-        </h1>
+      <div className="flex-1 px-6 py-12">
+        <div className="mx-auto flex w-full max-w-5xl flex-col items-center">
+          <p className="mb-3 text-xs tracking-widest" style={{ color: '#8b0000' }}>
+            MISSION SUCCESS
+          </p>
+          <h1
+            className="mb-4 text-center font-extrabold uppercase"
+            style={{
+              color: '#e5e2e1',
+              fontSize: 'clamp(3rem, 8vw, 6rem)',
+              letterSpacing: '0.1em',
+              lineHeight: 1,
+            }}
+          >
+            YOU ESCAPED
+          </h1>
 
-        <p
-          className="uppercase mb-16"
-          style={{ letterSpacing: '0.3em', fontSize: '1rem', color: '#aa8984' }}
-        >
-          THE RIDDLE HAS BEEN SOLVED.
-        </p>
+          <p
+            className="mb-12 text-center uppercase"
+            style={{ letterSpacing: '0.3em', fontSize: '1rem', color: '#aa8984' }}
+          >
+            THE RIDDLE HAS BEEN SOLVED.
+          </p>
 
-        <button
-          onClick={onPlayAgain}
-          className="font-bold uppercase transition-colors duration-200"
-          style={{
-            background: '#8b0000',
-            color: '#e5e2e1',
-            letterSpacing: '0.2em',
-            fontSize: '1rem',
-            padding: '1rem 4rem',
-            border: 'none',
-            cursor: 'pointer',
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
-          onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
-        >
-          PLAY AGAIN
-        </button>
+          <div className="w-full">
+            <PostGameLeaderboard gameId={gameId} />
+          </div>
 
-        <button
-          onClick={onViewLeaderboard}
-          className="uppercase transition-colors duration-200"
-          style={{
-            marginTop: 12,
-            padding: '10px 32px',
-            background: 'transparent',
-            color: '#aa8984',
-            letterSpacing: '0.2em',
-            fontSize: '0.7rem',
-            border: '1px solid #1c1b1b',
-            cursor: 'pointer',
-          }}
-        >
-          VIEW LEADERBOARD
-        </button>
+          <GameCompletionActions
+            playAgainLabel="PLAY AGAIN"
+            onPlayAgain={onPlayAgain}
+            onViewLeaderboard={onViewLeaderboard}
+          />
+        </div>
       </div>
 
     </div>
