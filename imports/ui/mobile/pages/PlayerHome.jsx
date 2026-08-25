@@ -1,3 +1,5 @@
+// Meteor's JSX transform still requires React in module scope.
+// eslint-disable-next-line no-unused-vars
 import React, { useState } from 'react';
 
 export function PlayerHome({ onStart, loading = false, serverError = '' }) {
@@ -9,8 +11,12 @@ export function PlayerHome({ onStart, loading = false, serverError = '' }) {
     e.preventDefault();
     if (!name.trim()) { setError('Player name required'); return; }
     if (!code.trim()) { setError('Game code required'); return; }
+    if (!/^\d{4}$/.test(code)) {
+      setError('Enter the 4-digit game code');
+      return;
+    }
     setError('');
-    onStart(name.trim(), code.trim().toUpperCase());
+    onStart(name.trim(), code);
   }
 
   return (
@@ -69,11 +75,13 @@ export function PlayerHome({ onStart, loading = false, serverError = '' }) {
             </label>
             <input
               type="text"
-              placeholder="e.g. ALPHA-7"
+              inputMode="numeric"
+              pattern="[0-9]{4}"
+              placeholder="e.g. 8437"
               value={code}
-              onChange={e => setCode(e.target.value.toUpperCase())}
-              maxLength={12}
-              autoComplete="off"
+              onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              maxLength={4}
+              autoComplete="one-time-code"
               className="w-full border border-slate-700 bg-slate-950 px-4 py-3.5 font-mono text-base tracking-widest text-white placeholder:text-white focus:border-red-500/70 focus:outline-none transition-colors duration-200"
             />
           </div>
