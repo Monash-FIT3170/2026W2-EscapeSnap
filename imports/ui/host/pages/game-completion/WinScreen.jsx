@@ -1,6 +1,6 @@
 import React from 'react';
 
-const WinScreen = ({ onPlayAgain }) => {
+const WinScreen = ({ onPlayAgain, onViewLeaderboard }) => {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#0e0e0e', color: '#e5e2e1' }}>
 
@@ -52,6 +52,23 @@ const WinScreen = ({ onPlayAgain }) => {
           onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
         >
           PLAY AGAIN
+        </button>
+
+        <button
+          onClick={onViewLeaderboard}
+          className="uppercase transition-colors duration-200"
+          style={{
+            marginTop: 12,
+            padding: '10px 32px',
+            background: 'transparent',
+            color: '#aa8984',
+            letterSpacing: '0.2em',
+            fontSize: '0.7rem',
+            border: '1px solid #1c1b1b',
+            cursor: 'pointer',
+          }}
+        >
+          VIEW LEADERBOARD
         </button>
       </div>
 

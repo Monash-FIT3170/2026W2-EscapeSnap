@@ -7,11 +7,13 @@ import { Players } from '../api/players/PlayersCollection';
 import { PlayerHome } from './mobile/pages/PlayerHome';
 import { PlayerLobby } from './mobile/pages/lobby/PlayerLobby';
 import { PlayerDashboard } from './mobile/pages/PlayerDashboard';
+import { HelpTutorial } from './mobile/components/gameplay/HelpTutorial';
 import CreateGame from './host/pages/create-game/CreateGame';
 import Lobby from './host/pages/lobby/Lobby';
 import ProgressPage from './host/pages/progress/ProgressPage';
 import FinalRiddlePage from './host/pages/riddle/FinalRiddlePage';
 import LandingPage from './host/pages/landing/Landing';
+import Leaderboard from './host/pages/leaderboard/Leaderboard';
 
 function PlayerFlow({ initialCode = '' }) {
   const [screen, setScreen] = useState('home');
@@ -34,7 +36,7 @@ function PlayerFlow({ initialCode = '' }) {
 
   useEffect(() => {
     if (game?.status === 'in_progress' && screen === 'lobby') {
-      setScreen('dashboard');
+      setScreen('tutorial');
     }
   }, [game?.status, screen]);
 
@@ -75,15 +77,18 @@ function PlayerFlow({ initialCode = '' }) {
     );
   }
   if (screen === 'lobby') {
-    return (
-      <PlayerLobby
-        playerName={playerName}
-        gameCode={gameCode}
-        playerCount={playerCount}
-        onExit={handleExitToHome}
-      />
-    );
-  }
+  return (
+    <PlayerLobby
+      playerName={playerName}
+      gameCode={gameCode}
+      playerCount={playerCount}
+      onExit={handleExitToHome}
+    />
+  );
+}
+if (screen === 'tutorial') {
+  return <HelpTutorial onComplete={() => setScreen('dashboard')} />;
+}
   return (
     <PlayerDashboard
       playerName={playerName}
@@ -111,6 +116,7 @@ export function App() {
       <Route path="/game/:gameId/lobby" element={<Lobby />} />
       <Route path="/game/:gameId/progress" element={<ProgressPage />} />
       <Route path="/game/:gameId/final-riddle" element={<FinalRiddlePage />} />
+      <Route path="/leaderboard" element={<Leaderboard />} />
     </Routes>
   );
 }
