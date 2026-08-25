@@ -41,9 +41,8 @@ const MobileRiddlePage = ({
   const [cameraError, setCameraError] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [capturedUrl, setCapturedUrl] = useState(null);
-  const [predictions, setPredictions] = useState(null);
+  const [explanation, setExplanation] = useState(null);
   const [validationState, setValidationState] = useState(null);
-  const [submitError, setSubmitError] = useState(null);
 
   useEffect(() => {
     if (isExpired) return;
@@ -82,7 +81,7 @@ const MobileRiddlePage = ({
   }
 
   function stopCamera() {
-    streamRef.current?.getTracks().forEach(track => track.stop());
+    streamRef.current?.getTracks().forEach((track) => track.stop());
   }
 
   async function handleCapture() {
@@ -99,52 +98,61 @@ const MobileRiddlePage = ({
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
     setCapturedUrl(dataUrl);
     setValidationState(null);
-    setSubmitError(null);
+    setExplanation(null);
     setUploading(true);
 
-    canvas.toBlob(async blob => {
-      if (!blob) {
-        setUploading(false);
-        setCapturedUrl(null);
-        setSubmitError('Could not process the photo - please try again.');
-        return;
-      }
-
-      const base64 = await blobToBase64(blob);
-
-      Meteor.call('submissions.detect', base64, targetObject ?? 'object', async (err, result) => {
-        if (err) {
-          console.error('[submissions.detect] failed:', err.error || err.reason || err.message);
+    canvas.toBlob(
+      async (blob) => {
+        if (!blob) {
           setUploading(false);
-          setCapturedUrl(null);
-          setSubmitError('Connection error - please try again.');
+          setValidationState('error');
+          setExplanation('Could not process the photo — please try again.');
           return;
         }
 
-        setPredictions(result.predictions ?? []);
-        const outcome = result.outcome === 'escalate' ? 'fail' : result.outcome;
-        setValidationState(outcome);
+        const base64 = await blobToBase64(blob);
 
-        if (outcome === 'pass') {
-          await submitRiddle(base64);
-        } else {
+        try {
+          const result = await Meteor.callAsync(
+            'submissions.classify',
+            base64,
+            targetObject ?? 'object'
+          );
+          setValidationState(result.outcome);
+          setExplanation(result.explanation || null);
+
+          if (result.outcome === 'pass') {
+            await submitRiddle(base64);
+          } else {
+            setUploading(false);
+            if (result.outcome === 'fail' && onCorrect) onCorrect('?', false);
+          }
+        } catch (err) {
+          console.error('[submissions.classify] failed:', err.error || err.reason || err.message);
           setUploading(false);
-          if (onCorrect) onCorrect('?', false);
+          setValidationState('error');
+          setExplanation('Connection error — please try again.');
         }
-      });
-    }, 'image/jpeg', 0.85);
+      },
+      'image/jpeg',
+      0.85
+    );
   }
 
   async function submitRiddle(photoUrl) {
     if (isExpired || !roundId) return;
     try {
-      const letter = await Meteor.callAsync('rounds.submit', roundId, photoUrl, true);
+      const letter = await Meteor.callAsync(
+        'rounds.submit',
+        roundId,
+        photoUrl,
+        true
+      );
       if (onCorrect) onCorrect(letter, true);
     } catch (err) {
       console.error('[rounds.submit] failed:', err.error || err.reason || err.message);
-      setPredictions(null);
-      setCapturedUrl(null);
-      setSubmitError('Connection error - your submission was not saved. Please try again.');
+      setValidationState('error');
+      setExplanation('Connection error — your submission was not saved. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -158,7 +166,9 @@ const MobileRiddlePage = ({
     );
   }
 
-  const inResultsMode = predictions !== null;
+  const showCapturedPhoto =
+    (uploading || validationState !== null) && capturedUrl;
+  const inResultsMode = validationState !== null;
 
   return (
     <div className="flex flex-col flex-1">
@@ -179,7 +189,7 @@ const MobileRiddlePage = ({
           />
         )}
 
-        {inResultsMode && capturedUrl && (
+        {showCapturedPhoto && (
           <img
             src={capturedUrl}
             alt="captured"
@@ -187,7 +197,24 @@ const MobileRiddlePage = ({
           />
         )}
 
-        {!inResultsMode && !isExpired && !cameraError && (
+        {(validationState === 'fail' || validationState === 'error') && (
+          <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-1 bg-black/80 px-6 py-4">
+            <span
+              className={`font-mono text-xs uppercase tracking-widest ${
+                validationState === 'error' ? 'text-amber-400' : 'text-red-500'
+              }`}
+            >
+              {validationState === 'error' ? 'Couldn’t Verify' : 'Not A Match'}
+            </span>
+            {explanation && (
+              <span className="text-center font-mono text-[11px] text-slate-400">
+                {explanation}
+              </span>
+            )}
+          </div>
+        )}
+
+        {!uploading && !inResultsMode && !isExpired && !cameraError && (
           <>
             <div className="pointer-events-none absolute left-5 top-5 h-8 w-8 border-l-2 border-t-2 border-red-500" />
             <div className="pointer-events-none absolute right-5 top-5 h-8 w-8 border-r-2 border-t-2 border-red-500" />
@@ -197,32 +224,30 @@ const MobileRiddlePage = ({
         )}
 
         {uploading && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="bg-black/70 px-4 py-2 font-mono text-sm uppercase tracking-widest text-slate-300">
-              Analysing...
-            </span>
-          </div>
-        )}
+          <>
+            <div className="pointer-events-none absolute left-5 top-5 h-8 w-8 border-l-2 border-t-2 border-red-500" />
+            <div className="pointer-events-none absolute right-5 top-5 h-8 w-8 border-r-2 border-t-2 border-red-500" />
+            <div className="pointer-events-none absolute bottom-5 left-5 h-8 w-8 border-b-2 border-l-2 border-red-500" />
+            <div className="pointer-events-none absolute bottom-5 right-5 h-8 w-8 border-b-2 border-r-2 border-red-500" />
 
-        {submitError && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/80 px-8 text-center">
-            <p className="font-mono text-xs uppercase tracking-widest text-red-400">
-              {submitError}
-            </p>
-            <button
-              type="button"
-              onClick={() => setSubmitError(null)}
-              className="border border-red-600 bg-red-600/10 px-4 py-2 font-mono text-xs font-semibold uppercase tracking-widest text-red-400 transition hover:bg-red-600 hover:text-white"
-            >
-              Dismiss
-            </button>
-          </div>
+            <div className="pointer-events-none absolute inset-5 overflow-hidden">
+              <div className="scan-sweep absolute inset-x-0 h-0.5 bg-red-500 shadow-[0_0_8px_2px_rgba(239,68,68,0.7)]" />
+            </div>
+
+            <div className="absolute inset-x-0 bottom-6 flex items-center justify-center">
+              <span className="pulse-text bg-black/70 px-4 py-2 font-mono text-sm uppercase tracking-widest text-red-400">
+                Analysing...
+              </span>
+            </div>
+          </>
         )}
 
         {isExpired && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/70">
             <span className="font-mono text-3xl text-red-500">✗</span>
-            <span className="font-mono text-xs uppercase tracking-widest text-red-400">Round Ended</span>
+            <span className="font-mono text-xs uppercase tracking-widest text-red-400">
+              Round Ended
+            </span>
             <span className="mt-1 font-mono text-[10px] uppercase tracking-widest text-red-700">
               No submission accepted
             </span>

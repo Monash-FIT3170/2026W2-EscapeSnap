@@ -1,6 +1,6 @@
 import React from 'react';
 
-const LoseScreen = ({ onPlayAgain }) => {
+const LoseScreen = ({ onPlayAgain, onViewLeaderboard }) => {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#0e0e0e', color: '#e5e2e1' }}>
 
@@ -51,6 +51,23 @@ const LoseScreen = ({ onPlayAgain }) => {
           onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
         >
           TRY AGAIN
+        </button>
+
+        <button
+          onClick={onViewLeaderboard}
+          className="uppercase"
+          style={{
+            marginTop: 8,
+            padding: '10px 32px',
+            background: 'transparent',
+            color: '#aa8984',
+            fontSize: 11,
+            letterSpacing: '1.5px',
+            cursor: 'pointer',
+            border: '1px solid #1c1b1b',
+          }}
+        >
+          VIEW LEADERBOARD
         </button>
       </div>
 

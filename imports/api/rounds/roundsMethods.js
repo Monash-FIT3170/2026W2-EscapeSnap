@@ -28,15 +28,12 @@ Meteor.methods({
     const answer = game.finalRiddle.answer;
     const letterPool = assignLetters(answer, totalRounds, players.length);
 
-    const needed = totalRounds * players.length;
-    const shuffled = [...RIDDLE_BANK].sort(() => Math.random() - 0.5).slice(0, needed);
-
     const inserts = [];
     let riddleIndex = 0;
 
     for (let round = 1; round <= totalRounds; round++) {
+      const riddle = RIDDLE_BANK[(round - 1) % RIDDLE_BANK.length];
       for (let p = 0; p < players.length; p++) {
-        const riddle = shuffled[riddleIndex];
         const letter = letterPool[riddleIndex];
         riddleIndex++;
         inserts.push(
@@ -58,8 +55,6 @@ Meteor.methods({
     await Promise.all(inserts);
   },
 
-
-
   async 'rounds.submit'(roundId, photoUrl, isCorrect = true) {
     const round = await Rounds.findOneAsync(roundId);
     if (!round) throw new Meteor.Error('not-found', 'Round not found');
@@ -67,7 +62,8 @@ Meteor.methods({
       throw new Meteor.Error('invalid-state', 'Round already submitted');
 
     const game = await Games.findOneAsync(round.gameId);
-    const expired = game?.startedAt &&
+    const expired =
+      game?.startedAt &&
       Date.now() - game.startedAt.getTime() > game.timerMinutes * 60 * 1000;
 
     if (expired) {
@@ -100,7 +96,9 @@ Meteor.methods({
       roundNumber: round.roundNumber,
       status: { $ne: 'pending' },
     }).countAsync();
-    const playerCount = await Players.find({ gameId: round.gameId }).countAsync();
+    const playerCount = await Players.find({
+      gameId: round.gameId,
+    }).countAsync();
 
     if (
       submittedCount >= playerCount &&
