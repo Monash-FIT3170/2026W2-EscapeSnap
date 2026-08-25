@@ -47,6 +47,8 @@ const FinalRiddlePage = () => {
       />
     );
   }
+  if (hasWon) return <WinScreen onPlayAgain={() => navigate('/game/create')} onViewLeaderboard={() => navigate('/leaderboard')} />;
+  if (hasLost) return <LoseScreen onPlayAgain={() => navigate('/game/create')} onViewLeaderboard={() => navigate('/leaderboard')} />;
 
   return (
     <SidebarLayout gameId={gameId} activePage="final-riddle">

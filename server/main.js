@@ -1,7 +1,4 @@
 import { Meteor } from 'meteor/meteor';
-import '@tensorflow/tfjs';
-import * as cocoSsd from '@tensorflow-models/coco-ssd';
-import sharp from 'sharp';
 import '../imports/api/games/gamesMethods';
 import '../imports/api/games/gamesPublications';
 import '../imports/api/players/playersMethods';
@@ -14,23 +11,11 @@ import { Games } from '../imports/api/games/GamesCollection';
 import { Rounds } from '../imports/api/rounds/RoundsCollection';
 import { GameResults } from '../imports/api/achievements/GameResultsCollection';
 
-let detectionModel = null;
-let modelLoadPromise = null;
-
-function ensureModel() {
-  if (detectionModel) return Promise.resolve(detectionModel);
-  if (modelLoadPromise) return modelLoadPromise;
-  modelLoadPromise = cocoSsd.load().then((m) => {
-    detectionModel = m;
-    console.log('[EscapeSnap] COCO-SSD ready');
-    return m;
-  });
-  return modelLoadPromise;
-}
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3-flash-preview';
+const GEMINI_TIMEOUT_MS = 10_000;
 
 Meteor.startup(async () => {
-  console.log('[EscapeSnap] server ready — warming COCO-SSD');
-  ensureModel().catch((err) => console.error('[EscapeSnap] model load failed:', err));
+  console.log('[EscapeSnap] server ready');
   await Games.createIndexAsync({ joinCode: 1 });
   await Games.createIndexAsync({ status: 1 });
   await Rounds.createIndexAsync({ gameId: 1, roundNumber: 1 });
@@ -39,29 +24,79 @@ Meteor.startup(async () => {
 });
 
 Meteor.methods({
-  async 'submissions.detect'(imageBase64, targetObject) {
-    const model = await ensureModel();
-    const buf = Buffer.from(imageBase64, 'base64');
-    const { data, info } = await sharp(buf).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-    const pixelData = { data: new Uint8Array(data.buffer), width: info.width, height: info.height };
-    const predictions = await model.detect(pixelData);
-    console.log(`[COCO-SSD] target="${targetObject}" detections:`, predictions.map(p => `${p.class} (${(p.score * 100).toFixed(1)}%)`));
-    const outcome = evaluatePredictions(predictions, targetObject);
-    return { outcome, predictions };
-  },
-
-  // Layer 2 (Gemini) will replace this stub — interface is fixed.
-  // Returns { outcome: 'pass' | 'fail', explanation: string }
-  'submissions.validate'(imageBase64, targetObject) {
-    console.log(`[submissions.validate] target="${targetObject}" size=${imageBase64?.length ?? 0} chars`);
-    return { outcome: 'fail', explanation: 'stub - Gemini integration pending' };
+  // Returns { outcome: 'pass' | 'fail' | 'error', explanation: string }
+  async 'submissions.classify'(imageBase64, targetObject) {
+    console.log(
+      `[submissions.classify] target="${targetObject}" size=${imageBase64?.length ?? 0} chars`
+    );
+    return classifyWithGemini(imageBase64, targetObject);
   },
 });
 
-function evaluatePredictions(predictions, target) {
-  const match = predictions.find((p) => p.class === target);
-  if (match) return match.score >= 0.65 ? 'pass' : 'escalate';
-  const top = predictions[0];
-  if (top && top.score >= 0.8) return 'fail';
-  return 'escalate';
+async function classifyWithGemini(imageBase64, targetObject) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    console.error('[Gemini] GEMINI_API_KEY is not set');
+    return {
+      outcome: 'error',
+      explanation: 'Photo verification is not configured.',
+    };
+  }
+
+  const prompt = `Does this photo clearly show a "${targetObject}"? Ignore any other objects, people, or background in the frame — only judge whether a "${targetObject}" is present. Respond with strict JSON only, no markdown: {"outcome": "pass" or "fail", "explanation": "one short sentence"}`;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { text: prompt },
+                { inline_data: { mime_type: 'image/jpeg', data: imageBase64 } },
+              ],
+            },
+          ],
+          generationConfig: { responseMimeType: 'application/json' },
+        }),
+        signal: controller.signal,
+      }
+    );
+
+    if (!response.ok) {
+      const body = await response.text();
+      console.error(`[Gemini] HTTP ${response.status}:`, body);
+      return {
+        outcome: 'error',
+        explanation: 'Could not verify photo — try again.',
+      };
+    }
+
+    const data = await response.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const parsed = JSON.parse(text);
+
+    if (parsed.outcome !== 'pass' && parsed.outcome !== 'fail') {
+      throw new Error(`unexpected outcome: ${parsed.outcome}`);
+    }
+
+    return { outcome: parsed.outcome, explanation: parsed.explanation ?? '' };
+  } catch (err) {
+    console.error('[Gemini] classification failed:', err);
+    return {
+      outcome: 'error',
+      explanation: 'Could not verify photo — try again.',
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
 }

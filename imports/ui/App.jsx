@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router';
+import { Routes, Route, useParams } from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Games } from '../api/games/GamesCollection';
@@ -7,6 +7,7 @@ import { Players } from '../api/players/PlayersCollection';
 import { PlayerHome } from './mobile/pages/PlayerHome';
 import { PlayerLobby } from './mobile/pages/lobby/PlayerLobby';
 import { PlayerDashboard } from './mobile/pages/PlayerDashboard';
+import { HelpTutorial } from './mobile/components/gameplay/HelpTutorial';
 import CreateGame from './host/pages/create-game/CreateGame';
 import Lobby from './host/pages/lobby/Lobby';
 import ProgressPage from './host/pages/progress/ProgressPage';
@@ -14,7 +15,7 @@ import FinalRiddlePage from './host/pages/riddle/FinalRiddlePage';
 import LandingPage from './host/pages/landing/Landing';
 import Leaderboard from './host/pages/leaderboard/Leaderboard';
 
-function PlayerFlow() {
+function PlayerFlow({ initialCode = '' }) {
   const [screen, setScreen] = useState('home');
   const [playerName, setPlayerName] = useState('');
   const [gameCode, setGameCode] = useState('');
@@ -35,7 +36,7 @@ function PlayerFlow() {
 
   useEffect(() => {
     if (game?.status === 'in_progress' && screen === 'lobby') {
-      setScreen('dashboard');
+      setScreen('tutorial');
     }
   }, [game?.status, screen]);
 
@@ -66,18 +67,28 @@ function PlayerFlow() {
   };
 
   if (screen === 'home') {
-    return <PlayerHome onStart={handleJoin} loading={joinLoading} serverError={joinError} />;
-  }
-  if (screen === 'lobby') {
     return (
-      <PlayerLobby
-        playerName={playerName}
-        gameCode={gameCode}
-        playerCount={playerCount}
-        onExit={handleExitToHome}
+      <PlayerHome
+        onStart={handleJoin}
+        loading={joinLoading}
+        serverError={joinError}
+        initialCode={initialCode}
       />
     );
   }
+  if (screen === 'lobby') {
+  return (
+    <PlayerLobby
+      playerName={playerName}
+      gameCode={gameCode}
+      playerCount={playerCount}
+      onExit={handleExitToHome}
+    />
+  );
+}
+if (screen === 'tutorial') {
+  return <HelpTutorial onComplete={() => setScreen('dashboard')} />;
+}
   return (
     <PlayerDashboard
       playerName={playerName}
@@ -89,11 +100,17 @@ function PlayerFlow() {
   );
 }
 
+function JoinViaQr() {
+  const { joinCode } = useParams();
+  return <PlayerFlow initialCode={(joinCode || '').toUpperCase()} />;
+}
+
 export function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/player/*" element={<PlayerFlow />} />
+      <Route path="/join/:joinCode" element={<JoinViaQr />} />
       <Route path="/host" element={<CreateGame />} />
       <Route path="/game/create" element={<CreateGame />} />
       <Route path="/game/:gameId/lobby" element={<Lobby />} />
