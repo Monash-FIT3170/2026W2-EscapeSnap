@@ -1,5 +1,11 @@
 // Sprint 3: replace with AI-generated riddles
 export const RIDDLE_BANK = [
+  {
+    text: 'I have a face and a name, but I am not a doll. What am I?',
+    answer: 'person',
+  },
+  { text: 'I have a screen but no eyes. What am I?', answer: 'phone' },
+  { text: 'I have a spine but no bones. What am I?', answer: 'book' },
   { text: 'I have four legs but cannot walk. What am I?', answer: 'table' },
   { text: 'I have hands but cannot clap. What am I?', answer: 'clock' },
   {
@@ -7,8 +13,6 @@ export const RIDDLE_BANK = [
     answer: 'clock',
   },
   { text: 'I have keys but no locks. What am I?', answer: 'keyboard' },
-  { text: 'I have a spine but no bones. What am I?', answer: 'book' },
-  { text: 'I have a screen but no eyes. What am I?', answer: 'phone' },
   { text: 'I have legs but cannot run. What am I?', answer: 'chair' },
   { text: 'I have arms but cannot hug. What am I?', answer: 'chair' },
   { text: 'I have a mouth but cannot speak. What am I?', answer: 'bottle' },
