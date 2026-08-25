@@ -13,10 +13,14 @@ function generateJoinCode() {
 }
 
 Meteor.methods({
-  async 'games.create'({ timerMinutes = 30, totalRounds = 3, capacity = 4, difficulty = 'medium' } = {}) {
+  async 'games.create'({ groupName, timerMinutes = 30, totalRounds = 3, capacity = 4, difficulty = 'medium' } = {}) {
+    if (!groupName || !groupName.trim()) {
+      throw new Meteor.Error('invalid-group-name', 'Group name is required');
+    }
     const joinCode = generateJoinCode();
     return Games.insertAsync({
       joinCode,
+      groupName: groupName.trim(),
       status: 'lobby',
       currentRound: 1,
       totalRounds,
