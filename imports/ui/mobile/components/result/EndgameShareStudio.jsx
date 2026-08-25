@@ -406,7 +406,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
             </h1>
             <p className="mt-3 max-w-xl text-sm leading-6 text-slate-400">
               Choose what leaves the mission, shape the card, then share it as a
-              real image—not a generic link.
+              real image.
             </p>
           </div>
 
