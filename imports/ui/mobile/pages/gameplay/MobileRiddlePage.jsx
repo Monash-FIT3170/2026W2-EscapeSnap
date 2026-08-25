@@ -55,6 +55,11 @@ const MobileRiddlePage = ({
   }, [isExpired]);
 
   async function startCamera() {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      console.error('[camera] navigator.mediaDevices is unavailable - likely an insecure (non-HTTPS) context');
+      setCameraError('Camera requires a secure connection (HTTPS).');
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' },
@@ -64,8 +69,14 @@ const MobileRiddlePage = ({
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-    } catch {
-      setCameraError('Camera access denied or unavailable.');
+    } catch (err) {
+      console.error('[camera] getUserMedia failed:', err.name, err.message);
+      const message = err.name === 'NotAllowedError'
+        ? 'Camera permission denied - check your browser settings.'
+        : err.name === 'NotFoundError'
+          ? 'No camera found on this device.'
+          : 'Camera access denied or unavailable.';
+      setCameraError(message);
     }
   }
 
@@ -94,7 +105,8 @@ const MobileRiddlePage = ({
       async (blob) => {
         if (!blob) {
           setUploading(false);
-          if (onCorrect) onCorrect('?', false);
+          setValidationState('error');
+          setExplanation('Could not process the photo — please try again.');
           return;
         }
 
@@ -115,10 +127,11 @@ const MobileRiddlePage = ({
             setUploading(false);
             if (result.outcome === 'fail' && onCorrect) onCorrect('?', false);
           }
-        } catch {
+        } catch (err) {
+          console.error('[submissions.classify] failed:', err.error || err.reason || err.message);
           setUploading(false);
           setValidationState('error');
-          setExplanation('Could not verify photo — try again.');
+          setExplanation('Connection error — please try again.');
         }
       },
       'image/jpeg',
@@ -136,8 +149,10 @@ const MobileRiddlePage = ({
         true
       );
       if (onCorrect) onCorrect(letter, true);
-    } catch {
-      if (onCorrect) onCorrect('?', false);
+    } catch (err) {
+      console.error('[rounds.submit] failed:', err.error || err.reason || err.message);
+      setValidationState('error');
+      setExplanation('Connection error — your submission was not saved. Please try again.');
     } finally {
       setUploading(false);
     }

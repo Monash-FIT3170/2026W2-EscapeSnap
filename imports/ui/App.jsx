@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, useParams } from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
@@ -34,8 +34,12 @@ function PlayerFlow({ initialCode = '' }) {
     };
   }, [gameId]);
 
+  // Fire the auto-advance once per join. Without the guard, returning to the
+  // lobby mid-game bounces you straight back out again.
+  const autoAdvancedRef = useRef(false);
   useEffect(() => {
-    if (game?.status === 'in_progress' && screen === 'lobby') {
+    if (game?.status === 'in_progress' && screen === 'lobby' && !autoAdvancedRef.current) {
+      autoAdvancedRef.current = true;
       setScreen('tutorial');
     }
   }, [game?.status, screen]);
@@ -49,6 +53,7 @@ function PlayerFlow({ initialCode = '' }) {
       setGameCode(code);
       setPlayerId(pid);
       setGameId(gid);
+      autoAdvancedRef.current = false;
       setScreen('lobby');
     } catch (err) {
       setJoinError(err.reason || err.message || 'Failed to join game');
@@ -77,18 +82,21 @@ function PlayerFlow({ initialCode = '' }) {
     );
   }
   if (screen === 'lobby') {
-  return (
-    <PlayerLobby
-      playerName={playerName}
-      gameCode={gameCode}
-      playerCount={playerCount}
-      onExit={handleExitToHome}
-    />
-  );
-}
-if (screen === 'tutorial') {
-  return <HelpTutorial onComplete={() => setScreen('dashboard')} />;
-}
+    return (
+      <PlayerLobby
+        playerName={playerName}
+        gameCode={gameCode}
+        playerCount={playerCount}
+        inSession={game?.status === 'in_progress'}
+        gameStartedAt={game?.startedAt ? new Date(game.startedAt).getTime() : null}
+        roundDuration={(game?.timerMinutes ?? 30) * 60}
+        onExit={game?.status === 'in_progress' ? () => setScreen('dashboard') : handleExitToHome}
+      />
+    );
+  }
+  if (screen === 'tutorial') {
+    return <HelpTutorial onComplete={() => setScreen('dashboard')} />;
+  }
   return (
     <PlayerDashboard
       playerName={playerName}
