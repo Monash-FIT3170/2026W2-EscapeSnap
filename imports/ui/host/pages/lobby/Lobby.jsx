@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
+import { QRCodeSVG } from 'qrcode.react';
 import { Games } from '../../../../api/games/GamesCollection';
 import { Players } from '../../../../api/players/PlayersCollection';
 
@@ -106,6 +107,7 @@ const Lobby = () => {
 
   const gameStarted = game.status === 'in_progress';
   const capacity = game.capacity || 4;
+  const joinUrl = `${window.location.origin}/join/${game.joinCode}`;
   const slots = [
     ...players,
     ...Array(Math.max(0, capacity - players.length)).fill(null),
@@ -144,6 +146,25 @@ const Lobby = () => {
             </p>
             <p style={{ fontSize: 48, fontWeight: 700, letterSpacing: '4px', lineHeight: 1, color: '#e5e2e1' }}>
               {game.joinCode || '----'}
+            </p>
+          </div>
+
+          {/* QR join */}
+          <div
+            className="flex flex-col items-center p-4"
+            style={{ background: '#1c1b1b', border: '1px solid #2a2a2a' }}
+          >
+            <p style={{ fontSize: 9, letterSpacing: '1.5px', color: '#aa8984', marginBottom: 12, alignSelf: 'flex-start' }}>
+              SCAN TO DEPLOY
+            </p>
+            <div style={{ background: '#e5e2e1', padding: 10, lineHeight: 0 }}>
+              <QRCodeSVG value={joinUrl} size={140} bgColor="#e5e2e1" fgColor="#0e0e0e" level="M" />
+            </div>
+            <p style={{ fontSize: 9, color: '#555', marginTop: 10, textAlign: 'center', lineHeight: 1.5, wordBreak: 'break-all' }}>
+              {joinUrl}
+            </p>
+            <p style={{ fontSize: 9, color: '#555', marginTop: 4, textAlign: 'center', lineHeight: 1.5 }}>
+              Operatives scan this code to join instantly — no PIN entry required. Phone must be on the same network.
             </p>
           </div>
 

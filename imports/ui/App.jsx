@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router';
+import { Routes, Route, useParams } from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Games } from '../api/games/GamesCollection';
@@ -15,7 +15,7 @@ import FinalRiddlePage from './host/pages/riddle/FinalRiddlePage';
 import LandingPage from './host/pages/landing/Landing';
 import Leaderboard from './host/pages/leaderboard/Leaderboard';
 
-function PlayerFlow() {
+function PlayerFlow({ initialCode = '' }) {
   const [screen, setScreen] = useState('home');
   const [playerName, setPlayerName] = useState('');
   const [gameCode, setGameCode] = useState('');
@@ -67,7 +67,14 @@ function PlayerFlow() {
   };
 
   if (screen === 'home') {
-    return <PlayerHome onStart={handleJoin} loading={joinLoading} serverError={joinError} />;
+    return (
+      <PlayerHome
+        onStart={handleJoin}
+        loading={joinLoading}
+        serverError={joinError}
+        initialCode={initialCode}
+      />
+    );
   }
   if (screen === 'lobby') {
   return (
@@ -93,11 +100,17 @@ if (screen === 'tutorial') {
   );
 }
 
+function JoinViaQr() {
+  const { joinCode } = useParams();
+  return <PlayerFlow initialCode={(joinCode || '').toUpperCase()} />;
+}
+
 export function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/player/*" element={<PlayerFlow />} />
+      <Route path="/join/:joinCode" element={<JoinViaQr />} />
       <Route path="/host" element={<CreateGame />} />
       <Route path="/game/create" element={<CreateGame />} />
       <Route path="/game/:gameId/lobby" element={<Lobby />} />
