@@ -4,6 +4,9 @@ import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Games } from '../../../../api/games/GamesCollection';
 import { Players } from '../../../../api/players/PlayersCollection';
+import { useT } from '../../../../languages/LanguageProvider';
+import { LanguagePicker } from '../../../../languages/LanguagePicker';
+import { errorKey } from '../../../../languages/errors';
 
 const PlayerCard = ({ player }) => {
   const initials = player.name?.slice(0, 2).toUpperCase() || '??';
@@ -39,7 +42,9 @@ const PlayerCard = ({ player }) => {
   );
 };
 
-const EmptySlot = () => (
+const EmptySlot = () => {
+  const t = useT();
+  return (
   <div
     className="flex items-center justify-center"
     style={{
@@ -51,13 +56,15 @@ const EmptySlot = () => (
       letterSpacing: '1.5px',
     }}
   >
-    AWAITING OPERATIVE...
+    {t('host.lobby.awaitingOperative')}
   </div>
-);
+  );
+};
 
 const Lobby = () => {
   const { gameId } = useParams();
   const navigate = useNavigate();
+  const t = useT();
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -83,7 +90,7 @@ const Lobby = () => {
     try {
       await Meteor.callAsync('games.start', gameId);
     } catch (err) {
-      setError(err.reason || err.message || 'FAILED TO START GAME');
+      setError(t(errorKey(err)));
       setStarting(false);
     }
   };
@@ -91,7 +98,7 @@ const Lobby = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#0e0e0e' }}>
-        <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>LOADING...</p>
+        <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>{t('host.lobby.loading')}</p>
       </div>
     );
   }
@@ -99,7 +106,7 @@ const Lobby = () => {
   if (!game) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#0e0e0e' }}>
-        <p style={{ fontSize: 10, letterSpacing: '1px', color: '#8b0000' }}>GAME NOT FOUND</p>
+        <p style={{ fontSize: 10, letterSpacing: '1px', color: '#8b0000' }}>{t('host.lobby.gameNotFound')}</p>
       </div>
     );
   }
@@ -122,9 +129,12 @@ const Lobby = () => {
         <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: '#e5e2e1' }}>
           ESCAPESNAP
         </span>
-        <span style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>
-          GAME LOBBY
-        </span>
+        <div className="flex items-center gap-4">
+          <span style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>
+            {t('host.lobby.navTag')}
+          </span>
+          <LanguagePicker />
+        </div>
       </header>
 
       <main className="flex-1 flex">
@@ -137,10 +147,10 @@ const Lobby = () => {
           {/* Join code */}
           <div>
             <p style={{ fontSize: 9, letterSpacing: '1.5px', color: '#aa8984', marginBottom: 4 }}>
-              ACCESS AUTHORIZATION
+              {t('host.lobby.accessAuthorization')}
             </p>
             <p style={{ fontSize: 9, letterSpacing: '1px', color: '#555', marginBottom: 8 }}>
-              SECURE ENTRY PIN
+              {t('host.lobby.secureEntryPin')}
             </p>
             <p style={{ fontSize: 48, fontWeight: 700, letterSpacing: '4px', lineHeight: 1, color: '#e5e2e1' }}>
               {game.joinCode || '----'}
@@ -153,20 +163,20 @@ const Lobby = () => {
             style={{ background: '#1c1b1b', border: '1px solid #2a2a2a' }}
           >
             <p style={{ fontSize: 9, letterSpacing: '1px', color: '#aa8984', marginBottom: 8 }}>
-              GAME CODE
+              {t('host.lobby.gameCode')}
             </p>
             <p style={{ fontSize: 13, fontWeight: 700, color: '#e5e2e1', letterSpacing: '1px', wordBreak: 'break-all' }}>
               {gameId}
             </p>
             <p style={{ fontSize: 9, color: '#555', marginTop: 8, lineHeight: 1.5 }}>
-              Distribute the PIN or share the game code to sync operatives to this terminal.
+              {t('host.lobby.distributeHint')}
             </p>
           </div>
 
           {/* Difficulty */}
           <div>
             <p style={{ fontSize: 9, letterSpacing: '1.5px', color: '#aa8984', marginBottom: 8 }}>
-              GAME DIFFICULTY
+              {t('host.lobby.gameDifficulty')}
             </p>
             {['easy', 'medium', 'hard'].map(d => (
               <div
@@ -175,7 +185,7 @@ const Lobby = () => {
                 style={{ border: game.difficulty === d ? '1px solid #8b0000' : '1px solid #1c1b1b' }}
               >
                 <span style={{ fontSize: 11, letterSpacing: '1px', color: game.difficulty === d ? '#e5e2e1' : '#555' }}>
-                  {d === 'easy' ? 'EASY: STABLE VITALS' : d === 'medium' ? 'MEDIUM: ELEVATED CORTISOL' : 'HARD: SYSTEMIC FAILURE'}
+                  {`${t(`difficulty.${d}`)}: ${t(`difficulty.${d}Sub`)}`}
                 </span>
                 <div style={{
                   width: 16, height: 16, borderRadius: '50%',
@@ -199,17 +209,17 @@ const Lobby = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 style={{ fontWeight: 700, fontSize: 28, letterSpacing: '2px', color: '#e5e2e1' }}>
-                GAME LOBBY
+                {t('host.lobby.title')}
               </h1>
               <div className="flex items-center gap-2 mt-1">
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#8b0000' }} />
                 <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>
-                  AWAITING GAME START...
+                  {t('host.lobby.awaitingStart')}
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <p style={{ fontSize: 9, letterSpacing: '1px', color: '#aa8984' }}>CAPACITY</p>
+              <p style={{ fontSize: 9, letterSpacing: '1px', color: '#aa8984' }}>{t('host.lobby.capacity')}</p>
               <p style={{ fontSize: 28, fontWeight: 700, letterSpacing: '2px', color: '#e5e2e1' }}>
                 {String(players.length).padStart(2, '0')} /{' '}
                 <span style={{ color: '#555' }}>{String(capacity).padStart(2, '0')}</span>
@@ -239,7 +249,7 @@ const Lobby = () => {
               style={{ border: '1px solid #8b0000', background: '#1c0000' }}
             >
               <p style={{ fontSize: 12, letterSpacing: '1.5px', color: '#aa8984' }}>
-                MISSION ACTIVE — AGENTS DEPLOYED
+                {t('host.lobby.missionActive')}
               </p>
             </div>
           ) : (
@@ -261,7 +271,7 @@ const Lobby = () => {
               onMouseEnter={e => { if (!starting) e.currentTarget.style.background = '#a50000'; }}
               onMouseLeave={e => { if (!starting) e.currentTarget.style.background = '#8b0000'; }}
             >
-              {starting ? 'DEPLOYING AGENTS...' : 'START MISSION'}
+              {starting ? t('host.lobby.deploying') : t('host.lobby.startMission')}
             </button>
           )}
 

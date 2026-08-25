@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useNavigate } from 'react-router';
+import { useT } from '../../../../languages/LanguageProvider';
+import { LanguagePicker } from '../../../../languages/LanguagePicker';
+import { errorKey } from '../../../../languages/errors';
 
 const DIFFICULTY_OPTIONS = [
-  { value: 'easy', label: 'EASY', sub: 'STABLE VITALS' },
-  { value: 'medium', label: 'MEDIUM', sub: 'ELEVATED CORTISOL' },
-  { value: 'hard', label: 'HARD', sub: 'SYSTEMIC FAILURE' },
+  { value: 'easy', labelKey: 'difficulty.easy', subKey: 'difficulty.easySub' },
+  { value: 'medium', labelKey: 'difficulty.medium', subKey: 'difficulty.mediumSub' },
+  { value: 'hard', labelKey: 'difficulty.hard', subKey: 'difficulty.hardSub' },
 ];
 
 const CreateGame = () => {
   const navigate = useNavigate();
+  const t = useT();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -24,7 +28,7 @@ const CreateGame = () => {
       const gameId = await Meteor.callAsync('games.create', { timerMinutes: timer, capacity, difficulty });
       navigate(`/game/${gameId}/lobby`);
     } catch (err) {
-      setError(err.reason || err.message || 'INITIALIZATION FAILED');
+      setError(t(errorKey(err)));
       setLoading(false);
     }
   };
@@ -35,19 +39,20 @@ const CreateGame = () => {
         <span className="font-bold text-xl tracking-widest uppercase" style={{ color: '#e5e2e1' }}>
           ESCAPESNAP
         </span>
+        <LanguagePicker />
       </header>
 
       <main className="flex-1 flex items-center justify-center px-8 py-12">
         <div className="w-full max-w-lg">
           <div className="mb-8">
             <p className="text-xs tracking-widest mb-1" style={{ color: '#8b0000' }}>
-              CREATE A NEW GAME
+              {t('host.createGame.eyebrow')}
             </p>
             <h1 className="text-3xl font-bold tracking-widest uppercase" style={{ color: '#e5e2e1' }}>
-              GAME CONFIGURATION
+              {t('host.createGame.title')}
             </h1>
             <p className="text-xs mt-2 tracking-wide" style={{ color: '#555' }}>
-              DEFINE GAME PARAMETERS BEFORE ENTERING
+              {t('host.createGame.subtitle')}
             </p>
           </div>
 
@@ -55,7 +60,7 @@ const CreateGame = () => {
 
             <div className="p-4" style={{ border: '1px solid #1c1b1b' }}>
               <label className="block text-xs tracking-widest mb-3" style={{ color: '#aa8984' }}>
-                GAME TIME LIMIT (MIN)
+                {t('host.createGame.timeLimit')}
               </label>
               <input
                 type="range" min={10} max={60} step={5} value={timer}
@@ -74,7 +79,7 @@ const CreateGame = () => {
 
             <div className="p-4" style={{ border: '1px solid #1c1b1b' }}>
               <label className="block text-xs tracking-widest mb-3" style={{ color: '#aa8984' }}>
-                LOBBY CAPACITY
+                {t('host.createGame.lobbyCapacity')}
               </label>
               <div className="flex items-center gap-4">
                 <input
@@ -90,7 +95,7 @@ const CreateGame = () => {
 
             <div className="p-4" style={{ border: '1px solid #1c1b1b' }}>
               <label className="block text-xs tracking-widest mb-3" style={{ color: '#aa8984' }}>
-                DIFFICULTY LEVEL
+                {t('host.createGame.difficultyLevel')}
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {DIFFICULTY_OPTIONS.map(opt => (
@@ -104,23 +109,16 @@ const CreateGame = () => {
                     }}
                   >
                     <div className="text-xs font-bold" style={{ color: '#e5e2e1' }}>
-                      {opt.label}
+                      {t(opt.labelKey)}
                     </div>
                     <div className="text-xs mt-1 leading-tight" style={{ color: difficulty === opt.value ? '#aa8984' : '#555' }}>
-                      {opt.sub}
+                      {t(opt.subKey)}
                     </div>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="p-3" style={{ border: '1px solid #1c1b1b' }}>
-              <p className="text-xs tracking-wide" style={{ color: '#444' }}>
-                SPRINT_1 // PRESET PLAYER: DYLAN ·
-                STATUS WILL BE SET TO{' '}
-                <span style={{ color: '#555' }}>LOBBY</span>
-              </p>
-            </div>
 
             {error && (
               <p className="text-xs tracking-widest" style={{ color: '#8b0000' }}>
@@ -137,7 +135,7 @@ const CreateGame = () => {
                 color: loading ? '#555' : '#e5e2e1',
               }}
             >
-              {loading ? 'INITIALIZING…' : 'INITIALIZE MISSION'}
+              {loading ? t('host.createGame.initializing') : t('host.createGame.initializeMission')}
             </button>
 
           </div>

@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
+import { useT } from '../../../languages/LanguageProvider';
+import { LanguagePicker } from '../../../languages/LanguagePicker';
 
 export function PlayerHome({ onStart, loading = false, serverError = '' }) {
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
+  const t = useT();
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (!name.trim()) { setError('Player name required'); return; }
-    if (!code.trim()) { setError('Game code required'); return; }
+    if (!name.trim()) { setError(t('mobile.home.errNameRequired')); return; }
+    if (!code.trim()) { setError(t('mobile.home.errCodeRequired')); return; }
     setError('');
     onStart(name.trim(), code.trim().toUpperCase());
   }
@@ -29,9 +32,13 @@ export function PlayerHome({ onStart, loading = false, serverError = '' }) {
 
       <div className="relative w-full max-w-sm px-8 py-10">
 
+        <div className="absolute right-8 top-2 z-20">
+          <LanguagePicker compact />
+        </div>
+
         <div className="mb-6 flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-          <span className="font-mono text-xs uppercase tracking-widest text-white">System Online</span>
+          <span className="font-mono text-xs uppercase tracking-widest text-white">{t('mobile.home.systemOnline')}</span>
         </div>
 
         <h1
@@ -43,18 +50,18 @@ export function PlayerHome({ onStart, loading = false, serverError = '' }) {
 
         <div className="mt-4 flex items-center gap-3">
           <div className="h-px flex-1 bg-gradient-to-r from-red-500/50 to-transparent" />
-          <span className="font-mono text-xs uppercase tracking-widest text-white">Player Terminal</span>
+          <span className="font-mono text-xs uppercase tracking-widest text-white">{t('mobile.home.playerTerminal')}</span>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-10 flex flex-col gap-6">
 
           <div className="flex flex-col gap-2">
             <label className="font-mono text-sm font-medium text-white">
-              Player Name
+              {t('mobile.home.playerName')}
             </label>
             <input
               type="text"
-              placeholder="e.g. Alex"
+              placeholder={t('mobile.home.playerNamePlaceholder')}
               value={name}
               onChange={e => setName(e.target.value)}
               maxLength={24}
@@ -65,11 +72,11 @@ export function PlayerHome({ onStart, loading = false, serverError = '' }) {
 
           <div className="flex flex-col gap-2">
             <label className="font-mono text-sm font-medium text-white">
-              Game Code
+              {t('mobile.home.gameCode')}
             </label>
             <input
               type="text"
-              placeholder="e.g. ALPHA-7"
+              placeholder={t('mobile.home.gameCodePlaceholder')}
               value={code}
               onChange={e => setCode(e.target.value.toUpperCase())}
               maxLength={12}
@@ -88,7 +95,7 @@ export function PlayerHome({ onStart, loading = false, serverError = '' }) {
             className="group relative mt-2 w-full overflow-hidden border border-red-600/60 px-5 py-4 font-mono text-base font-semibold uppercase tracking-wider text-red-400 transition-colors duration-300 hover:text-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="absolute inset-0 -translate-x-full bg-red-600 transition-transform duration-300 ease-out group-hover:translate-x-0" />
-            <span className="relative">{loading ? 'Joining...' : 'Enter Game →'}</span>
+            <span className="relative">{loading ? t('mobile.home.joining') : t('mobile.home.enterGame')}</span>
           </button>
 
         </form>
