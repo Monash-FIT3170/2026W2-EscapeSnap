@@ -26,14 +26,25 @@ const RiddleIcon = ({ color }) => (
   </svg>
 );
 
+const DebriefIcon = ({ color }) => (
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ flexShrink: 0 }}>
+    <line x1="1" y1="17" x2="17" y2="17" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+    <rect x="2" y="9" width="3.5" height="6" stroke={color} strokeWidth="1.5" />
+    <rect x="7.25" y="5" width="3.5" height="10" stroke={color} strokeWidth="1.5" />
+    <rect x="12.5" y="1" width="3.5" height="14" stroke={color} strokeWidth="1.5" />
+  </svg>
+);
+
 const NAV_ITEMS = [
   { label: 'OPERATIVES', Icon: OperativesIcon, page: 'progress', path: (id) => `/game/${id}/progress` },
   { label: 'FINAL RIDDLE', Icon: RiddleIcon, page: 'final-riddle', path: (id) => `/game/${id}/final-riddle` },
+  { label: 'DEBRIEF', Icon: DebriefIcon, page: 'summary', path: (id) => `/game/${id}/summary` },
 ];
 
 const SUBTITLES = {
   progress: 'LOBBY',
   'final-riddle': 'FINAL RIDDLE',
+  summary: 'DEBRIEF',
 };
 
 const Sidebar = ({ gameId, activePage, expanded, onToggle }) => {

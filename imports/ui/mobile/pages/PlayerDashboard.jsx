@@ -126,6 +126,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   const [revealedLetter, setRevealedLetter] = useState(null);
   const [answerCorrect, setAnswerCorrect] = useState(null);
   const [timeLeft, setTimeLeft] = useState(null);
+  const [syncError, setSyncError] = useState(false);
 
   const showResult = revealedLetter !== null;
 
@@ -174,6 +175,13 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
     [game, playerId, playerName, sharePlayers, shareRounds]
   );
 
+  // Start the per-round clock the first time the riddle is on screen. The
+  // method is idempotent, so retries and remounts don't reset it.
+  useEffect(() => {
+    if (!round?._id || showResult) return;
+    Meteor.call('rounds.markStarted', round._id);
+  }, [round?._id, showResult]);
+
   useEffect(() => {
     if (!game?.startedAt || !game?.timerMinutes) return;
     const tick = () => {
@@ -195,11 +203,13 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   }, []);
 
   const handleNextRound = async () => {
+    setSyncError(false);
     if (!answerCorrect) {
       try {
         await Meteor.callAsync('games.advanceRound', gameId);
-      } catch (error) {
-        console.error('[EscapeSnap] Could not advance the round:', error);
+      } catch (err) {
+        console.error('[games.advanceRound] failed:', err.error || err.reason || err.message);
+        setSyncError(true);
       }
     }
     setCurrentRound((r) => r + 1);
@@ -215,10 +225,22 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   };
 
   if (game?.status === 'won') {
-    return <PlayerWinScreen snapshot={shareSnapshot} loading={shareLoading} />;
+    return (
+      <PlayerWinScreen
+        playerId={playerId}
+        snapshot={shareSnapshot}
+        loading={shareLoading}
+      />
+    );
   }
   if (game?.status === 'lost') {
-    return <PlayerLoseScreen snapshot={shareSnapshot} loading={shareLoading} />;
+    return (
+      <PlayerLoseScreen
+        playerId={playerId}
+        snapshot={shareSnapshot}
+        loading={shareLoading}
+      />
+    );
   }
 
   return (
@@ -262,9 +284,18 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
         </div>
       )}
 
+      {syncError && (
+        <div className="flex-shrink-0 border-b border-red-900/60 bg-red-950/40 px-5 py-2 text-center">
+          <p className="font-mono text-xs uppercase tracking-widest text-red-400">
+            Connection error - round progress may be out of sync
+          </p>
+        </div>
+      )}
+
       <div
         className={`flex-1 min-h-0 flex flex-col ${showResult ? '' : 'pb-16'}`}
       >
+
         {showResult ? (
           <ResultScreen
             revealedLetter={revealedLetter}

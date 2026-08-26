@@ -2,10 +2,11 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState } from 'react';
 
-export function PlayerHome({ onStart, loading = false, serverError = '' }) {
+export function PlayerHome({ onStart, loading = false, serverError = '', initialCode = '' }) {
   const [name, setName] = useState('');
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(initialCode);
   const [error, setError] = useState('');
+  const scannedViaQr = Boolean(initialCode);
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -70,9 +71,16 @@ export function PlayerHome({ onStart, loading = false, serverError = '' }) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="font-mono text-sm font-medium text-white">
-              Game Code
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="font-mono text-sm font-medium text-white">
+                Game Code
+              </label>
+              {scannedViaQr && (
+                <span className="font-mono text-[11px] uppercase tracking-widest text-red-400">
+                  ✓ Scanned via QR
+                </span>
+              )}
+            </div>
             <input
               type="text"
               inputMode="numeric"

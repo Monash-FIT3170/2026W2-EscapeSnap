@@ -13,15 +13,20 @@ const CreateGame = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const [groupName, setGroupName] = useState('');
   const [timer, setTimer] = useState(30);
   const [capacity, setCapacity] = useState(4);
   const [difficulty, setDifficulty] = useState('medium');
 
   const handleCreateGame = async () => {
+    if (!groupName.trim()) {
+      setError('GROUP NAME REQUIRED');
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
-      const gameId = await Meteor.callAsync('games.create', { timerMinutes: timer, capacity, difficulty });
+      const gameId = await Meteor.callAsync('games.create', { groupName: groupName.trim(), timerMinutes: timer, capacity, difficulty });
       navigate(`/game/${gameId}/lobby`);
     } catch (err) {
       setError(err.reason || err.message || 'INITIALIZATION FAILED');
@@ -52,6 +57,22 @@ const CreateGame = () => {
           </div>
 
           <div className="space-y-6">
+
+            <div className="p-4" style={{ border: '1px solid #1c1b1b' }}>
+              <label className="block text-xs tracking-widest mb-3" style={{ color: '#aa8984' }}>
+                GROUP NAME
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. FIT3170 BEST TEAM"
+                value={groupName}
+                onChange={e => setGroupName(e.target.value)}
+                maxLength={40}
+                autoComplete="off"
+                className="w-full bg-transparent px-3 py-3 text-sm tracking-wide focus:outline-none"
+                style={{ border: '1px solid #1c1b1b', color: '#e5e2e1' }}
+              />
+            </div>
 
             <div className="p-4" style={{ border: '1px solid #1c1b1b' }}>
               <label className="block text-xs tracking-widest mb-3" style={{ color: '#aa8984' }}>
