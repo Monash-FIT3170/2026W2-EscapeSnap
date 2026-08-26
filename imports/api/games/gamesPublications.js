@@ -8,3 +8,10 @@ Meteor.publish('games.current', function (gameId) {
 Meteor.publish('games.byJoinCode', function (joinCode) {
   return Games.find({ joinCode, status: 'lobby' }, { fields: { 'finalRiddle.answer': 0 } });
 });
+
+Meteor.publish('games.leaderboard', function () {
+  return Games.find(
+    { status: 'won', groupName: { $exists: true } },
+    { fields: { groupName: 1, status: 1, difficulty: 1, startedAt: 1, endedAt: 1 } }
+  );
+});

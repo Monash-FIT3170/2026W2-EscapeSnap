@@ -12,6 +12,11 @@ Games.attachSchema(
       min: 4,
       max: 4,
     },
+    groupName: {
+      type: String,
+      min: 1,
+      max: 40,
+    },
     status: {
       type: String,
       allowedValues: ['lobby', 'in_progress', 'final_riddle', 'won', 'lost'],

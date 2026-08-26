@@ -5,6 +5,7 @@ const FinalRiddleInput = ({ gameId, onCorrect = () => {}, onFailed = () => {} })
   const [guess, setGuess] = useState('');
   const [result, setResult] = useState(null);
   const [attemptsLeft, setAttemptsLeft] = useState(3);
+  const [networkError, setNetworkError] = useState(false);
 
   useEffect(() => {
     if (!result || result === 'correct') return;
@@ -16,9 +17,11 @@ const FinalRiddleInput = ({ gameId, onCorrect = () => {}, onFailed = () => {} })
 
   function handleSubmit() {
     if (!guess.trim() || exhausted) return;
+    setNetworkError(false);
     Meteor.call('games.submitFinalAnswer', gameId, guess, (error, response) => {
       if (error) {
-        console.error(error);
+        console.error('[games.submitFinalAnswer] failed:', error.error || error.reason || error.message);
+        setNetworkError(true);
         return;
       }
 
@@ -70,6 +73,12 @@ const FinalRiddleInput = ({ gameId, onCorrect = () => {}, onFailed = () => {} })
       >
         SUBMIT ANSWER
       </button>
+
+      {networkError && (
+        <div style={{ marginTop: 12, padding: '12px 16px', background: '#1c0000', borderLeft: '3px solid #8b0000' }}>
+          <p style={{ fontSize: 12, color: '#ffdad6', letterSpacing: '1px' }}>CONNECTION ERROR - CHECK YOUR NETWORK AND TRY AGAIN</p>
+        </div>
+      )}
 
       {result === 'incorrect' && !exhausted && (
         <div style={{ marginTop: 12, padding: '12px 16px', background: '#1c0000', borderLeft: '3px solid #8b0000', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

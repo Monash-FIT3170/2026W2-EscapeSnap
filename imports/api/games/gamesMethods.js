@@ -5,6 +5,8 @@ import { Rounds } from '../rounds/RoundsCollection';
 import { RoundSessions } from '/imports/api/rounds/RoundSessions';
 import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 import { FINAL_RIDDLE } from '../../lib/finalRiddle';
+import { advanceGameRound } from '../rounds/roundProgression';
+import { finalizeGameResults } from '../achievements/achievementService';
 
 const ROUND_DURATION_MS = 60 * 1000;
 
@@ -12,18 +14,46 @@ function generateJoinCode() {
   return String(Math.floor(1000 + Math.random() * 9000));
 }
 
+// Mark every still-pending round matching `selector` as wrong.
+// The status is part of the update selector, so a round can only make the
+// pending -> wrong transition once and can never push a duplicate '?'.
+async function resolvePendingRounds(selector) {
+  const pending = await Rounds.find({ ...selector, status: 'pending' }).fetchAsync();
+  let resolved = 0;
+
+  for (const round of pending) {
+    const updated = await Rounds.updateAsync(
+      { _id: round._id, status: 'pending' },
+      { $set: { status: 'wrong', submittedAt: new Date() } }
+    );
+    if (updated === 1) {
+      await Players.updateAsync(round.playerId, {
+        $push: { revealedLetters: '?' },
+      });
+      resolved++;
+    }
+  }
+
+  return resolved;
+}
+
 Meteor.methods({
   async 'games.create'({
+    groupName,
     timerMinutes = 30,
     totalRounds = 3,
     capacity = 4,
     difficulty = 'medium',
     theme = 'classroom',
   } = {}) {
+    if (!groupName || !groupName.trim()) {
+      throw new Meteor.Error('invalid-group-name', 'Group name is required');
+    }
     const joinCode = generateJoinCode();
 
     return Games.insertAsync({
       joinCode,
+      groupName: groupName.trim(),
       status: 'lobby',
       currentRound: 1,
       totalRounds,
@@ -46,10 +76,11 @@ Meteor.methods({
     if (game.status !== 'lobby')
       throw new Meteor.Error('invalid-state', 'Game is not in lobby state');
 
-    await Meteor.callAsync('rounds.createForGame', gameId);
+    const startedAt = new Date();
+    await Meteor.callAsync('rounds.createForGame', gameId, startedAt);
 
     await Games.updateAsync(gameId, {
-      $set: { status: 'in_progress', startedAt: new Date() },
+      $set: { status: 'in_progress', startedAt },
     });
   },
 
@@ -92,27 +123,9 @@ Meteor.methods({
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
     if (game.currentRound >= game.totalRounds) return;
 
-    // Mark every still-pending round for the current round as wrong
-    const pendingRounds = await Rounds.find({
-      gameId,
-      roundNumber: game.currentRound,
-      status: 'pending',
-    }).fetchAsync();
+    await resolvePendingRounds({ gameId, roundNumber: game.currentRound });
 
-    await Promise.all(
-      pendingRounds.map(async (r) => {
-        await Rounds.updateAsync(r._id, {
-          $set: { status: 'wrong', submittedAt: new Date() },
-        });
-        await Players.updateAsync(r.playerId, {
-          $push: { revealedLetters: '?' },
-        });
-      })
-    );
-
-    await Games.updateAsync(gameId, {
-      $set: { currentRound: game.currentRound + 1 },
-    });
+    await advanceGameRound(gameId, game.currentRound);
   },
 
   async 'games.submitFinalAnswer'(gameId, guess) {
@@ -128,8 +141,11 @@ Meteor.methods({
       guess.trim().toLowerCase() === game.finalRiddle.answer.toLowerCase();
 
     if (isCorrect || attempts >= MAX_ATTEMPTS) {
+      const outcome = isCorrect ? 'won' : 'lost';
+      const endedAt = new Date();
+      await finalizeGameResults(gameId, outcome, endedAt);
       await Games.updateAsync(gameId, {
-        $set: { status: isCorrect ? 'won' : 'lost', endedAt: new Date() },
+        $set: { status: outcome, endedAt, finalRiddleAttempts: attempts },
       });
     } else {
       await Games.updateAsync(gameId, {

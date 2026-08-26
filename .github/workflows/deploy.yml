@@ -1,0 +1,40 @@
+name: Deploy to Meteor Cloud
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+env:
+  DEPLOY_DOMAIN: escape-snap.sandbox.galaxycloud.app
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Meteor
+        run: |
+          curl https://install.meteor.com/ | sh
+          echo "$HOME/.meteor" >> "$GITHUB_PATH"
+
+      - name: Install dependencies
+        run: meteor npm install
+
+      - name: Restore Meteor Cloud session
+        env:
+          METEOR_SESSION_FILE: ${{ secrets.METEOR_SESSION_FILE }}
+        run: printf '%s' "$METEOR_SESSION_FILE" > "$HOME/.meteorsession"
+
+      - name: Write Galaxy settings
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          jq -n --arg key "$GEMINI_API_KEY" \
+            '{"galaxy.meteor.com": {"env": {"GEMINI_API_KEY": $key}}}' \
+            > galaxy-settings.json
+
+      - name: Deploy
+        run: meteor deploy "$DEPLOY_DOMAIN" --settings galaxy-settings.json --deploy-polling-timeout 600000

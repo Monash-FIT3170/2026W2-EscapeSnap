@@ -17,7 +17,7 @@ const FinalRiddlePage = () => {
   const [hasLost, setHasLost] = useState(false);
   const [hintRevealed, setHintRevealed] = useState(false);
 
-  const { loading, finalRiddle, finalRiddleHint } = useFinalRiddle(gameId);
+  const { loading, finalRiddle, finalRiddleHint, gameStatus } = useFinalRiddle(gameId);
   const { lettersLoading, letters } = useRevealedLetters(gameId);
 
   if (loading || lettersLoading) {
@@ -30,8 +30,26 @@ const FinalRiddlePage = () => {
 
   if (!finalRiddle) return <GameNotFound />;
 
-  if (hasWon) return <WinScreen onPlayAgain={() => navigate('/game/create')} />;
-  if (hasLost) return <LoseScreen onPlayAgain={() => navigate('/game/create')} />;
+  if (hasWon) {
+    return (
+      <WinScreen
+        gameId={gameId}
+        onPlayAgain={() => navigate('/game/create')}
+        onViewSummary={() => navigate(`/game/${gameId}/summary`)}
+        onViewLeaderboard={() => navigate('/leaderboard')}
+      />
+    );
+  }
+  if (hasLost) {
+    return (
+      <LoseScreen
+        gameId={gameId}
+        onPlayAgain={() => navigate('/game/create')}
+        onViewSummary={() => navigate(`/game/${gameId}/summary`)}
+        onViewLeaderboard={() => navigate('/leaderboard')}
+      />
+    );
+  }
 
   return (
     <SidebarLayout gameId={gameId} activePage="final-riddle">

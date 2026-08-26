@@ -9,6 +9,7 @@ import {
   generateFinalRiddle,
   generateRoundRiddles,
 } from '../riddles/geminiClient';
+import { advanceGameRound } from './roundProgression';
 
 // Tops up a short/empty AI-generated pool with the offline fallback bank, so a
 // Gemini failure never blocks round creation. Filtered to the active theme's
@@ -42,7 +43,7 @@ function assignLetters(answer, totalRounds, playerCount) {
 }
 
 Meteor.methods({
-  async 'rounds.createForGame'(gameId) {
+  async 'rounds.createForGame'(gameId, firstRoundStartedAt = new Date()) {
     const game = await Games.findOneAsync(gameId);
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
 
@@ -114,7 +115,7 @@ Meteor.methods({
 
     for (let round = 1; round <= totalRounds; round++) {
       for (let p = 0; p < players.length; p++) {
-        const riddle = shuffled[riddleIndex];
+        const riddle = shuffled[riddleIndex % shuffled.length];
         const letter = letterPool[riddleIndex];
         riddleIndex++;
         inserts.push(
@@ -127,8 +128,9 @@ Meteor.methods({
             answer: riddle.answer,
             letter,
             status: 'pending',
-            photoUrl: null,
-            submittedAt: null,
+            // Only round 1 is live at creation; advanceGameRound stamps the
+            // rest as they open.
+            ...(round === 1 ? { startedAt: firstRoundStartedAt } : {}),
           })
         );
       }
@@ -137,7 +139,17 @@ Meteor.methods({
     await Promise.all(inserts);
   },
 
-  async 'rounds.submit'(roundId, photoUrl, isCorrect = true) {
+  // Idempotent — the selector only matches while startedAt is unset, so a
+  // remount or refresh cannot restart the clock.
+  async 'rounds.markStarted'(roundId) {
+    if (!roundId) return;
+    await Rounds.updateAsync(
+      { _id: roundId, startedAt: null },
+      { $set: { startedAt: new Date() } }
+    );
+  },
+
+  async 'rounds.submit'(roundId, isCorrect = true) {
     const round = await Rounds.findOneAsync(roundId);
     if (!round) throw new Meteor.Error('not-found', 'Round not found');
     if (round.status !== 'pending')
@@ -148,9 +160,11 @@ Meteor.methods({
       game?.startedAt &&
       Date.now() - game.startedAt.getTime() > game.timerMinutes * 60 * 1000;
 
+    const submittedAt = new Date();
+
     if (expired) {
       await Rounds.updateAsync(roundId, {
-        $set: { status: 'timeout', photoUrl, submittedAt: new Date() },
+        $set: { status: 'timeout', submittedAt },
       });
       await Players.updateAsync(round.playerId, {
         $push: { revealedLetters: '?' },
@@ -160,13 +174,18 @@ Meteor.methods({
 
     const letter = isCorrect ? round.letter : '?';
 
-    await Rounds.updateAsync(roundId, {
-      $set: {
-        status: isCorrect ? 'correct' : 'wrong',
-        photoUrl,
-        submittedAt: new Date(),
-      },
-    });
+    const $set = {
+      status: isCorrect ? 'correct' : 'wrong',
+      submittedAt,
+    };
+    if (round.startedAt) {
+      $set.solveDurationMs = Math.max(
+        0,
+        submittedAt.getTime() - round.startedAt.getTime()
+      );
+    }
+
+    await Rounds.updateAsync(roundId, { $set });
 
     await Players.updateAsync(round.playerId, {
       $push: { revealedLetters: letter },
@@ -187,9 +206,7 @@ Meteor.methods({
       game.currentRound === round.roundNumber &&
       round.roundNumber < game.totalRounds
     ) {
-      await Games.updateAsync(round.gameId, {
-        $set: { currentRound: round.roundNumber + 1 },
-      });
+      await advanceGameRound(round.gameId, round.roundNumber);
     }
 
     return letter;
