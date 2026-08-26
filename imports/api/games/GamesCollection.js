@@ -77,5 +77,28 @@ Games.attachSchema(
     'finalRiddle.answer': {
       type: String,
     },
+    // Set once finalRiddle + pregeneratedRoundRiddles are both ready.
+    riddlesReady: {
+      type: Boolean,
+      optional: true,
+      defaultValue: false,
+    },
+    // Generated at games.create so START MISSION is instant.
+    pregeneratedRoundRiddles: {
+      type: Array,
+      optional: true,
+    },
+    'pregeneratedRoundRiddles.$': {
+      type: Object,
+    },
+    'pregeneratedRoundRiddles.$.text': {
+      type: String,
+    },
+    'pregeneratedRoundRiddles.$.hint': {
+      type: String,
+    },
+    'pregeneratedRoundRiddles.$.answer': {
+      type: String,
+    },
   })
 );

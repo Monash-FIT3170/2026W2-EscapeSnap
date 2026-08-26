@@ -4,14 +4,83 @@ import { Players } from '../players/PlayersCollection';
 import { Rounds } from '../rounds/RoundsCollection';
 import { RoundSessions } from '/imports/api/rounds/RoundSessions';
 import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
-import { FINAL_RIDDLE } from '../../lib/finalRiddle';
+import { FINAL_RIDDLE, getFallbackFinalRiddle } from '../../lib/finalRiddle';
+import { RIDDLE_BANK } from '../../lib/riddleBank';
+import { THEME_OBJECT_POOLS } from '../../lib/cocoClasses';
 import { advanceGameRound } from '../rounds/roundProgression';
 import { finalizeGameResults } from '../achievements/achievementService';
+import { generateFinalRiddle, generateRoundRiddles } from '../riddles/geminiClient';
 
 const ROUND_DURATION_MS = 60 * 1000;
 
 function generateJoinCode() {
   return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+// Tops up a short/empty AI pool with the theme-filtered fallback bank, so a
+// Gemini failure never blocks round creation.
+function ensureEnoughRiddles(pool, needed, theme) {
+  const combined = [...(pool || [])];
+  if (combined.length < needed) {
+    const objectPool =
+      THEME_OBJECT_POOLS[theme] || THEME_OBJECT_POOLS.classroom;
+    const themedBank = RIDDLE_BANK.filter((r) => objectPool.includes(r.answer));
+    const fallback = [...themedBank].sort(() => Math.random() - 0.5);
+    let i = 0;
+    while (combined.length < needed) {
+      combined.push(fallback[i % fallback.length]);
+      i++;
+    }
+  }
+  return combined.slice(0, needed);
+}
+
+// Generates the final riddle + round pool for this game, sized to capacity
+// (games.start requires a full lobby, so capacity === player count by the
+// time these are used). Fire-and-forget from games.create, or awaited from
+// games.start if generation hasn't finished yet.
+async function pregenerateRiddles(gameId, { totalRounds, capacity, difficulty, theme }) {
+  const needed = totalRounds * capacity;
+
+  const [finalRiddleResult, roundPoolResult] = await Promise.allSettled([
+    generateFinalRiddle({ difficulty, letterCount: needed }),
+    generateRoundRiddles({ count: needed, difficulty, theme }),
+  ]);
+
+  let finalRiddle;
+  if (finalRiddleResult.status === 'fulfilled') {
+    finalRiddle = finalRiddleResult.value;
+  } else {
+    console.error(
+      `[games.create] Final riddle pre-warm failed for game ${gameId}, using fallback:`,
+      finalRiddleResult.reason
+    );
+    finalRiddle = getFallbackFinalRiddle(needed);
+  }
+
+  let roundRiddles;
+  if (roundPoolResult.status === 'fulfilled' && roundPoolResult.value.length > 0) {
+    roundRiddles = ensureEnoughRiddles(roundPoolResult.value, needed, theme);
+  } else {
+    if (roundPoolResult.status === 'rejected') {
+      console.error(
+        `[games.create] Round-riddle pre-warm failed for game ${gameId}, using fallback bank:`,
+        roundPoolResult.reason
+      );
+    }
+    roundRiddles = ensureEnoughRiddles(null, needed, theme);
+  }
+
+  await Games.updateAsync(gameId, {
+    $set: {
+      finalRiddle,
+      pregeneratedRoundRiddles: roundRiddles,
+      riddlesReady: true,
+    },
+  });
+  console.log(
+    `[games.create] Riddles ready for game ${gameId} (${roundRiddles.length} round riddles, ${finalRiddle.answer.length}-letter final answer).`
+  );
 }
 
 // Mark every still-pending round matching `selector` as wrong.
@@ -51,7 +120,7 @@ Meteor.methods({
     }
     const joinCode = generateJoinCode();
 
-    return Games.insertAsync({
+    const gameId = await Games.insertAsync({
       joinCode,
       groupName: groupName.trim(),
       status: 'lobby',
@@ -64,10 +133,16 @@ Meteor.methods({
       createdAt: new Date(),
       startedAt: null,
       endedAt: null,
-      // Placeholder — replaced in rounds.createForGame once player count is known
-      // (the real answer's length must equal totalRounds * playerCount).
+      // Placeholder — overwritten by pregenerateRiddles below.
       finalRiddle: FINAL_RIDDLE,
     });
+
+    // Fire-and-forget — runs while players join, so START MISSION is instant.
+    pregenerateRiddles(gameId, { totalRounds, capacity, difficulty, theme }).catch((err) => {
+      console.error(`[games.create] Riddle pre-warm crashed for game ${gameId}:`, err);
+    });
+
+    return gameId;
   },
 
   async 'games.start'(gameId) {
@@ -75,6 +150,24 @@ Meteor.methods({
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
     if (game.status !== 'lobby')
       throw new Meteor.Error('invalid-state', 'Game is not in lobby state');
+
+    const playerCount = await Players.find({ gameId }).countAsync();
+    if (playerCount !== game.capacity) {
+      throw new Meteor.Error(
+        'lobby-not-full',
+        'All player slots must be filled before starting'
+      );
+    }
+
+    if (!game.riddlesReady) {
+      // Rare: lobby filled before pre-warm finished — finish it now.
+      await pregenerateRiddles(gameId, {
+        totalRounds: game.totalRounds,
+        capacity: game.capacity,
+        difficulty: game.difficulty,
+        theme: game.theme,
+      });
+    }
 
     const startedAt = new Date();
     await Meteor.callAsync('rounds.createForGame', gameId, startedAt);

@@ -107,6 +107,7 @@ const Lobby = () => {
 
   const gameStarted = game.status === 'in_progress';
   const capacity = game.capacity || 4;
+  const lobbyFull = players.length === capacity;
   const joinUrl = `${window.location.origin}/join/${game.joinCode}`;
   const slots = [
     ...players,
@@ -231,6 +232,19 @@ const Lobby = () => {
                   AWAITING GAME START...
                 </p>
               </div>
+              <div className="flex items-center gap-2 mt-1">
+                <div
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: game.riddlesReady ? '#2e7d32' : '#3a2a00',
+                  }}
+                />
+                <p style={{ fontSize: 10, letterSpacing: '1px', color: game.riddlesReady ? '#7ac47f' : '#8a7a55' }}>
+                  {game.riddlesReady ? 'RIDDLES READY' : 'GENERATING RIDDLES...'}
+                </p>
+              </div>
             </div>
             <div className="text-right">
               <p style={{ fontSize: 9, letterSpacing: '1px', color: '#aa8984' }}>CAPACITY</p>
@@ -269,23 +283,27 @@ const Lobby = () => {
           ) : (
             <button
               onClick={handleStartGame}
-              disabled={starting}
+              disabled={starting || !lobbyFull}
               style={{
                 width: '100%',
                 padding: '18px',
-                background: starting ? '#3a0000' : '#8b0000',
-                color: starting ? '#555' : '#e5e2e1',
+                background: starting ? '#3a0000' : lobbyFull ? '#8b0000' : '#1c1b1b',
+                color: starting || !lobbyFull ? '#555' : '#e5e2e1',
                 fontWeight: 700,
                 fontSize: 14,
                 letterSpacing: '2px',
-                cursor: starting ? 'not-allowed' : 'pointer',
+                cursor: starting || !lobbyFull ? 'not-allowed' : 'pointer',
                 transition: 'background 0.15s',
                 border: 'none',
               }}
-              onMouseEnter={e => { if (!starting) e.currentTarget.style.background = '#a50000'; }}
-              onMouseLeave={e => { if (!starting) e.currentTarget.style.background = '#8b0000'; }}
+              onMouseEnter={e => { if (!starting && lobbyFull) e.currentTarget.style.background = '#a50000'; }}
+              onMouseLeave={e => { if (!starting && lobbyFull) e.currentTarget.style.background = '#8b0000'; }}
             >
-              {starting ? 'DEPLOYING AGENTS...' : 'START MISSION'}
+              {starting
+                ? 'DEPLOYING AGENTS...'
+                : lobbyFull
+                  ? 'START MISSION'
+                  : `AWAITING ${capacity - players.length} MORE OPERATIVE${capacity - players.length === 1 ? '' : 'S'}...`}
             </button>
           )}
 

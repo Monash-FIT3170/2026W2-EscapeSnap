@@ -2,34 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Rounds } from './RoundsCollection';
 import { Players } from '../players/PlayersCollection';
 import { Games } from '../games/GamesCollection';
-import { RIDDLE_BANK } from '../../lib/riddleBank';
-import { getFallbackFinalRiddle } from '../../lib/finalRiddle';
-import { THEME_OBJECT_POOLS } from '../../lib/cocoClasses';
-import {
-  generateFinalRiddle,
-  generateRoundRiddles,
-} from '../riddles/geminiClient';
 import { advanceGameRound } from './roundProgression';
-
-// Tops up a short/empty AI-generated pool with the offline fallback bank, so a
-// Gemini failure never blocks round creation. Filtered to the active theme's
-// object pool first, so a fallback riddle never asks for an object the chosen
-// theme doesn't allow.
-function ensureEnoughRiddles(pool, needed, theme) {
-  const combined = [...(pool || [])];
-  if (combined.length < needed) {
-    const objectPool =
-      THEME_OBJECT_POOLS[theme] || THEME_OBJECT_POOLS.classroom;
-    const themedBank = RIDDLE_BANK.filter((r) => objectPool.includes(r.answer));
-    const fallback = [...themedBank].sort(() => Math.random() - 0.5);
-    let i = 0;
-    while (combined.length < needed) {
-      combined.push(fallback[i % fallback.length]);
-      i++;
-    }
-  }
-  return combined.slice(0, needed);
-}
 
 function assignLetters(answer, totalRounds, playerCount) {
   const letters = answer.toUpperCase().split('');
@@ -43,6 +16,7 @@ function assignLetters(answer, totalRounds, playerCount) {
 }
 
 Meteor.methods({
+  // Reads the riddles games.start already prepared — no Gemini calls here.
   async 'rounds.createForGame'(gameId, firstRoundStartedAt = new Date()) {
     const game = await Games.findOneAsync(gameId);
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
@@ -52,69 +26,20 @@ Meteor.methods({
       throw new Meteor.Error('no-players', 'No players in game');
 
     const totalRounds = game.totalRounds;
-    const needed = totalRounds * players.length;
-    // Each round rewards one letter of the final answer, so its length must equal
-    // totalRounds * playerCount exactly — the total letters that can ever be
-    // revealed. Only known now that players have actually joined.
-    const letterCount = Math.max(1, needed);
-
-    // Independent of each other — run in parallel.
-    const [finalRiddleResult, roundPoolResult] = await Promise.allSettled([
-      generateFinalRiddle({ difficulty: game.difficulty, letterCount }),
-      generateRoundRiddles({
-        count: needed,
-        difficulty: game.difficulty,
-        theme: game.theme,
-      }),
-    ]);
-
-    let finalRiddle;
-    if (finalRiddleResult.status === 'fulfilled') {
-      finalRiddle = finalRiddleResult.value;
-      console.log(
-        `[rounds.createForGame] Gemini generated the final riddle live (${finalRiddle.answer.length} letters, matches ${letterCount} needed).`
-      );
-    } else {
-      console.error(
-        '[rounds.createForGame] Gemini final riddle generation failed, using fallback:',
-        finalRiddleResult.reason
-      );
-      finalRiddle = getFallbackFinalRiddle(letterCount);
-    }
-    await Games.updateAsync(gameId, { $set: { finalRiddle } });
-
     const letterPool = assignLetters(
-      finalRiddle.answer,
+      game.finalRiddle.answer,
       totalRounds,
       players.length
     );
-
-    let pool;
-    if (roundPoolResult.status === 'fulfilled') {
-      pool = roundPoolResult.value;
-      console.log(
-        `[rounds.createForGame] Gemini generated ${pool.length}/${needed} round riddles live.`
-      );
-    } else {
-      console.error(
-        '[rounds.createForGame] Gemini round riddle generation failed, using fallback bank:',
-        roundPoolResult.reason
-      );
-      pool = null;
-    }
-    const shuffled = ensureEnoughRiddles(pool, needed, game.theme);
-    const fromFallbackCount = pool ? Math.max(0, needed - pool.length) : needed;
-    if (fromFallbackCount > 0) {
-      console.warn(
-        `[rounds.createForGame] ${fromFallbackCount}/${needed} riddles came from the offline fallback bank, not Gemini.`
-      );
-    }
+    const shuffled = game.pregeneratedRoundRiddles;
 
     const inserts = [];
     let riddleIndex = 0;
 
     for (let round = 1; round <= totalRounds; round++) {
       for (let p = 0; p < players.length; p++) {
+        // The bank is smaller than totalRounds × playerCount for large games,
+        // so wrap rather than deal `undefined`.
         const riddle = shuffled[riddleIndex % shuffled.length];
         const letter = letterPool[riddleIndex];
         riddleIndex++;
