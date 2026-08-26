@@ -29,26 +29,26 @@ const FinalRiddlePage = () => {
 
   if (!finalRiddle) return <GameNotFound />;
 
-  if (hasWon || gameStatus === 'won') {
+  if (hasWon) {
     return (
       <WinScreen
         gameId={gameId}
         onPlayAgain={() => navigate('/game/create')}
+        onViewSummary={() => navigate(`/game/${gameId}/summary`)}
         onViewLeaderboard={() => navigate('/leaderboard')}
       />
     );
   }
-  if (hasLost || gameStatus === 'lost') {
+  if (hasLost) {
     return (
       <LoseScreen
         gameId={gameId}
         onPlayAgain={() => navigate('/game/create')}
+        onViewSummary={() => navigate(`/game/${gameId}/summary`)}
         onViewLeaderboard={() => navigate('/leaderboard')}
       />
     );
   }
-  if (hasWon) return <WinScreen onPlayAgain={() => navigate('/game/create')} onViewLeaderboard={() => navigate('/leaderboard')} />;
-  if (hasLost) return <LoseScreen onPlayAgain={() => navigate('/game/create')} onViewLeaderboard={() => navigate('/leaderboard')} />;
 
   return (
     <SidebarLayout gameId={gameId} activePage="final-riddle">

@@ -16,6 +16,16 @@ function assignLetters(answer, totalRounds, playerCount) {
   return pool;
 }
 
+// Fisher–Yates over a copy, so the module-level bank is never mutated.
+function shuffle(list) {
+  const out = [...list];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 Meteor.methods({
   async 'rounds.createForGame'(gameId, firstRoundStartedAt = new Date()) {
     const game = await Games.findOneAsync(gameId);
@@ -28,33 +38,49 @@ Meteor.methods({
     const totalRounds = game.totalRounds;
     const answer = game.finalRiddle.answer;
     const letterPool = assignLetters(answer, totalRounds, players.length);
+    const shuffled = shuffle(RIDDLE_BANK);
 
     const inserts = [];
     let riddleIndex = 0;
 
     for (let round = 1; round <= totalRounds; round++) {
-      const riddle = RIDDLE_BANK[(round - 1) % RIDDLE_BANK.length];
       for (let p = 0; p < players.length; p++) {
+        // The bank is smaller than totalRounds × playerCount for large games,
+        // so wrap rather than deal `undefined`.
+        const riddle = shuffled[riddleIndex % shuffled.length];
         const letter = letterPool[riddleIndex];
         riddleIndex++;
-        const roundDocument = {
-          gameId,
-          playerId: players[p]._id,
-          roundNumber: round,
-          riddleText: riddle.text,
-          answer: riddle.answer,
-          letter,
-          status: 'pending',
-        };
-        if (round === 1) roundDocument.startedAt = firstRoundStartedAt;
-        inserts.push(Rounds.insertAsync(roundDocument));
+        inserts.push(
+          Rounds.insertAsync({
+            gameId,
+            playerId: players[p]._id,
+            roundNumber: round,
+            riddleText: riddle.text,
+            answer: riddle.answer,
+            letter,
+            status: 'pending',
+            // Only round 1 is live at creation; advanceGameRound stamps the
+            // rest as they open.
+            ...(round === 1 ? { startedAt: firstRoundStartedAt } : {}),
+          })
+        );
       }
     }
 
     await Promise.all(inserts);
   },
 
-  async 'rounds.submit'(roundId, photoUrl, isCorrect = true) {
+  // Idempotent — the selector only matches while startedAt is unset, so a
+  // remount or refresh cannot restart the clock.
+  async 'rounds.markStarted'(roundId) {
+    if (!roundId) return;
+    await Rounds.updateAsync(
+      { _id: roundId, startedAt: null },
+      { $set: { startedAt: new Date() } }
+    );
+  },
+
+  async 'rounds.submit'(roundId, isCorrect = true) {
     const round = await Rounds.findOneAsync(roundId);
     if (!round) throw new Meteor.Error('not-found', 'Round not found');
     if (round.status !== 'pending')
@@ -69,7 +95,7 @@ Meteor.methods({
 
     if (expired) {
       await Rounds.updateAsync(roundId, {
-        $set: { status: 'timeout', photoUrl, submittedAt },
+        $set: { status: 'timeout', submittedAt },
       });
       await Players.updateAsync(round.playerId, {
         $push: { revealedLetters: '?' },
@@ -79,19 +105,18 @@ Meteor.methods({
 
     const letter = isCorrect ? round.letter : '?';
 
-    const roundStartedAt = round.startedAt ?? game?.startedAt;
-    const solveDurationMs =
-      isCorrect && roundStartedAt
-        ? Math.max(0, submittedAt.getTime() - new Date(roundStartedAt).getTime())
-        : null;
-    const roundUpdate = {
+    const $set = {
       status: isCorrect ? 'correct' : 'wrong',
-      photoUrl,
       submittedAt,
     };
-    if (Number.isFinite(solveDurationMs)) roundUpdate.solveDurationMs = solveDurationMs;
+    if (round.startedAt) {
+      $set.solveDurationMs = Math.max(
+        0,
+        submittedAt.getTime() - round.startedAt.getTime()
+      );
+    }
 
-    await Rounds.updateAsync(roundId, { $set: roundUpdate });
+    await Rounds.updateAsync(roundId, { $set });
 
     await Players.updateAsync(round.playerId, {
       $push: { revealedLetters: letter },

@@ -126,6 +126,13 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
     };
   }, [playerId, currentRound, gameId]);
 
+  // Start the per-round clock the first time the riddle is on screen. The
+  // method is idempotent, so retries and remounts don't reset it.
+  useEffect(() => {
+    if (!round?._id || showResult) return;
+    Meteor.call('rounds.markStarted', round._id);
+  }, [round?._id, showResult]);
+
   useEffect(() => {
     if (!game?.startedAt || !game?.timerMinutes) return;
     const tick = () => {

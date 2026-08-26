@@ -14,6 +14,29 @@ function generateJoinCode() {
   return String(Math.floor(1000 + Math.random() * 9000));
 }
 
+// Mark every still-pending round matching `selector` as wrong.
+// The status is part of the update selector, so a round can only make the
+// pending -> wrong transition once and can never push a duplicate '?'.
+async function resolvePendingRounds(selector) {
+  const pending = await Rounds.find({ ...selector, status: 'pending' }).fetchAsync();
+  let resolved = 0;
+
+  for (const round of pending) {
+    const updated = await Rounds.updateAsync(
+      { _id: round._id, status: 'pending' },
+      { $set: { status: 'wrong', submittedAt: new Date() } }
+    );
+    if (updated === 1) {
+      await Players.updateAsync(round.playerId, {
+        $push: { revealedLetters: '?' },
+      });
+      resolved++;
+    }
+  }
+
+  return resolved;
+}
+
 Meteor.methods({
   async 'games.create'({ groupName, timerMinutes = 30, totalRounds = 3, capacity = 4, difficulty = 'medium' } = {}) {
     if (!groupName || !groupName.trim()) {
@@ -82,21 +105,7 @@ Meteor.methods({
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
     if (game.currentRound >= game.totalRounds) return;
 
-    // Mark every still-pending round for the current round as wrong
-    const pendingRounds = await Rounds.find({
-      gameId,
-      roundNumber: game.currentRound,
-      status: 'pending',
-    }).fetchAsync();
-
-    await Promise.all(pendingRounds.map(async r => {
-      await Rounds.updateAsync(r._id, {
-        $set: { status: 'wrong', submittedAt: new Date() },
-      });
-      await Players.updateAsync(r.playerId, {
-        $push: { revealedLetters: '?' },
-      });
-    }));
+    await resolvePendingRounds({ gameId, roundNumber: game.currentRound });
 
     await advanceGameRound(gameId, game.currentRound);
   },
