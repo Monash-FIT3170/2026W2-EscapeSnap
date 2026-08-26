@@ -1,6 +1,5 @@
 import React from 'react';
 import PostGameLeaderboard from '../../components/leaderboard/PostGameLeaderboard';
-import GameCompletionActions from '../../components/game-completion/GameCompletionActions';
 
 const LoseScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) => {
   return (
@@ -53,13 +52,12 @@ const LoseScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) =
               cursor: 'pointer',
               border: 'none',
             }}
-            onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
-            onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
+            onMouseEnter={e => (e.currentTarget.style.background = '#a50000')}
+            onMouseLeave={e => (e.currentTarget.style.background = '#8b0000')}
           >
             TRY AGAIN
           </button>
 
-      <div className="flex items-center gap-4" style={{ marginTop: 32 }}>
           <button
             onClick={onViewLeaderboard}
             className="font-bold uppercase"
@@ -72,10 +70,10 @@ const LoseScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) =
               cursor: 'pointer',
               border: 'none',
             }}
-            onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
-            onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
+            onMouseEnter={e => (e.currentTarget.style.background = '#a50000')}
+            onMouseLeave={e => (e.currentTarget.style.background = '#8b0000')}
           >
-              VIEW LEADERBOARD
+            VIEW LEADERBOARD
           </button>
 
           {onViewSummary && (
@@ -91,8 +89,8 @@ const LoseScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) =
                 cursor: 'pointer',
                 border: '1px solid #353534',
               }}
-              onMouseEnter={e => e.currentTarget.style.color = '#e5e2e1'}
-              onMouseLeave={e => e.currentTarget.style.color = '#aa8984'}
+              onMouseEnter={e => (e.currentTarget.style.color = '#e5e2e1')}
+              onMouseLeave={e => (e.currentTarget.style.color = '#aa8984')}
             >
               VIEW DEBRIEF
             </button>

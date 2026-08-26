@@ -1,6 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 
+// Widest edge of a captured frame, in px. Also bounds what gets stored on the
+// submission, so keep it in step with the `photoUrl` cap in the schema.
+const CAPTURE_MAX_WIDTH = 900;
+
 function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -91,9 +95,13 @@ const MobileRiddlePage = ({
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
+    // Downscale on capture: a full-resolution phone frame is far more than
+    // Gemini needs to recognise an object, and the whole frame is stored on
+    // the submission for the end-game gallery.
+    const scale = Math.min(1, CAPTURE_MAX_WIDTH / video.videoWidth);
+    canvas.width = Math.round(video.videoWidth * scale);
+    canvas.height = Math.round(video.videoHeight * scale);
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
     setCapturedUrl(dataUrl);
@@ -116,7 +124,8 @@ const MobileRiddlePage = ({
           const result = await Meteor.callAsync(
             'submissions.classify',
             base64,
-            targetObject ?? 'object'
+            targetObject ?? 'object',
+            roundId
           );
           setValidationState(result.outcome);
           setExplanation(result.explanation || null);
