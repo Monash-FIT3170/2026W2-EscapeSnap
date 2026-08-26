@@ -116,7 +116,12 @@ export function buildEndgameShareSnapshot({
     name: playerName || 'OPERATIVE',
     revealedLetters: [],
   };
-  const roster = players.length > 0 ? players : [currentPlayer];
+  // Guarantee the current player is always in the roster so the lookup
+  // below can never miss them, even if the players subscription is still
+  // catching up.
+  const roster = players.some((player) => player._id === playerId)
+    ? players
+    : [...players, currentPlayer];
 
   const rankedPlayers = roster
     .map((player) => {
@@ -143,15 +148,14 @@ export function buildEndgameShareSnapshot({
         a.name.localeCompare(b.name)
     );
 
-  const ownIndex = Math.max(
-    0,
-    rankedPlayers.findIndex((player) => player.playerId === playerId)
+  const ownIndex = rankedPlayers.findIndex(
+    (player) => player.playerId === playerId
   );
   const own = rankedPlayers[ownIndex] ?? rankedPlayers[0];
   const recovered = own.revealedLetters.filter(
     (letter) => letter !== '?'
   ).length;
-  const missionSeed = String(endedAt ?? startedAt ?? Date.now())
+  const missionSeed = (endedAt ?? startedAt ?? Date.now())
     .toString(36)
     .toUpperCase();
 
