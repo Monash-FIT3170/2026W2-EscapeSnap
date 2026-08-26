@@ -5,6 +5,8 @@ import { Rounds } from '../rounds/RoundsCollection';
 import { RoundSessions } from '/imports/api/rounds/RoundSessions';
 import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 import { FINAL_RIDDLE } from '../../lib/finalRiddle';
+import { advanceGameRound } from '../rounds/roundProgression';
+import { finalizeGameResults } from '../achievements/achievementService';
 
 const ROUND_DURATION_MS = 60 * 1000;
 
@@ -36,10 +38,14 @@ async function resolvePendingRounds(selector) {
 }
 
 Meteor.methods({
-  async 'games.create'({ timerMinutes = 30, totalRounds = 3, capacity = 4, difficulty = 'medium' } = {}) {
+  async 'games.create'({ groupName, timerMinutes = 30, totalRounds = 3, capacity = 4, difficulty = 'medium' } = {}) {
+    if (!groupName || !groupName.trim()) {
+      throw new Meteor.Error('invalid-group-name', 'Group name is required');
+    }
     const joinCode = generateJoinCode();
     return Games.insertAsync({
       joinCode,
+      groupName: groupName.trim(),
       status: 'lobby',
       currentRound: 1,
       totalRounds,
@@ -59,10 +65,11 @@ Meteor.methods({
     if (game.status !== 'lobby')
       throw new Meteor.Error('invalid-state', 'Game is not in lobby state');
 
-    await Meteor.callAsync('rounds.createForGame', gameId);
+    const startedAt = new Date();
+    await Meteor.callAsync('rounds.createForGame', gameId, startedAt);
 
     await Games.updateAsync(gameId, {
-      $set: { status: 'in_progress', startedAt: new Date() },
+      $set: { status: 'in_progress', startedAt },
     });
   },
 
@@ -100,9 +107,7 @@ Meteor.methods({
 
     await resolvePendingRounds({ gameId, roundNumber: game.currentRound });
 
-    await Games.updateAsync(gameId, {
-      $set: { currentRound: game.currentRound + 1 },
-    });
+    await advanceGameRound(gameId, game.currentRound);
   },
 
   async 'games.submitFinalAnswer'(gameId, guess) {
@@ -117,25 +122,16 @@ Meteor.methods({
     const isCorrect =
       guess.trim().toLowerCase() === game.finalRiddle.answer.toLowerCase();
 
-    // finalRiddleAttempts is persisted on every attempt including the deciding
-    // one, so the summary can report how many were used.
-    const isDecided = isCorrect || attempts >= MAX_ATTEMPTS;
-    const update = { finalRiddleAttempts: attempts };
-    if (isDecided) {
-      update.status = isCorrect ? 'won' : 'lost';
-      update.endedAt = new Date();
-    }
-
-    await Games.updateAsync(gameId, { $set: update });
-
-    // The last round never goes through advanceRound, so its rounds would stay
-    // pending forever. Only resolve rounds a player was actually shown —
-    // startedAt is the per-player proof of that. Rounds never put on screen
-    // stay pending so the summary can tell "failed" from "never attempted".
-    if (isDecided) {
-      await resolvePendingRounds({
-        gameId,
-        startedAt: { $ne: null },
+    if (isCorrect || attempts >= MAX_ATTEMPTS) {
+      const outcome = isCorrect ? 'won' : 'lost';
+      const endedAt = new Date();
+      await finalizeGameResults(gameId, outcome, endedAt);
+      await Games.updateAsync(gameId, {
+        $set: { status: outcome, endedAt, finalRiddleAttempts: attempts },
+      });
+    } else {
+      await Games.updateAsync(gameId, {
+        $set: { finalRiddleAttempts: attempts },
       });
     }
 

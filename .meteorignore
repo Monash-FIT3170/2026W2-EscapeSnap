@@ -9,3 +9,8 @@ eslint.config.js
 
 # Local UI preview (dev-only, not part of the Meteor app)
 preview/
+
+# Dev launcher and Windows patch scripts - executed by npm, never by Meteor.
+# Meteor eagerly loads any JS outside imports/, which would run start.mjs
+# inside the server bundle.
+scripts/

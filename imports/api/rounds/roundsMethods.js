@@ -3,6 +3,7 @@ import { Rounds } from './RoundsCollection';
 import { Players } from '../players/PlayersCollection';
 import { Games } from '../games/GamesCollection';
 import { RIDDLE_BANK } from '../../lib/riddleBank';
+import { advanceGameRound } from './roundProgression';
 
 function assignLetters(answer, totalRounds, playerCount) {
   const letters = answer.toUpperCase().split('');
@@ -16,7 +17,7 @@ function assignLetters(answer, totalRounds, playerCount) {
 }
 
 Meteor.methods({
-  async 'rounds.createForGame'(gameId) {
+  async 'rounds.createForGame'(gameId, firstRoundStartedAt = new Date()) {
     const game = await Games.findOneAsync(gameId);
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
 
@@ -27,9 +28,6 @@ Meteor.methods({
     const totalRounds = game.totalRounds;
     const answer = game.finalRiddle.answer;
     const letterPool = assignLetters(answer, totalRounds, players.length);
-
-    const needed = totalRounds * players.length;
-    const shuffled = [...RIDDLE_BANK].sort(() => Math.random() - 0.5).slice(0, needed);
 
     const inserts = [];
     let riddleIndex = 0;
@@ -76,8 +74,11 @@ Meteor.methods({
       throw new Meteor.Error('invalid-state', 'Round already submitted');
 
     const game = await Games.findOneAsync(round.gameId);
-    const expired = game?.startedAt &&
+    const expired =
+      game?.startedAt &&
       Date.now() - game.startedAt.getTime() > game.timerMinutes * 60 * 1000;
+
+    const submittedAt = new Date();
 
     if (expired) {
       await Rounds.updateAsync(roundId, {
@@ -96,7 +97,6 @@ Meteor.methods({
         status: isCorrect ? 'correct' : 'wrong',
         submittedAt: new Date(),
       },
-    });
 
     await Players.updateAsync(round.playerId, {
       $push: { revealedLetters: letter },
@@ -108,16 +108,16 @@ Meteor.methods({
       roundNumber: round.roundNumber,
       status: { $ne: 'pending' },
     }).countAsync();
-    const playerCount = await Players.find({ gameId: round.gameId }).countAsync();
+    const playerCount = await Players.find({
+      gameId: round.gameId,
+    }).countAsync();
 
     if (
       submittedCount >= playerCount &&
       game.currentRound === round.roundNumber &&
       round.roundNumber < game.totalRounds
     ) {
-      await Games.updateAsync(round.gameId, {
-        $set: { currentRound: round.roundNumber + 1 },
-      });
+      await advanceGameRound(round.gameId, round.roundNumber);
     }
 
     return letter;

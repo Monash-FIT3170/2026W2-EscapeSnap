@@ -16,7 +16,7 @@ const FinalRiddlePage = () => {
   const [hasWon, setHasWon] = useState(false);
   const [hasLost, setHasLost] = useState(false);
 
-  const { loading, finalRiddle } = useFinalRiddle(gameId);
+  const { loading, finalRiddle, gameStatus } = useFinalRiddle(gameId);
   const { lettersLoading, letters } = useRevealedLetters(gameId);
 
   if (loading || lettersLoading) {
@@ -32,16 +32,20 @@ const FinalRiddlePage = () => {
   if (hasWon) {
     return (
       <WinScreen
+        gameId={gameId}
         onPlayAgain={() => navigate('/game/create')}
         onViewSummary={() => navigate(`/game/${gameId}/summary`)}
+        onViewLeaderboard={() => navigate('/leaderboard')}
       />
     );
   }
   if (hasLost) {
     return (
       <LoseScreen
+        gameId={gameId}
         onPlayAgain={() => navigate('/game/create')}
         onViewSummary={() => navigate(`/game/${gameId}/summary`)}
+        onViewLeaderboard={() => navigate('/leaderboard')}
       />
     );
   }

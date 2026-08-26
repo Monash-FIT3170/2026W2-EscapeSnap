@@ -111,6 +111,7 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
   const [revealedLetter, setRevealedLetter] = useState(null);
   const [answerCorrect, setAnswerCorrect] = useState(null);
   const [timeLeft, setTimeLeft] = useState(null);
+  const [syncError, setSyncError] = useState(false);
 
   const showResult = revealedLetter !== null;
 
@@ -153,10 +154,14 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
   }, []);
 
   const handleNextRound = async () => {
+    setSyncError(false);
     if (!answerCorrect) {
       try {
         await Meteor.callAsync('games.advanceRound', gameId);
-      } catch {}
+      } catch (err) {
+        console.error('[games.advanceRound] failed:', err.error || err.reason || err.message);
+        setSyncError(true);
+      }
     }
     setCurrentRound(r => r + 1);
     setRevealedLetter(null);
@@ -170,8 +175,8 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
     setActiveTab('scanner');
   };
 
-  if (game?.status === 'won') return <PlayerWinScreen />;
-  if (game?.status === 'lost') return <PlayerLoseScreen />;
+  if (game?.status === 'won') return <PlayerWinScreen playerId={playerId} />;
+  if (game?.status === 'lost') return <PlayerLoseScreen playerId={playerId} />;
 
   return (
     <div className="h-screen flex flex-col bg-black text-slate-100 overflow-hidden">
@@ -206,6 +211,14 @@ export function PlayerDashboard({ playerName, gameCode, playerId, gameId, onExit
         <div className="flex-shrink-0 border-b border-red-900/60 bg-red-950/40 px-5 py-2 text-center">
           <p className="font-mono text-xs uppercase tracking-widest text-red-400">
             Game time expired — no more submissions
+          </p>
+        </div>
+      )}
+
+      {syncError && (
+        <div className="flex-shrink-0 border-b border-red-900/60 bg-red-950/40 px-5 py-2 text-center">
+          <p className="font-mono text-xs uppercase tracking-widest text-red-400">
+            Connection error - round progress may be out of sync
           </p>
         </div>
       )}

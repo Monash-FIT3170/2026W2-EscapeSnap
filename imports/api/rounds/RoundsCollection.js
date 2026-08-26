@@ -35,8 +35,17 @@ Rounds.attachSchema(new SimpleSchema({
     type: Date,
     optional: true,
   },
+  startedAt: {
+    type: Date,
+    optional: true,
+  },
   submittedAt: {
     type: Date,
+    optional: true,
+  },
+  solveDurationMs: {
+    type: Number,
+    min: 0,
     optional: true,
   },
 }));

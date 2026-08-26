@@ -1,6 +1,8 @@
 import React from 'react';
+import PostGameLeaderboard from '../../components/leaderboard/PostGameLeaderboard';
+import GameCompletionActions from '../../components/game-completion/GameCompletionActions';
 
-const LoseScreen = ({ onPlayAgain, onViewSummary }) => {
+const LoseScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) => {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#0e0e0e', color: '#e5e2e1' }}>
 
@@ -34,6 +36,10 @@ const LoseScreen = ({ onPlayAgain, onViewSummary }) => {
           THE RIDDLE REMAINS UNSOLVED.
         </p>
 
+        <div className="mt-6 w-full">
+          <PostGameLeaderboard gameId={gameId} />
+        </div>
+
         <div className="flex items-center gap-4" style={{ marginTop: 32 }}>
           <button
             onClick={onPlayAgain}
@@ -51,6 +57,25 @@ const LoseScreen = ({ onPlayAgain, onViewSummary }) => {
             onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
           >
             TRY AGAIN
+          </button>
+
+      <div className="flex items-center gap-4" style={{ marginTop: 32 }}>
+          <button
+            onClick={onViewLeaderboard}
+            className="font-bold uppercase"
+            style={{
+              padding: '14px 64px',
+              background: '#8b0000',
+              color: '#e5e2e1',
+              fontSize: 13,
+              letterSpacing: '1.5px',
+              cursor: 'pointer',
+              border: 'none',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
+            onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
+          >
+              VIEW LEADERBOARD
           </button>
 
           {onViewSummary && (
