@@ -47,8 +47,8 @@ Meteor.methods({
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
 
     const players = await Players.find({ gameId }).fetchAsync();
-    // if (players.length === 0)
-    //   throw new Meteor.Error('no-players', 'No players in game');
+    if (players.length === 0)
+      throw new Meteor.Error('no-players', 'No players in game');
 
     const totalRounds = game.totalRounds;
     const needed = totalRounds * players.length;
