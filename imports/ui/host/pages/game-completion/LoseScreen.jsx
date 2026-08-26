@@ -35,7 +35,7 @@ const LoseScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) =
           THE RIDDLE REMAINS UNSOLVED.
         </p>
 
-        <div className="mt-6 w-full">
+        <div className="mt-6 w-full mb-12">
           <PostGameLeaderboard gameId={gameId} />
         </div>
 

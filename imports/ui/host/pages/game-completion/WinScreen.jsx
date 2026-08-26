@@ -37,7 +37,7 @@ const WinScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) =>
           THE RIDDLE HAS BEEN SOLVED.
         </p>
 
-          <div className="w-full">
+          <div className="w-full mb-12">
             <PostGameLeaderboard gameId={gameId} />
           </div>
 
