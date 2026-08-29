@@ -1,7 +1,9 @@
 import React from 'react';
 import PostGameLeaderboard from '../../components/leaderboard/PostGameLeaderboard';
+import { useT } from '../../../../languages/LanguageProvider';
 
 const LoseScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) => {
+  const t = useT();
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#0e0e0e', color: '#e5e2e1' }}>
 
@@ -10,13 +12,13 @@ const LoseScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) =
           ESCAPESNAP
         </span>
         <span className="text-xs tracking-widest uppercase" style={{ color: '#aa8984' }}>
-          MISSION FAILED
+          {t('host.loseScreen.missionFailed')}
         </span>
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center gap-6">
         <p className="text-xs tracking-widest" style={{ color: '#8b0000' }}>
-          MISSION FAILED
+          {t('host.loseScreen.missionFailed')}
         </p>
 
         <h1
@@ -28,11 +30,11 @@ const LoseScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) =
             color: '#e5e2e1',
           }}
         >
-          NO ESCAPE.
+          {t('host.loseScreen.noEscape')}
         </h1>
 
         <p className="uppercase" style={{ fontSize: 12, letterSpacing: '2px', color: '#aa8984' }}>
-          THE RIDDLE REMAINS UNSOLVED.
+          {t('host.loseScreen.riddleUnsolved')}
         </p>
 
         <div className="mt-6 w-full mb-12">
@@ -55,7 +57,7 @@ const LoseScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) =
             onMouseEnter={e => (e.currentTarget.style.background = '#a50000')}
             onMouseLeave={e => (e.currentTarget.style.background = '#8b0000')}
           >
-            TRY AGAIN
+            {t('host.loseScreen.tryAgain')}
           </button>
 
           <button
@@ -73,7 +75,7 @@ const LoseScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) =
             onMouseEnter={e => (e.currentTarget.style.background = '#a50000')}
             onMouseLeave={e => (e.currentTarget.style.background = '#8b0000')}
           >
-            VIEW LEADERBOARD
+            {t('host.loseScreen.viewLeaderboard')}
           </button>
 
           {onViewSummary && (
@@ -92,7 +94,7 @@ const LoseScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) =
               onMouseEnter={e => (e.currentTarget.style.color = '#e5e2e1')}
               onMouseLeave={e => (e.currentTarget.style.color = '#aa8984')}
             >
-              VIEW DEBRIEF
+              {t('host.loseScreen.viewDebrief')}
             </button>
           )}
         </div>

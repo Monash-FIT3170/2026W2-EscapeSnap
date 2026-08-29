@@ -1,7 +1,9 @@
 import React from 'react';
 import PostGameLeaderboard from '../../components/leaderboard/PostGameLeaderboard';
+import { useT } from '../../../../languages/LanguageProvider';
 
 const WinScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) => {
+  const t = useT();
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#0e0e0e', color: '#e5e2e1' }}>
 
@@ -10,13 +12,13 @@ const WinScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) =>
           ESCAPESNAP
         </span>
         <span className="text-xs tracking-widest uppercase" style={{ color: '#aa8984' }}>
-          MISSION COMPLETE
+          {t('host.winScreen.missionComplete')}
         </span>
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center">
         <p className="text-xs tracking-widest mb-3" style={{ color: '#8b0000' }}>
-          MISSION SUCCESS
+          {t('host.winScreen.missionSuccess')}
         </p>
         <h1
           className="font-extrabold uppercase mb-4"
@@ -27,14 +29,14 @@ const WinScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) =>
             lineHeight: 1,
           }}
         >
-          YOU ESCAPED
+          {t('host.winScreen.youEscaped')}
         </h1>
 
         <p
           className="uppercase mb-16"
           style={{ letterSpacing: '0.3em', fontSize: '1rem', color: '#aa8984' }}
         >
-          THE RIDDLE HAS BEEN SOLVED.
+          {t('host.winScreen.riddleSolved')}
         </p>
 
           <div className="w-full mb-12">
@@ -57,7 +59,7 @@ const WinScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) =>
             onMouseEnter={e => (e.currentTarget.style.background = '#a50000')}
             onMouseLeave={e => (e.currentTarget.style.background = '#8b0000')}
           >
-            PLAY AGAIN
+            {t('host.winScreen.playAgain')}
           </button>
 
           <button
@@ -75,7 +77,7 @@ const WinScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) =>
             onMouseEnter={e => (e.currentTarget.style.background = '#a50000')}
             onMouseLeave={e => (e.currentTarget.style.background = '#8b0000')}
           >
-            VIEW LEADERBOARD
+            {t('host.winScreen.viewLeaderboard')}
           </button>
 
           {onViewSummary && (
@@ -94,7 +96,7 @@ const WinScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) =>
               onMouseEnter={e => (e.currentTarget.style.color = '#e5e2e1')}
               onMouseLeave={e => (e.currentTarget.style.color = '#aa8984')}
             >
-              VIEW DEBRIEF
+              {t('host.winScreen.viewDebrief')}
             </button>
           )}
         </div>

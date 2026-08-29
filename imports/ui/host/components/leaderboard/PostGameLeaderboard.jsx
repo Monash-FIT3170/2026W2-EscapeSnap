@@ -3,6 +3,7 @@
 import React from 'react';
 import { useGameResults } from '/imports/ui/shared/hooks/useGameResults';
 import { BadgeList } from '/imports/ui/shared/components/achievements/BadgeList';
+import { useT } from '../../../../languages/LanguageProvider';
 
 function formatSolveTime(milliseconds) {
   if (!Number.isFinite(milliseconds)) return '—';
@@ -15,6 +16,7 @@ function formatSolveTime(milliseconds) {
 }
 
 export default function PostGameLeaderboard({ gameId }) {
+  const t = useT();
   const { loading, results } = useGameResults(gameId);
 
   return (
@@ -33,14 +35,14 @@ export default function PostGameLeaderboard({ gameId }) {
             className="font-bold uppercase"
             style={{ color: '#e5e2e1', fontSize: 14, letterSpacing: '1.5px' }}
           >
-            Final Leaderboard
+            {t('host.leaderboard.finalLeaderboard')}
           </h2>
         </div>
         <span
           className="font-mono uppercase"
           style={{ color: '#aa8984', fontSize: 9 }}
         >
-          Hover or focus a badge for details
+          {t('host.leaderboard.hoverBadgeHint')}
         </span>
       </div>
 
@@ -49,7 +51,7 @@ export default function PostGameLeaderboard({ gameId }) {
           className="px-6 py-8 text-center font-mono"
           style={{ color: '#aa8984', fontSize: 11 }}
         >
-          CALCULATING FIELD RESULTS...
+          {t('host.leaderboard.calculatingResults')}
         </p>
       )}
 
@@ -58,7 +60,7 @@ export default function PostGameLeaderboard({ gameId }) {
           className="px-6 py-8 text-center font-mono"
           style={{ color: '#aa8984', fontSize: 11 }}
         >
-          NO PLAYER RESULTS AVAILABLE
+          {t('host.leaderboard.noPlayerResults')}
         </p>
       )}
 
@@ -74,11 +76,11 @@ export default function PostGameLeaderboard({ gameId }) {
               letterSpacing: '1px',
             }}
           >
-            <span>Rank</span>
-            <span>Player and achievements</span>
-            <span className="text-center">Solved</span>
-            <span className="text-center">Accuracy</span>
-            <span className="text-right">Fastest</span>
+            <span>{t('host.leaderboard.rank')}</span>
+            <span>{t('host.leaderboard.playerAndAchievements')}</span>
+            <span className="text-center">{t('host.leaderboard.solved')}</span>
+            <span className="text-center">{t('host.leaderboard.accuracy')}</span>
+            <span className="text-right">{t('host.leaderboard.fastest')}</span>
           </div>
 
           {results.map((result, index) => (

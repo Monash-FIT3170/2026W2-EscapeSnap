@@ -1,4 +1,5 @@
 import React from 'react';
+import { useT } from '../../../../languages/LanguageProvider';
 
 function CornerBrackets() {
   return (
@@ -21,7 +22,10 @@ function PlayerPlaceholder() {
   );
 }
 
-export function SurvivorIdCard({ photoUrl, callSign = 'PLAYER', refCode = 'REF_SEC_U012_X', zoneCode = 'C_SECTOR_X', duration = '0:00MS', status = 'AWAITING GUIDANCE' }) {
+export function SurvivorIdCard({ photoUrl, callSign, refCode = 'REF_SEC_U012_X', zoneCode = 'C_SECTOR_X', duration = '0:00MS', status }) {
+  const t = useT();
+  const resolvedCallSign = callSign ?? t('mobile.lobby.playerDefault');
+  const resolvedStatus = status ?? t('mobile.lobby.awaitingGuidance');
   return (
     <section className="flex flex-col items-center px-2 py-1 w-full">
       <div className="relative aspect-[4/5]" style={{ width: 'min(200px, 50vw, 28vh)' }}>
@@ -29,7 +33,7 @@ export function SurvivorIdCard({ photoUrl, callSign = 'PLAYER', refCode = 'REF_S
 
         <div className="absolute inset-0 overflow-hidden bg-slate-900">
           {photoUrl
-            ? <img src={photoUrl} alt={callSign} className="h-full w-full object-cover" />
+            ? <img src={photoUrl} alt={resolvedCallSign} className="h-full w-full object-cover" />
             : <PlayerPlaceholder />
           }
         </div>
@@ -45,12 +49,12 @@ export function SurvivorIdCard({ photoUrl, callSign = 'PLAYER', refCode = 'REF_S
       </div>
 
       <h2 className="mt-2 font-display text-xl font-bold tracking-wide text-white">
-        {callSign}
+        {resolvedCallSign}
       </h2>
 
       <div className="mt-2 flex w-full items-center justify-center gap-3">
         <span className="h-px flex-1 bg-slate-700/70" />
-        <p className="font-mono text-[11px] tracking-[0.32em] text-slate-400">{status}</p>
+        <p className="font-mono text-[11px] tracking-[0.32em] text-slate-400">{resolvedStatus}</p>
         <span className="h-px flex-1 bg-slate-700/70" />
       </div>
     </section>

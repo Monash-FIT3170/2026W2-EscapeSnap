@@ -4,6 +4,7 @@ import { useGameSummary } from '/imports/ui/shared/hooks/useGameSummary.js';
 import GameNotFound from '/imports/ui/shared/components/GameNotFound.jsx';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
 import PhotoGallery from '/imports/ui/host/components/summary/PhotoGallery.jsx';
+import { useT } from '../../../../languages/LanguageProvider';
 
 const BG = '#131313';
 const PANEL = '#1c1b1b';
@@ -45,11 +46,11 @@ const STATUS_COLOR = {
   pending: DIM,
 };
 
-const STATUS_LABEL = {
-  correct: 'SOLVED',
-  wrong: 'FAILED',
-  timeout: 'TIMED OUT',
-  pending: 'NOT ATTEMPTED',
+const STATUS_LABEL_KEYS = {
+  correct: 'statusSolved',
+  wrong: 'statusFailed',
+  timeout: 'statusTimedOut',
+  pending: 'statusNotAttempted',
 };
 
 const SectionHeader = ({ label }) => (
@@ -87,25 +88,29 @@ const Td = ({ children, align = 'left', color = TEXT }) => (
   </td>
 );
 
-const Shell = ({ gameId, children }) => (
-  <SidebarLayout gameId={gameId} activePage="summary">
-    <header className="flex items-center justify-between px-6 py-4" style={{ background: BG, borderBottom: `2px solid ${PANEL}` }}>
-      <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: TEXT }}>ESCAPESNAP</span>
-      <span style={{ fontSize: 10, letterSpacing: '1px', color: MUTED }}>MISSION DEBRIEF</span>
-    </header>
-    {children}
-  </SidebarLayout>
-);
+const Shell = ({ gameId, children }) => {
+  const t = useT();
+  return (
+    <SidebarLayout gameId={gameId} activePage="summary">
+      <header className="flex items-center justify-between px-6 py-4" style={{ background: BG, borderBottom: `2px solid ${PANEL}` }}>
+        <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: TEXT }}>ESCAPESNAP</span>
+        <span style={{ fontSize: 10, letterSpacing: '1px', color: MUTED }}>{t('host.summary.missionDebrief')}</span>
+      </header>
+      {children}
+    </SidebarLayout>
+  );
+};
 
 const SummaryPage = () => {
   const { gameId } = useParams();
   const navigate = useNavigate();
+  const t = useT();
   const { loading, gameFound, ended, outcome, team, players, photos } = useGameSummary(gameId);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: BG }}>
-        <p style={{ color: MUTED, fontSize: 10, letterSpacing: '1px' }}>LOADING...</p>
+        <p style={{ color: MUTED, fontSize: 10, letterSpacing: '1px' }}>{t('host.summary.loading')}</p>
       </div>
     );
   }
@@ -120,11 +125,10 @@ const SummaryPage = () => {
         <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8">
           <div style={{ width: 4, height: 40, background: ACCENT }} />
           <h1 style={{ fontWeight: 700, fontSize: 24, letterSpacing: '2px', color: TEXT, textAlign: 'center' }}>
-            MISSION STILL ACTIVE
+            {t('host.summary.missionStillActive')}
           </h1>
           <p style={{ fontSize: 12, letterSpacing: '1px', color: MUTED, textAlign: 'center', maxWidth: 460, lineHeight: 1.7 }}>
-            THE DEBRIEF UNLOCKS WHEN THE MISSION ENDS. PHOTOS AND RIDDLE ANSWERS STAY SEALED
-            WHILE OPERATIVES ARE STILL IN THE FIELD.
+            {t('host.summary.debriefLockedBody')}
           </p>
           <div className="flex gap-3">
             <button
@@ -136,7 +140,7 @@ const SummaryPage = () => {
               onMouseEnter={(e) => (e.currentTarget.style.background = '#a50000')}
               onMouseLeave={(e) => (e.currentTarget.style.background = ACCENT)}
             >
-              BACK TO OPERATIVES
+              {t('host.summary.backToOperatives')}
             </button>
             <button
               onClick={() => navigate(`/game/${gameId}/final-riddle`)}
@@ -145,7 +149,7 @@ const SummaryPage = () => {
                 letterSpacing: '1.5px', padding: '14px 32px', border: `1px solid ${BORDER}`, cursor: 'pointer',
               }}
             >
-              FINAL RIDDLE
+              {t('host.summary.finalRiddle')}
             </button>
           </div>
         </div>
@@ -168,71 +172,71 @@ const SummaryPage = () => {
           <div style={{ width: 4, height: 32, background: ACCENT }} />
           <div>
             <p style={{ fontSize: 10, letterSpacing: '1px', color: MUTED }}>
-              {won ? 'MISSION SUCCESS' : 'MISSION FAILED'}
+              {won ? t('host.summary.missionSuccess') : t('host.summary.missionFailed')}
             </p>
             <h1 style={{ fontWeight: 700, fontSize: 28, letterSpacing: '2px', color: TEXT, lineHeight: 1.2 }}>
-              {won ? 'YOU ' : 'NO '}
-              <span style={{ color: ACCENT }}>{won ? 'ESCAPED' : 'ESCAPE'}</span>
+              {won ? t('host.summary.you') : t('host.summary.no')}{' '}
+              <span style={{ color: ACCENT }}>{won ? t('host.summary.escaped') : t('host.summary.escape')}</span>
             </h1>
           </div>
         </div>
 
         {/* Team tiles */}
         <div>
-          <SectionHeader label="TEAM PERFORMANCE" />
+          <SectionHeader label={t('host.summary.teamPerformance')} />
           <div className="flex gap-4">
             <StatTile
-              label="TOTAL TIME"
+              label={t('host.summary.totalTime')}
               value={`${team.totalTimeApproximate ? '~' : ''}${formatClock(team.totalTimeMs)}`}
               hint={
                 team.totalTimeMs === null
-                  ? 'UNRECORDED'
+                  ? t('host.summary.unrecorded')
                   : team.totalTimeApproximate
-                    ? 'APPROXIMATE — NO END TIMESTAMP'
-                    : `LIMIT ${formatClock(team.timeLimitMs)}`
+                    ? t('host.summary.approximateNoEndTimestamp')
+                    : t('host.summary.limitLabel', { time: formatClock(team.timeLimitMs) })
               }
             />
             <StatTile
-              label="ROUNDS SOLVED"
+              label={t('host.summary.roundsSolved')}
               value={`${team.roundsSolved}/${team.roundsDealt}`}
-              hint={`${team.playerCount} OPERATIVES × ${team.totalRounds} ROUNDS`}
+              hint={t('host.summary.operativesRoundsHint', { count: team.playerCount, rounds: team.totalRounds })}
             />
             <StatTile
-              label="TEAM ACCURACY"
+              label={t('host.summary.teamAccuracy')}
               value={formatPercent(team.accuracy)}
               hint={
                 team.accuracy === null
-                  ? 'NO ROUNDS ATTEMPTED'
-                  : `${team.correct} CORRECT / ${team.incorrect} INCORRECT`
+                  ? t('host.summary.noRoundsAttempted')
+                  : t('host.summary.correctIncorrectHint', { correct: team.correct, incorrect: team.incorrect })
               }
             />
             <StatTile
-              label="FINAL RIDDLE"
+              label={t('host.summary.finalRiddle')}
               value={`${team.finalRiddleAttempts}/3`}
-              hint="ATTEMPTS USED"
+              hint={t('host.summary.attemptsUsed')}
             />
           </div>
         </div>
 
         {/* Per-player table */}
         <div style={{ background: PANEL, padding: 24 }}>
-          <SectionHeader label="OPERATIVE_MANIFEST" />
+          <SectionHeader label={t('host.summary.operativeManifest')} />
           {players.length === 0 ? (
-            <p style={{ fontSize: 11, color: MUTED, opacity: 0.6 }}>NO OPERATIVES ON RECORD</p>
+            <p style={{ fontSize: 11, color: MUTED, opacity: 0.6 }}>{t('host.summary.noOperativesOnRecord')}</p>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
                 <thead>
                   <tr>
-                    <Th>OPERATIVE</Th>
-                    <Th align="right">CORRECT</Th>
-                    <Th align="right">INCORRECT</Th>
-                    <Th align="right">UNATTEMPTED</Th>
-                    <Th align="right">ACCURACY</Th>
-                    <Th align="right">PHOTOS</Th>
-                    <Th align="right">AVG</Th>
-                    <Th align="right">FASTEST</Th>
-                    <Th align="right">SLOWEST</Th>
+                    <Th>{t('host.summary.operative')}</Th>
+                    <Th align="right">{t('host.summary.correctCol')}</Th>
+                    <Th align="right">{t('host.summary.incorrectCol')}</Th>
+                    <Th align="right">{t('host.summary.unattempted')}</Th>
+                    <Th align="right">{t('host.summary.accuracy')}</Th>
+                    <Th align="right">{t('host.summary.photos')}</Th>
+                    <Th align="right">{t('host.summary.avg')}</Th>
+                    <Th align="right">{t('host.summary.fastest')}</Th>
+                    <Th align="right">{t('host.summary.slowest')}</Th>
                   </tr>
                 </thead>
                 <tbody>
@@ -257,24 +261,24 @@ const SummaryPage = () => {
           )}
           {anyUntimed && (
             <p style={{ fontSize: 10, letterSpacing: '0.5px', color: DIM, marginTop: 12 }}>
-              SOME ROUNDS HAVE NO TIMING DATA AND ARE EXCLUDED FROM THE AVERAGES.
+              {t('host.summary.untimedNote')}
             </p>
           )}
         </div>
 
         {/* Per-round timing */}
         <div style={{ background: PANEL, padding: 24 }}>
-          <SectionHeader label="ROUND_TIMING" />
+          <SectionHeader label={t('host.summary.roundTiming')} />
           {roundNumbers.length === 0 ? (
-            <p style={{ fontSize: 11, color: MUTED, opacity: 0.6 }}>NO ROUNDS ON RECORD</p>
+            <p style={{ fontSize: 11, color: MUTED, opacity: 0.6 }}>{t('host.summary.noRoundsOnRecord')}</p>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>
                 <thead>
                   <tr>
-                    <Th>OPERATIVE</Th>
+                    <Th>{t('host.summary.operative')}</Th>
                     {roundNumbers.map((n) => (
-                      <Th key={n} align="center">ROUND {n}</Th>
+                      <Th key={n} align="center">{t('host.summary.round', { n })}</Th>
                     ))}
                   </tr>
                 </thead>
@@ -292,11 +296,11 @@ const SummaryPage = () => {
                                 {formatDuration(round?.durationMs)}
                               </p>
                               <p style={{ fontSize: 9, letterSpacing: '0.8px', color, marginTop: 6 }}>
-                                {STATUS_LABEL[round?.status] ?? DASH}
+                                {STATUS_LABEL_KEYS[round?.status] ? t(`host.summary.${STATUS_LABEL_KEYS[round.status]}`) : DASH}
                               </p>
                               {round?.attempts > 1 && (
                                 <p style={{ fontSize: 9, letterSpacing: '0.5px', color: DIM, marginTop: 4 }}>
-                                  {round.attempts} ATTEMPTS
+                                  {t('host.summary.attemptsCount', { n: round.attempts })}
                                 </p>
                               )}
                             </div>

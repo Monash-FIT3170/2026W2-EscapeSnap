@@ -64,7 +64,7 @@ export function PlayerLobby({
             refCode={gameCode ? `CODE_${gameCode}` : 'REF_SEC_U012_X'}
             zoneCode="C_SECTOR_X"
             duration="0:00MS"
-            status="AWAITING GUIDANCE"
+            status={t('mobile.lobby.awaitingGuidance')}
           />
         </div>
 
