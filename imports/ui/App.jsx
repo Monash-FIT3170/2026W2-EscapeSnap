@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Routes, Route } from 'react-router';
+import React, { useState, useEffect, useRef } from 'react';
+import { Routes, Route, useParams } from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Games } from '../api/games/GamesCollection';
@@ -7,15 +7,18 @@ import { Players } from '../api/players/PlayersCollection';
 import { PlayerHome } from './mobile/pages/PlayerHome';
 import { PlayerLobby } from './mobile/pages/lobby/PlayerLobby';
 import { PlayerDashboard } from './mobile/pages/PlayerDashboard';
+import { HelpTutorial } from './mobile/components/gameplay/HelpTutorial';
 import CreateGame from './host/pages/create-game/CreateGame';
 import Lobby from './host/pages/lobby/Lobby';
 import ProgressPage from './host/pages/progress/ProgressPage';
 import FinalRiddlePage from './host/pages/riddle/FinalRiddlePage';
+import SummaryPage from './host/pages/summary/SummaryPage';
 import LandingPage from './host/pages/landing/Landing';
 import { useT } from '../languages/LanguageProvider';
 import { errorKey } from '../languages/errors';
+import Leaderboard from './host/pages/leaderboard/Leaderboard';
 
-function PlayerFlow() {
+function PlayerFlow({ initialCode = '' }) {
   const [screen, setScreen] = useState('home');
   const [playerName, setPlayerName] = useState('');
   const [gameCode, setGameCode] = useState('');
@@ -35,9 +38,13 @@ function PlayerFlow() {
     };
   }, [gameId]);
 
+  // Fire the auto-advance once per join. Without the guard, returning to the
+  // lobby mid-game bounces you straight back out again.
+  const autoAdvancedRef = useRef(false);
   useEffect(() => {
-    if (game?.status === 'in_progress' && screen === 'lobby') {
-      setScreen('dashboard');
+    if (game?.status === 'in_progress' && screen === 'lobby' && !autoAdvancedRef.current) {
+      autoAdvancedRef.current = true;
+      setScreen('tutorial');
     }
   }, [game?.status, screen]);
 
@@ -50,6 +57,7 @@ function PlayerFlow() {
       setGameCode(code);
       setPlayerId(pid);
       setGameId(gid);
+      autoAdvancedRef.current = false;
       setScreen('lobby');
     } catch (err) {
       // 'not-found' from players.join specifically means the code was wrong
@@ -70,7 +78,14 @@ function PlayerFlow() {
   };
 
   if (screen === 'home') {
-    return <PlayerHome onStart={handleJoin} loading={joinLoading} serverError={joinError} />;
+    return (
+      <PlayerHome
+        onStart={handleJoin}
+        loading={joinLoading}
+        serverError={joinError}
+        initialCode={initialCode}
+      />
+    );
   }
   if (screen === 'lobby') {
     return (
@@ -78,9 +93,15 @@ function PlayerFlow() {
         playerName={playerName}
         gameCode={gameCode}
         playerCount={playerCount}
-        onExit={handleExitToHome}
+        inSession={game?.status === 'in_progress'}
+        gameStartedAt={game?.startedAt ? new Date(game.startedAt).getTime() : null}
+        roundDuration={(game?.timerMinutes ?? 30) * 60}
+        onExit={game?.status === 'in_progress' ? () => setScreen('dashboard') : handleExitToHome}
       />
     );
+  }
+  if (screen === 'tutorial') {
+    return <HelpTutorial onComplete={() => setScreen('dashboard')} />;
   }
   return (
     <PlayerDashboard
@@ -93,16 +114,24 @@ function PlayerFlow() {
   );
 }
 
+function JoinViaQr() {
+  const { joinCode } = useParams();
+  return <PlayerFlow initialCode={(joinCode || '').toUpperCase()} />;
+}
+
 export function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/player/*" element={<PlayerFlow />} />
+      <Route path="/join/:joinCode" element={<JoinViaQr />} />
       <Route path="/host" element={<CreateGame />} />
       <Route path="/game/create" element={<CreateGame />} />
       <Route path="/game/:gameId/lobby" element={<Lobby />} />
       <Route path="/game/:gameId/progress" element={<ProgressPage />} />
       <Route path="/game/:gameId/final-riddle" element={<FinalRiddlePage />} />
+      <Route path="/game/:gameId/summary" element={<SummaryPage />} />
+      <Route path="/leaderboard" element={<Leaderboard />} />
     </Routes>
   );
 }

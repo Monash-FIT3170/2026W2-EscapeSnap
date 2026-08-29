@@ -1,19 +1,26 @@
+// Meteor's JSX transform still requires React in module scope.
+// eslint-disable-next-line no-unused-vars
 import React, { useState } from 'react';
 import { useT } from '../../../languages/LanguageProvider';
 import { LanguagePicker } from '../../../languages/LanguagePicker';
 
-export function PlayerHome({ onStart, loading = false, serverError = '' }) {
+export function PlayerHome({ onStart, loading = false, serverError = '', initialCode = '' }) {
   const [name, setName] = useState('');
-  const [code, setCode] = useState('');
+  const [code, setCode] = useState(initialCode);
   const [error, setError] = useState('');
   const t = useT();
+  const scannedViaQr = Boolean(initialCode);
 
   function handleSubmit(e) {
     e.preventDefault();
     if (!name.trim()) { setError(t('mobile.home.errNameRequired')); return; }
     if (!code.trim()) { setError(t('mobile.home.errCodeRequired')); return; }
+    if (!/^\d{4}$/.test(code)) {
+      setError(t('mobile.home.errCodeInvalid'));
+      return;
+    }
     setError('');
-    onStart(name.trim(), code.trim().toUpperCase());
+    onStart(name.trim(), code);
   }
 
   return (
@@ -71,16 +78,25 @@ export function PlayerHome({ onStart, loading = false, serverError = '' }) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="font-mono text-sm font-medium text-white">
-              {t('mobile.home.gameCode')}
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="font-mono text-sm font-medium text-white">
+                {t('mobile.home.gameCode')}
+              </label>
+              {scannedViaQr && (
+                <span className="font-mono text-[11px] uppercase tracking-widest text-red-400">
+                  {t('mobile.home.scannedViaQr')}
+                </span>
+              )}
+            </div>
             <input
               type="text"
+              inputMode="numeric"
+              pattern="[0-9]{4}"
               placeholder={t('mobile.home.gameCodePlaceholder')}
               value={code}
-              onChange={e => setCode(e.target.value.toUpperCase())}
-              maxLength={12}
-              autoComplete="off"
+              onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              maxLength={4}
+              autoComplete="one-time-code"
               className="w-full border border-slate-700 bg-slate-950 px-4 py-3.5 font-mono text-base tracking-widest text-white placeholder:text-white focus:border-red-500/70 focus:outline-none transition-colors duration-200"
             />
           </div>

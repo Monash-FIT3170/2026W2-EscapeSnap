@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
+import { QRCodeSVG } from 'qrcode.react';
 import { Games } from '../../../../api/games/GamesCollection';
 import { Players } from '../../../../api/players/PlayersCollection';
 import { useT } from '../../../../languages/LanguageProvider';
@@ -113,6 +114,7 @@ const Lobby = () => {
 
   const gameStarted = game.status === 'in_progress';
   const capacity = game.capacity || 4;
+  const joinUrl = `${window.location.origin}/join/${game.joinCode}`;
   const slots = [
     ...players,
     ...Array(Math.max(0, capacity - players.length)).fill(null),
@@ -150,25 +152,42 @@ const Lobby = () => {
               {t('host.lobby.accessAuthorization')}
             </p>
             <p style={{ fontSize: 9, letterSpacing: '1px', color: '#555', marginBottom: 8 }}>
-              {t('host.lobby.secureEntryPin')}
+              {t('host.lobby.gameCode')}
             </p>
-            <p style={{ fontSize: 48, fontWeight: 700, letterSpacing: '4px', lineHeight: 1, color: '#e5e2e1' }}>
+            <p
+              title={t('host.lobby.copyTitle')}
+              style={{
+                fontSize: 48,
+                fontWeight: 700,
+                letterSpacing: '4px',
+                lineHeight: 1,
+                color: '#e5e2e1',
+                cursor: 'text',
+                userSelect: 'all',
+              }}
+            >
               {game.joinCode || '----'}
+            </p>
+            <p style={{ fontSize: 9, color: '#555', marginTop: 10, lineHeight: 1.5 }}>
+              {t('host.lobby.shareHint')}
             </p>
           </div>
 
-          {/* Game code box */}
+          {/* QR join */}
           <div
-            className="p-4"
+            className="flex flex-col items-center p-4"
             style={{ background: '#1c1b1b', border: '1px solid #2a2a2a' }}
           >
-            <p style={{ fontSize: 9, letterSpacing: '1px', color: '#aa8984', marginBottom: 8 }}>
-              {t('host.lobby.gameCode')}
+            <p style={{ fontSize: 9, letterSpacing: '1.5px', color: '#aa8984', marginBottom: 12, alignSelf: 'flex-start' }}>
+              {t('host.lobby.scanToDeploy')}
             </p>
-            <p style={{ fontSize: 13, fontWeight: 700, color: '#e5e2e1', letterSpacing: '1px', wordBreak: 'break-all' }}>
-              {gameId}
+            <div style={{ background: '#e5e2e1', padding: 10, lineHeight: 0 }}>
+              <QRCodeSVG value={joinUrl} size={140} bgColor="#e5e2e1" fgColor="#0e0e0e" level="M" />
+            </div>
+            <p style={{ fontSize: 9, color: '#555', marginTop: 10, textAlign: 'center', lineHeight: 1.5, wordBreak: 'break-all' }}>
+              {joinUrl}
             </p>
-            <p style={{ fontSize: 9, color: '#555', marginTop: 8, lineHeight: 1.5 }}>
+            <p style={{ fontSize: 9, color: '#555', marginTop: 4, textAlign: 'center', lineHeight: 1.5 }}>
               {t('host.lobby.distributeHint')}
             </p>
           </div>
@@ -208,6 +227,9 @@ const Lobby = () => {
           {/* Header row */}
           <div className="flex items-center justify-between">
             <div>
+              <p style={{ fontSize: 10, letterSpacing: '1.5px', color: '#8b0000', marginBottom: 4 }}>
+                {game.groupName?.toUpperCase()}
+              </p>
               <h1 style={{ fontWeight: 700, fontSize: 28, letterSpacing: '2px', color: '#e5e2e1' }}>
                 {t('host.lobby.title')}
               </h1>
