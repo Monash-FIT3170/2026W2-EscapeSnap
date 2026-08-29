@@ -3,6 +3,7 @@ import { Rounds } from './RoundsCollection';
 import { Players } from '../players/PlayersCollection';
 import { Games } from '../games/GamesCollection';
 import { RIDDLE_BANK } from '../../lib/riddleBank';
+import { advanceGameRound } from './roundProgression';
 
 function assignLetters(answer, totalRounds, playerCount) {
   const letters = answer.toUpperCase().split('');
@@ -15,8 +16,18 @@ function assignLetters(answer, totalRounds, playerCount) {
   return pool;
 }
 
+// Fisher–Yates over a copy, so the module-level bank is never mutated.
+function shuffle(list) {
+  const out = [...list];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 Meteor.methods({
-  async 'rounds.createForGame'(gameId) {
+  async 'rounds.createForGame'(gameId, firstRoundStartedAt = new Date()) {
     const game = await Games.findOneAsync(gameId);
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
 
@@ -27,16 +38,16 @@ Meteor.methods({
     const totalRounds = game.totalRounds;
     const answer = game.finalRiddle.answer;
     const letterPool = assignLetters(answer, totalRounds, players.length);
-
-    const needed = totalRounds * players.length;
-    const shuffled = [...RIDDLE_BANK].sort(() => Math.random() - 0.5).slice(0, needed);
+    const shuffled = shuffle(RIDDLE_BANK);
 
     const inserts = [];
     let riddleIndex = 0;
 
     for (let round = 1; round <= totalRounds; round++) {
       for (let p = 0; p < players.length; p++) {
-        const riddle = shuffled[riddleIndex];
+        // The bank is smaller than totalRounds × playerCount for large games,
+        // so wrap rather than deal `undefined`.
+        const riddle = shuffled[riddleIndex % shuffled.length];
         const letter = letterPool[riddleIndex];
         riddleIndex++;
         inserts.push(
@@ -48,8 +59,9 @@ Meteor.methods({
             answer: riddle.answer,
             letter,
             status: 'pending',
-            photoUrl: null,
-            submittedAt: null,
+            // Only round 1 is live at creation; advanceGameRound stamps the
+            // rest as they open.
+            ...(round === 1 ? { startedAt: firstRoundStartedAt } : {}),
           })
         );
       }
@@ -58,21 +70,32 @@ Meteor.methods({
     await Promise.all(inserts);
   },
 
+  // Idempotent — the selector only matches while startedAt is unset, so a
+  // remount or refresh cannot restart the clock.
+  async 'rounds.markStarted'(roundId) {
+    if (!roundId) return;
+    await Rounds.updateAsync(
+      { _id: roundId, startedAt: null },
+      { $set: { startedAt: new Date() } }
+    );
+  },
 
-
-  async 'rounds.submit'(roundId, photoUrl, isCorrect = true) {
+  async 'rounds.submit'(roundId, isCorrect = true) {
     const round = await Rounds.findOneAsync(roundId);
     if (!round) throw new Meteor.Error('not-found', 'Round not found');
     if (round.status !== 'pending')
       throw new Meteor.Error('invalid-state', 'Round already submitted');
 
     const game = await Games.findOneAsync(round.gameId);
-    const expired = game?.startedAt &&
+    const expired =
+      game?.startedAt &&
       Date.now() - game.startedAt.getTime() > game.timerMinutes * 60 * 1000;
+
+    const submittedAt = new Date();
 
     if (expired) {
       await Rounds.updateAsync(roundId, {
-        $set: { status: 'timeout', photoUrl, submittedAt: new Date() },
+        $set: { status: 'timeout', submittedAt },
       });
       await Players.updateAsync(round.playerId, {
         $push: { revealedLetters: '?' },
@@ -82,13 +105,18 @@ Meteor.methods({
 
     const letter = isCorrect ? round.letter : '?';
 
-    await Rounds.updateAsync(roundId, {
-      $set: {
-        status: isCorrect ? 'correct' : 'wrong',
-        photoUrl,
-        submittedAt: new Date(),
-      },
-    });
+    const $set = {
+      status: isCorrect ? 'correct' : 'wrong',
+      submittedAt,
+    };
+    if (round.startedAt) {
+      $set.solveDurationMs = Math.max(
+        0,
+        submittedAt.getTime() - round.startedAt.getTime()
+      );
+    }
+
+    await Rounds.updateAsync(roundId, { $set });
 
     await Players.updateAsync(round.playerId, {
       $push: { revealedLetters: letter },
@@ -100,16 +128,16 @@ Meteor.methods({
       roundNumber: round.roundNumber,
       status: { $ne: 'pending' },
     }).countAsync();
-    const playerCount = await Players.find({ gameId: round.gameId }).countAsync();
+    const playerCount = await Players.find({
+      gameId: round.gameId,
+    }).countAsync();
 
     if (
       submittedCount >= playerCount &&
       game.currentRound === round.roundNumber &&
       round.roundNumber < game.totalRounds
     ) {
-      await Games.updateAsync(round.gameId, {
-        $set: { currentRound: round.roundNumber + 1 },
-      });
+      await advanceGameRound(round.gameId, round.roundNumber);
     }
 
     return letter;

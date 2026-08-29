@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useT } from '../../../../languages/LanguageProvider';
 import { LobbyHeader } from '../../components/lobby/LobbyHeader';
 import { SurvivorIdCard } from '../../components/lobby/SurvivorIdCard';
 import { AwaitingGameCard } from '../../components/lobby/AwaitingGameCard';
@@ -26,13 +27,14 @@ export function PlayerLobby({
       : roundDuration;
 
   const [timeLeft, setTimeLeft] = useState(calcTimeLeft);
+  const t = useT();
 
   useEffect(() => {
     if (!inSession || !gameStartedAt) return;
     const id = setInterval(() => {
-      const t = calcTimeLeft();
-      setTimeLeft(t);
-      if (t <= 0) clearInterval(id);
+      const remaining = calcTimeLeft();
+      setTimeLeft(remaining);
+      if (remaining <= 0) clearInterval(id);
     }, 1000);
     return () => clearInterval(id);
   }, [inSession, gameStartedAt]);
@@ -62,7 +64,7 @@ export function PlayerLobby({
             refCode={gameCode ? `CODE_${gameCode}` : 'REF_SEC_U012_X'}
             zoneCode="C_SECTOR_X"
             duration="0:00MS"
-            status="AWAITING GUIDANCE"
+            status={t('mobile.lobby.awaitingGuidance')}
           />
         </div>
 
@@ -72,7 +74,7 @@ export function PlayerLobby({
           {/* Players in lobby */}
           <div className="flex items-center gap-3 border border-slate-800/60 bg-slate-950/60 px-4 py-2.5">
             <span className="h-2 w-2 flex-shrink-0 rounded-full bg-red-500 animate-pulse" />
-            <span className="flex-1 font-mono text-[11px] uppercase tracking-[0.25em] text-slate-400">Players in lobby</span>
+            <span className="flex-1 font-mono text-[11px] uppercase tracking-[0.25em] text-slate-400">{t('mobile.lobby.playersInLobby')}</span>
             <span className="font-mono text-lg font-bold text-white">{playerCount}</span>
           </div>
 
@@ -86,11 +88,11 @@ export function PlayerLobby({
                 className={`h-5 w-5 flex-shrink-0 ${isExpired ? 'text-slate-600' : 'text-red-500'}`}>
                 <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
               </svg>
-              <span className="flex-1 font-mono text-xs uppercase tracking-[0.25em] text-slate-400">Round timer</span>
+              <span className="flex-1 font-mono text-xs uppercase tracking-[0.25em] text-slate-400">{t('mobile.lobby.roundTimer')}</span>
               <span className={`font-mono text-xl font-bold tabular-nums ${
                 isExpired ? 'text-slate-600' : timeLeft <= 10 ? 'text-red-400 animate-pulse' : 'text-white'
               }`}>
-                {isExpired ? 'Expired' : formatTime(timeLeft)}
+                {isExpired ? t('mobile.lobby.expired') : formatTime(timeLeft)}
               </span>
             </div>
           )}
