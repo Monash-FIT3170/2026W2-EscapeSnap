@@ -6,6 +6,7 @@ import { Games } from '../../../../api/games/GamesCollection';
 import { Rounds } from '../../../../api/rounds/RoundsCollection';
 import { Players } from '../../../../api/players/PlayersCollection';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
+import { useT } from '../../../../languages/LanguageProvider';
 
 const MOCK_EVENTS = [
   { time: '14:22:10', message: 'DYLAN HAS COMPLETED THE PUZZLE', highlight: true },
@@ -29,6 +30,7 @@ const CrossIcon = () => (
 
 const ProgressPage = () => {
   const { gameId } = useParams();
+  const t = useT();
   const [timeLeft, setTimeLeft] = useState(null);
 
   const { game, rounds, players, loading } = useTracker(() => {
@@ -61,7 +63,7 @@ const ProgressPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#131313' }}>
-        <p style={{ color: '#aa8984', fontSize: 10, letterSpacing: '1px' }}>LOADING...</p>
+        <p style={{ color: '#aa8984', fontSize: 10, letterSpacing: '1px' }}>{t('host.progress.loading')}</p>
       </div>
     );
   }
@@ -69,7 +71,7 @@ const ProgressPage = () => {
   if (!game) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#131313' }}>
-        <p style={{ color: '#8b0000', fontSize: 10, letterSpacing: '1px' }}>GAME NOT FOUND</p>
+        <p style={{ color: '#8b0000', fontSize: 10, letterSpacing: '1px' }}>{t('host.progress.gameNotFound')}</p>
       </div>
     );
   }
@@ -109,18 +111,18 @@ const ProgressPage = () => {
         {/* Stats row */}
         <div className="grid grid-cols-4" style={{ height: 160 }}>
           <div className="flex flex-col justify-between p-6" style={{ background: '#0e0e0e', borderLeft: `2px solid ${isExpired ? '#ff0000' : '#8b0000'}` }}>
-            <span style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>TIME REMAINING</span>
+            <span style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>{t('host.progress.timeRemaining')}</span>
             <span style={{ fontWeight: 300, fontSize: 60, letterSpacing: '-3px', lineHeight: '60px', color: isExpired ? '#ff4444' : '#e5e2e1' }}>
               {game.startedAt ? formatTime(timeLeft) : '--:--'}
             </span>
             {!game.startedAt && (
-              <span style={{ fontSize: 9, color: '#aa8984', opacity: 0.6, letterSpacing: '0.5px' }}>GAME NOT STARTED</span>
+              <span style={{ fontSize: 9, color: '#aa8984', opacity: 0.6, letterSpacing: '0.5px' }}>{t('host.progress.gameNotStarted')}</span>
             )}
           </div>
 
           {/* SCRUM-110: wire team progress to real round data */}
           <div className="flex flex-col justify-between p-6" style={{ background: '#1c1b1b' }}>
-            <span style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>TEAM PROGRESS</span>
+            <span style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>{t('host.progress.teamProgress')}</span>
             <div className="flex items-end gap-2">
               <span style={{ fontWeight: 700, fontSize: 48, lineHeight: '48px', color: '#e5e2e1' }}>{teamProgress}</span>
               <span style={{ fontSize: 24, color: '#aa8984', paddingBottom: 4 }}>%</span>
@@ -132,7 +134,7 @@ const ProgressPage = () => {
 
           {/* SCRUM-110: wire round counter to real game state */}
           <div className="flex flex-col justify-between p-6" style={{ background: '#1c1b1b' }}>
-            <span style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>CURRENT ROUND</span>
+            <span style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>{t('host.progress.currentRound')}</span>
             <div className="flex items-end gap-2">
               <span style={{ fontWeight: 700, fontSize: 48, lineHeight: '48px', color: '#e5e2e1' }}>
                 {String(game.currentRound).padStart(2, '0')}
@@ -142,12 +144,12 @@ const ProgressPage = () => {
               </span>
             </div>
             <span style={{ fontSize: 10, color: '#aa8984', opacity: 0.6 }}>
-              REMAINING PUZZLES: {Math.max(0, game.totalRounds - game.currentRound)}
+              {t('host.progress.remainingPuzzles', { n: Math.max(0, game.totalRounds - game.currentRound) })}
             </span>
           </div>
 
           <div className="flex items-center justify-center p-6 relative" style={{ background: '#0e0e0e' }}>
-            <span style={{ position: 'absolute', top: 8, right: 8, fontSize: 8, color: '#aa8984', opacity: 0.4 }}>AUTH_QR_SCAN</span>
+            <span style={{ position: 'absolute', top: 8, right: 8, fontSize: 8, color: '#aa8984', opacity: 0.4 }}>{t('host.progress.authQrScan')}</span>
             <div style={{ width: 96, height: 96, background: 'rgba(255,255,255,0.8)' }} />
           </div>
         </div>
@@ -157,24 +159,24 @@ const ProgressPage = () => {
           <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #353534' }}>
             <div className="flex items-center gap-3">
               <div style={{ width: 4, height: 16, background: '#8b0000' }} />
-              <span style={{ fontWeight: 700, fontSize: 14, letterSpacing: '1.4px', color: '#e5e2e1' }}>OPERATIVE_MANIFEST</span>
+              <span style={{ fontWeight: 700, fontSize: 14, letterSpacing: '1.4px', color: '#e5e2e1' }}>{t('host.progress.operativeManifest')}</span>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1">
                 <CheckIcon />
-                <span style={{ fontSize: 10, color: '#aa8984' }}>CORRECT</span>
+                <span style={{ fontSize: 10, color: '#aa8984' }}>{t('host.progress.correct')}</span>
               </div>
               <div className="flex items-center gap-1">
                 <CrossIcon />
-                <span style={{ fontSize: 10, color: '#aa8984' }}>INCORRECT</span>
+                <span style={{ fontSize: 10, color: '#aa8984' }}>{t('host.progress.incorrect')}</span>
               </div>
-              <span style={{ fontSize: 10, color: '#aa8984' }}>? PENDING</span>
+              <span style={{ fontSize: 10, color: '#aa8984' }}>{t('host.progress.pending')}</span>
             </div>
           </div>
 
           {/* Column headers */}
           <div className="flex items-center px-6 py-3" style={{ background: '#0e0e0e', borderBottom: '1px solid #353534' }}>
-            <div style={{ width: 160, fontSize: 10, fontWeight: 700, letterSpacing: '1px', color: '#aa8984' }}>PLAYER</div>
+            <div style={{ width: 160, fontSize: 10, fontWeight: 700, letterSpacing: '1px', color: '#aa8984' }}>{t('host.progress.player')}</div>
             {Array.from({ length: game.totalRounds }, (_, i) => (
               <div
                 key={i}
@@ -184,15 +186,15 @@ const ProgressPage = () => {
                   textAlign: 'center',
                 }}
               >
-                ROUND {i + 1}{(i + 1) === game.currentRound ? ' ●' : ''}
+                {t('host.progress.round', { n: i + 1 })}{(i + 1) === game.currentRound ? ' ●' : ''}
               </div>
             ))}
-            <div style={{ width: 120, fontSize: 10, fontWeight: 700, letterSpacing: '1px', color: '#aa8984', textAlign: 'right' }}>STATUS</div>
+            <div style={{ width: 120, fontSize: 10, fontWeight: 700, letterSpacing: '1px', color: '#aa8984', textAlign: 'right' }}>{t('host.progress.status')}</div>
           </div>
 
           {players.length === 0 && (
             <div className="px-6 py-6" style={{ color: '#555', fontSize: 11, letterSpacing: '1px' }}>
-              NO PLAYERS JOINED YET
+              {t('host.progress.noPlayersJoined')}
             </div>
           )}
 
@@ -204,11 +206,11 @@ const ProgressPage = () => {
 
             let statusLabel, statusBg, statusColor;
             if (allDone && allCorrect) {
-              statusLabel = 'COMPLETED'; statusBg = '#474747'; statusColor = '#e5e2e1';
+              statusLabel = t('host.progress.completed'); statusBg = '#474747'; statusColor = '#e5e2e1';
             } else if (hasAnyWrong) {
-              statusLabel = 'NEEDS HELP'; statusBg = '#93000a'; statusColor = '#ffdad6';
+              statusLabel = t('host.progress.needsHelp'); statusBg = '#93000a'; statusColor = '#ffdad6';
             } else {
-              statusLabel = 'IN PROGRESS'; statusBg = '#1c3a1c'; statusColor = '#86efac';
+              statusLabel = t('host.progress.inProgress'); statusBg = '#1c3a1c'; statusColor = '#86efac';
             }
 
             return (
@@ -254,7 +256,7 @@ const ProgressPage = () => {
       <div className="p-6" style={{ background: '#0e0e0e', borderLeft: '1px solid rgba(90,64,60,0.2)' }}>
           <div className="flex items-center gap-3 mb-4">
             <div style={{ width: 4, height: 16, background: '#8b0000' }} />
-            <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: '#e5e2e1' }}>EVENT_LOG</span>
+            <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: '#e5e2e1' }}>{t('host.progress.eventLog')}</span>
           </div>
           <div className="flex flex-col gap-4">
             {MOCK_EVENTS.map((event, i) => (

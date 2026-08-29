@@ -11,16 +11,17 @@ import {
   SHARE_FORMATS,
   SHARE_THEMES,
 } from './shareCard';
+import { useT } from '../../../../languages/LanguageProvider';
 
 const SECTION_OPTIONS = [
-  { key: 'result', label: 'Outcome', note: 'Mission result and operative' },
-  { key: 'score', label: 'Score', note: 'Calculated mission score' },
-  { key: 'stats', label: 'Stats', note: 'Objectives, accuracy and time' },
-  { key: 'fragments', label: 'Fragments', note: 'Only letters you recovered' },
+  { key: 'result', labelKey: 'mobile.share.sectionResultLabel', noteKey: 'mobile.share.sectionResultNote' },
+  { key: 'score', labelKey: 'mobile.share.sectionScoreLabel', noteKey: 'mobile.share.sectionScoreNote' },
+  { key: 'stats', labelKey: 'mobile.share.sectionStatsLabel', noteKey: 'mobile.share.sectionStatsNote' },
+  { key: 'fragments', labelKey: 'mobile.share.sectionFragmentsLabel', noteKey: 'mobile.share.sectionFragmentsNote' },
   {
     key: 'squad',
-    label: 'Squad board',
-    note: 'Your position within this team',
+    labelKey: 'mobile.share.sectionSquadLabel',
+    noteKey: 'mobile.share.sectionSquadNote',
   },
 ];
 
@@ -64,6 +65,7 @@ function Icon({ name }) {
 }
 
 function PreviewCard({ snapshot, sections, themeKey, formatKey }) {
+  const t = useT();
   const theme = SHARE_THEMES[themeKey];
   const format = SHARE_FORMATS[formatKey];
 
@@ -101,7 +103,7 @@ function PreviewCard({ snapshot, sections, themeKey, formatKey }) {
           className="font-mono text-[8px] tracking-[0.14em]"
           style={{ color: theme.muted }}
         >
-          AFTER-ACTION REPORT
+          {t('mobile.share.afterActionReport')}
         </span>
       </div>
 
@@ -113,11 +115,11 @@ function PreviewCard({ snapshot, sections, themeKey, formatKey }) {
               style={{ color: theme.accent }}
             >
               {snapshot.outcome === 'won'
-                ? 'MISSION COMPLETE'
-                : 'MISSION ENDED'}
+                ? t('mobile.share.missionComplete')
+                : t('mobile.share.missionEnded')}
             </p>
             <p className="mt-1 font-display text-4xl font-black leading-none tracking-tight">
-              {snapshot.outcome === 'won' ? 'ESCAPED' : 'NO ESCAPE'}
+              {snapshot.outcome === 'won' ? t('mobile.share.escaped') : t('mobile.share.noEscape')}
             </p>
             <p
               className="mt-2 font-mono text-[10px] font-bold tracking-[0.2em]"
@@ -139,7 +141,7 @@ function PreviewCard({ snapshot, sections, themeKey, formatKey }) {
                   className="font-mono text-[8px] tracking-[0.16em]"
                   style={{ color: theme.muted }}
                 >
-                  MISSION SCORE
+                  {t('mobile.share.missionScoreLabel')}
                 </p>
                 <p className="mt-1 font-display text-4xl font-black leading-none">
                   {formatScore(snapshot.score)}
@@ -160,9 +162,9 @@ function PreviewCard({ snapshot, sections, themeKey, formatKey }) {
         {sections.stats && (
           <div className="grid grid-cols-3 gap-1.5">
             {[
-              ['OBJECTIVES', `${snapshot.correct}/${snapshot.totalRounds}`],
-              ['ACCURACY', `${snapshot.accuracy}%`],
-              ['TIME', formatMissionTime(snapshot.timeUsedSeconds)],
+              [t('mobile.share.statObjectives'), `${snapshot.correct}/${snapshot.totalRounds}`],
+              [t('mobile.share.statAccuracy'), `${snapshot.accuracy}%`],
+              [t('mobile.share.statTime'), formatMissionTime(snapshot.timeUsedSeconds)],
             ].map(([label, value]) => (
               <div
                 key={label}
@@ -187,7 +189,7 @@ function PreviewCard({ snapshot, sections, themeKey, formatKey }) {
               className="font-mono text-[7px] tracking-[0.14em]"
               style={{ color: theme.muted }}
             >
-              KEY FRAGMENTS RECOVERED
+              {t('mobile.share.keyFragmentsRecovered')}
             </p>
             <div className="mt-2 flex gap-1.5">
               {snapshot.recoveredLetters.map((letter, index) => (
@@ -213,7 +215,7 @@ function PreviewCard({ snapshot, sections, themeKey, formatKey }) {
               className="font-mono text-[7px] tracking-[0.14em]"
               style={{ color: theme.muted }}
             >
-              SQUAD STANDING // #{snapshot.squadRank} OF {snapshot.squadSize}
+              {t('mobile.share.squadStanding', { rank: snapshot.squadRank, size: snapshot.squadSize })}
             </p>
             <div className="mt-2 flex flex-col gap-1">
               {snapshot.squadBoard.slice(0, 3).map((entry) => (
@@ -243,7 +245,7 @@ function PreviewCard({ snapshot, sections, themeKey, formatKey }) {
         className="flex items-center justify-between border-t pt-2 font-mono text-[7px] tracking-[0.12em]"
         style={{ borderColor: theme.accent, color: theme.muted }}
       >
-        <span>REAL-WORLD RIDDLES. ONE WAY OUT.</span>
+        <span>{t('mobile.share.tagline')}</span>
         <span style={{ color: theme.text }}>#ESCAPESNAP</span>
       </div>
     </div>
@@ -266,6 +268,7 @@ async function copyWithFallback(text) {
 }
 
 export function EndgameShareStudio({ snapshot, loading = false }) {
+  const t = useT();
   const [sections, setSections] = useState(DEFAULT_SHARE_SECTIONS);
   const [themeKey, setThemeKey] = useState('dossier');
   const [formatKey, setFormatKey] = useState('portrait');
@@ -290,7 +293,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
   if (!snapshot) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black px-8 text-center font-mono text-xs uppercase tracking-widest text-slate-500">
-        Preparing mission debrief...
+        {t('mobile.share.preparingDebrief')}
       </div>
     );
   }
@@ -298,7 +301,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
   const toggleSection = (key) => {
     setSections((current) => {
       if (current[key] && selectedCount === 1) {
-        setStatus('Keep at least one detail on the card.');
+        setStatus(t('mobile.share.keepAtLeastOne'));
         return current;
       }
       return { ...current, [key]: !current[key] };
@@ -320,25 +323,25 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
       );
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({
-          title: 'My EscapeSnap mission debrief',
+          title: t('mobile.share.shareTitle'),
           text: shareText,
           files: [file],
         });
-        setStatus('Debrief sent beyond the perimeter.');
+        setStatus(t('mobile.share.statusSent'));
       } else if (navigator.share) {
         await navigator.share({
-          title: 'My EscapeSnap mission debrief',
+          title: t('mobile.share.shareTitle'),
           text: shareText,
         });
-        setStatus('Mission stats shared. Save the card for image sharing.');
+        setStatus(t('mobile.share.statusStatsShared'));
       } else {
         downloadShareCard(blob, snapshot, formatKey);
         await copyWithFallback(shareText);
-        setStatus('Card saved and caption copied — attach it anywhere.');
+        setStatus(t('mobile.share.statusSavedCopied'));
       }
     } catch (error) {
       if (error?.name !== 'AbortError') {
-        setStatus('Sharing was blocked. Try Save image or Copy stats.');
+        setStatus(t('mobile.share.statusShareBlocked'));
       }
     } finally {
       setWorking(false);
@@ -350,9 +353,9 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
     try {
       const { blob } = await makeCard();
       downloadShareCard(blob, snapshot, formatKey);
-      setStatus(`${SHARE_FORMATS[formatKey].label} card saved as PNG.`);
+      setStatus(t('mobile.share.statusCardSaved', { format: SHARE_FORMATS[formatKey].label }));
     } catch {
-      setStatus('Could not create the image on this device.');
+      setStatus(t('mobile.share.statusCreateImageFailed'));
     } finally {
       setWorking(false);
     }
@@ -361,14 +364,14 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
   const handleCopy = async () => {
     try {
       await copyWithFallback(shareText);
-      setStatus('Share caption copied.');
+      setStatus(t('mobile.share.statusCaptionCopied'));
     } catch {
-      setStatus('Clipboard access was blocked by this browser.');
+      setStatus(t('mobile.share.statusClipboardBlocked'));
     }
   };
 
   const outcomeLabel =
-    snapshot.outcome === 'won' ? 'MISSION COMPLETE' : 'MISSION ENDED';
+    snapshot.outcome === 'won' ? t('mobile.share.missionComplete') : t('mobile.share.missionEnded');
 
   return (
     <div
@@ -388,7 +391,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
             </span>
           </div>
           <span className="font-mono text-[9px] tracking-[0.2em] text-slate-500">
-            SHARE_LAB // ONLINE
+            {t('mobile.share.shareLabOnline')}
           </span>
         </div>
       </header>
@@ -400,23 +403,22 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
               {outcomeLabel}
             </p>
             <h1 className="mt-1 font-display text-4xl font-black uppercase leading-none text-white sm:text-5xl">
-              Build your
+              {t('mobile.share.headlineLine1')}
               <br />
-              <span className="text-red-700">debrief.</span>
+              <span className="text-red-700">{t('mobile.share.headlineLine2')}</span>
             </h1>
             <p className="mt-3 max-w-xl text-sm leading-6 text-slate-400">
-              Choose what leaves the mission, shape the card, then share it as a
-              real image.
+              {t('mobile.share.subheadline')}
             </p>
           </div>
 
           <div className="mt-7 border border-slate-800 bg-slate-950/80 p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-slate-300">
-                01 // INTEL TO INCLUDE
+                {t('mobile.share.step1Title')}
               </p>
               <span className="font-mono text-[9px] text-slate-600">
-                {selectedCount}/5 ACTIVE
+                {t('mobile.share.activeCount', { n: selectedCount })}
               </span>
             </div>
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -448,10 +450,10 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
                     </span>
                     <span className="min-w-0">
                       <span className="block font-mono text-[11px] font-bold uppercase tracking-wider text-white">
-                        {option.label}
+                        {t(option.labelKey)}
                       </span>
                       <span className="mt-0.5 block text-[10px] text-slate-500">
-                        {option.note}
+                        {t(option.noteKey)}
                       </span>
                     </span>
                   </button>
@@ -461,19 +463,18 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
             <div className="mt-3 flex items-start gap-2 border-t border-slate-800 pt-3">
               <span className="font-mono text-[10px] text-emerald-400">●</span>
               <p className="font-mono text-[9px] leading-4 text-slate-500">
-                PRIVACY SHIELD: THE JOIN CODE, RIDDLE ANSWERS AND UNRECOVERED
-                LETTERS ARE NEVER EXPORTED.
+                {t('mobile.share.privacyShield')}
               </p>
             </div>
           </div>
 
           <div className="mt-4 border border-slate-800 bg-slate-950/80 p-4">
             <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-slate-300">
-              02 // VISUAL CHANNEL
+              {t('mobile.share.step2Title')}
             </p>
             <div className="mt-4">
               <p className="mb-2 font-mono text-[9px] tracking-widest text-slate-600">
-                CARD STYLE
+                {t('mobile.share.cardStyleLabel')}
               </p>
               <div className="grid grid-cols-3 gap-2">
                 {Object.entries(SHARE_THEMES).map(([key, theme]) => (
@@ -499,7 +500,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
             </div>
             <div className="mt-4">
               <p className="mb-2 font-mono text-[9px] tracking-widest text-slate-600">
-                OUTPUT FORMAT
+                {t('mobile.share.outputFormatLabel')}
               </p>
               <div className="grid grid-cols-3 gap-2">
                 {Object.entries(SHARE_FORMATS).map(([key, format]) => (
@@ -530,7 +531,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
           <div className="mt-4 border border-slate-800 bg-slate-950/80 p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-slate-300">
-                03 // SCORE TRACE
+                {t('mobile.share.step3Title')}
               </p>
               <span className="font-display text-2xl font-black text-white">
                 {formatScore(snapshot.score)}
@@ -538,10 +539,10 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
             </div>
             <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-2 font-mono text-[9px]">
               {[
-                ['OBJECTIVES', snapshot.scoreBreakdown.objectivePoints],
-                ['EVIDENCE BONUS', snapshot.scoreBreakdown.evidenceBonus],
-                ['ESCAPE BONUS', snapshot.scoreBreakdown.escapeBonus],
-                ['TIME BONUS', snapshot.scoreBreakdown.timeBonus],
+                [t('mobile.share.statObjectives'), snapshot.scoreBreakdown.objectivePoints],
+                [t('mobile.share.scoreEvidenceBonus'), snapshot.scoreBreakdown.evidenceBonus],
+                [t('mobile.share.scoreEscapeBonus'), snapshot.scoreBreakdown.escapeBonus],
+                [t('mobile.share.scoreTimeBonus'), snapshot.scoreBreakdown.timeBonus],
               ].map(([label, value]) => (
                 <div
                   key={label}
@@ -552,13 +553,13 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
                 </div>
               ))}
               <div className="flex items-center justify-between gap-2 border-b border-slate-900 pb-2">
-                <span className="text-slate-600">PENALTIES</span>
+                <span className="text-slate-600">{t('mobile.share.penalties')}</span>
                 <span className="text-red-500">
                   −{formatScore(snapshot.scoreBreakdown.penalties)}
                 </span>
               </div>
               <div className="flex items-center justify-between gap-2 border-b border-slate-900 pb-2">
-                <span className="text-slate-600">DIFFICULTY</span>
+                <span className="text-slate-600">{t('mobile.share.difficultyLabel')}</span>
                 <span className="text-slate-300">
                   ×{snapshot.scoreBreakdown.multiplier.toFixed(2)}
                 </span>
@@ -570,10 +571,10 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
         <aside className="min-w-0 lg:sticky lg:top-20">
           <div className="mb-3 flex items-center justify-between gap-3">
             <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-slate-300">
-              LIVE CARD PREVIEW
+              {t('mobile.share.liveCardPreview')}
             </p>
             <span className="font-mono text-[9px] text-slate-600">
-              {loading ? 'SYNCING…' : 'VERIFIED DATA'}
+              {loading ? t('mobile.share.syncing') : t('mobile.share.verifiedData')}
             </span>
           </div>
           <PreviewCard
@@ -591,7 +592,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
               className="col-span-2 flex items-center justify-center gap-2 border border-red-600 bg-red-700 px-5 py-4 font-mono text-xs font-black uppercase tracking-[0.18em] text-white transition hover:bg-red-600 disabled:cursor-wait disabled:opacity-50"
             >
               <Icon name="share" />
-              {working ? 'Rendering…' : 'Share card'}
+              {working ? t('mobile.share.rendering') : t('mobile.share.shareCardButton')}
             </button>
             <button
               type="button"
@@ -600,7 +601,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
               className="flex items-center justify-center gap-2 border border-slate-700 bg-slate-950 px-3 py-3 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-300 transition hover:border-slate-500 hover:text-white disabled:opacity-50"
             >
               <Icon name="download" />
-              Save image
+              {t('mobile.share.saveImage')}
             </button>
             <button
               type="button"
@@ -609,7 +610,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
               className="flex items-center justify-center gap-2 border border-slate-700 bg-slate-950 px-3 py-3 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-300 transition hover:border-slate-500 hover:text-white disabled:opacity-50"
             >
               <Icon name="copy" />
-              Copy stats
+              {t('mobile.share.copyStats')}
             </button>
           </div>
 
@@ -620,23 +621,23 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
               className="font-mono text-[9px] leading-4 text-slate-400"
             >
               {status ||
-                '...'}
+                t('mobile.share.statusPlaceholder')}
             </p>
           </div>
 
           <div className="mt-3 flex items-center justify-between gap-3 border border-dashed border-slate-800 px-3 py-2">
             <div>
               <p className="font-mono text-[8px] font-bold tracking-widest text-slate-500">
-                GLOBAL LEADERBOARD PORT
+                {t('mobile.share.globalLeaderboardPort')}
               </p>
               <p className="mt-1 text-[9px] text-slate-700">
                 {snapshot.globalLeaderboard.available
-                  ? 'RANK DATA CONNECTED'
-                  : 'READY WHEN RANKINGS GO LIVE'}
+                  ? t('mobile.share.rankDataConnected')
+                  : t('mobile.share.rankingsGoLive')}
               </p>
             </div>
             <span className="font-mono text-[9px] text-slate-700">
-              {snapshot.globalLeaderboard.available ? 'ONLINE' : 'STANDBY'}
+              {snapshot.globalLeaderboard.available ? t('mobile.share.online') : t('mobile.share.standby')}
             </span>
           </div>
         </aside>

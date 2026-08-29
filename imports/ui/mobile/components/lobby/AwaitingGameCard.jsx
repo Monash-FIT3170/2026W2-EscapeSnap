@@ -1,6 +1,9 @@
 import React from 'react';
+import { useT } from '../../../../languages/LanguageProvider';
 
 export function AwaitingGameCard({ inSession = false }) {
+  const t = useT();
+
   if (inSession) {
     return (
       <section className="relative w-full overflow-hidden border border-red-600/60 bg-red-950/20 px-6 py-4 text-center">
@@ -14,16 +17,16 @@ export function AwaitingGameCard({ inSession = false }) {
         </div>
 
         <h3 className="mt-3 font-mono text-sm font-semibold tracking-widest text-red-400">
-          GAME IN SESSION
+          {t('mobile.lobby.gameInSession')}
         </h3>
 
         <p className="mx-auto mt-3 max-w-[34ch] font-mono text-xs leading-6 text-slate-500">
-          A round is currently active. Return to the scanner to complete your mission.
+          {t('mobile.lobby.gameInSessionBody')}
         </p>
 
         <div className="mt-3 flex items-center justify-center gap-2.5">
           <span className="h-1.5 w-1.5 rounded-full bg-red-600" />
-          <span className="font-mono text-[10px] uppercase tracking-widest text-red-600">Active</span>
+          <span className="font-mono text-[10px] uppercase tracking-widest text-red-600">{t('mobile.lobby.active')}</span>
           <span className="h-1.5 w-1.5 rounded-full bg-red-600" style={{ animationDelay: '0.4s' }} />
           <span className="h-1.5 w-1.5 rounded-full bg-red-600" style={{ animationDelay: '0.8s' }} />
         </div>
@@ -47,16 +50,16 @@ export function AwaitingGameCard({ inSession = false }) {
       </div>
 
       <h3 className="mt-3 font-mono text-sm font-semibold tracking-widest text-white">
-        AWAITING HOST
+        {t('mobile.lobby.awaitingHost')}
       </h3>
 
       <p className="mx-auto mt-3 max-w-[34ch] font-mono text-xs leading-6 text-slate-500">
-        Stand by while the host prepares the game. Stay sharp — it begins soon.
+        {t('mobile.lobby.awaitingHostBody')}
       </p>
 
       <div className="mt-3 flex items-center justify-center gap-2.5">
         <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
-        <span className="font-mono text-[10px] uppercase tracking-widest text-slate-600">Standby</span>
+        <span className="font-mono text-[10px] uppercase tracking-widest text-slate-600">{t('mobile.lobby.standby')}</span>
         <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" style={{ animationDelay: '0.4s' }} />
         <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" style={{ animationDelay: '0.8s' }} />
       </div>

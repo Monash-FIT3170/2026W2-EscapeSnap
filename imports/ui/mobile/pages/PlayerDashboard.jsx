@@ -12,19 +12,23 @@ import { RoundTimer } from '../components/gameplay/RoundTimer';
 import { PlayerWinScreen } from './result/PlayerWinScreen';
 import { PlayerLoseScreen } from './result/PlayerLoseScreen';
 import { buildEndgameShareSnapshot } from '../components/result/shareSnapshot';
+import { useT } from '../../../languages/LanguageProvider';
 
 const MAX_ROUNDS = 3;
 
 function LettersScreen({ revealedLetters }) {
+  const t = useT();
   return (
     <section className="flex flex-col gap-5 pt-5">
       <div>
         <p className="font-mono text-xs uppercase tracking-widest text-red-500">
-          Letters Collected
+          {t('mobile.dashboard.lettersCollected')}
         </p>
         <h2 className="mt-1 font-mono text-xl font-bold tracking-wide text-white">
-          {revealedLetters.filter((l) => l && l !== '?').length} / {MAX_ROUNDS}{' '}
-          Rounds Complete
+          {t('mobile.dashboard.roundsComplete', {
+            n: revealedLetters.filter((l) => l && l !== '?').length,
+            total: MAX_ROUNDS,
+          })}
         </h2>
       </div>
       <div className="flex gap-3 mt-2">
@@ -41,7 +45,7 @@ function LettersScreen({ revealedLetters }) {
               }`}
             >
               <p className="font-mono text-[10px] uppercase tracking-widest text-slate-500 mb-3">
-                Round {i + 1}
+                {t('mobile.dashboard.roundLabel', { n: i + 1 })}
               </p>
               <p className="font-display text-4xl font-black text-white">
                 {letter ?? '?'}
@@ -62,33 +66,34 @@ function ResultScreen({
   onRetry,
   onNextRound,
 }) {
+  const t = useT();
   return (
     <div className="flex-1 overflow-y-auto px-5">
       <section className="flex flex-col gap-6 pt-5">
         <h1 className="font-display text-6xl font-black text-red-700">
-          {answerCorrect ? 'CORRECT!' : 'INCORRECT!'}
+          {answerCorrect ? t('mobile.dashboard.correctBang') : t('mobile.dashboard.incorrectBang')}
         </h1>
 
         <div className="border border-slate-700 bg-slate-950/70 px-6 py-10 text-center">
           <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-slate-500">
-            DATA_RECOVERY_ACTIVE
+            {t('mobile.dashboard.dataRecoveryActive')}
           </p>
           <p className="mt-8 font-display text-8xl font-black text-white">
             {revealedLetter}
           </p>
           <p className="mt-6 font-mono text-sm uppercase tracking-[0.35em] text-slate-400">
-            LETTER REVEALED
+            {t('mobile.dashboard.letterRevealed')}
           </p>
         </div>
 
         <div className="border-l-4 border-red-600 bg-slate-900/80 px-6 py-6">
           <h2 className="font-display text-xl font-bold tracking-widest text-white">
-            {answerCorrect ? 'PUZZLE SOLVED' : 'WRONG OBJECT DETECTED'}
+            {answerCorrect ? t('mobile.dashboard.puzzleSolved') : t('mobile.dashboard.wrongObjectDetected')}
           </h2>
           <p className="mt-4 text-sm leading-6 text-slate-400">
             {answerCorrect
-              ? 'You have obtained a revealed letter. Use it to help assemble the final code.'
-              : 'You have failed to obtain a revealed letter for this round.'}
+              ? t('mobile.dashboard.correctBody')
+              : t('mobile.dashboard.incorrectBody')}
           </p>
         </div>
 
@@ -98,7 +103,7 @@ function ResultScreen({
             onClick={onRetry}
             className="w-full border border-slate-600 bg-transparent px-5 py-4 font-mono text-sm font-semibold uppercase tracking-[0.3em] text-slate-400 hover:border-slate-400 hover:text-slate-200 transition"
           >
-            Retry
+            {t('mobile.dashboard.retry')}
           </button>
         )}
 
@@ -108,11 +113,11 @@ function ResultScreen({
             onClick={onNextRound}
             className="mt-2 w-full border border-red-600 bg-red-600 px-5 py-4 font-mono text-sm font-semibold uppercase tracking-[0.3em] text-white"
           >
-            Next Round
+            {t('mobile.dashboard.nextRound')}
           </button>
         ) : (
           <p className="mt-6 text-center font-mono text-sm uppercase tracking-[0.3em] text-red-500">
-            All rounds completed
+            {t('mobile.dashboard.allRoundsCompleted')}
           </p>
         )}
       </section>
@@ -121,6 +126,7 @@ function ResultScreen({
 }
 
 export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
+  const t = useT();
   const [activeTab, setActiveTab] = useState('scanner');
   const [currentRound, setCurrentRound] = useState(1);
   const [revealedLetter, setRevealedLetter] = useState(null);
@@ -248,7 +254,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
       <header className="flex-shrink-0 flex items-center justify-between border-b border-slate-800 px-4 py-2">
         <div className="flex flex-1 items-center justify-center gap-3">
           <span className="font-mono text-xs font-bold uppercase tracking-widest text-white">
-            Round {currentRound}
+            {t('mobile.dashboard.roundHeader', { n: currentRound })}
           </span>
           <RoundTimer
             timeLeft={timeLeft ?? totalGameSeconds}
@@ -261,17 +267,17 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
           onClick={onExit}
           className="flex-shrink-0 border border-red-600 bg-red-600/10 px-4 py-2 font-mono text-xs font-semibold uppercase tracking-widest text-red-400 transition hover:bg-red-600 hover:text-white"
         >
-          Lobby
+          {t('mobile.dashboard.lobbyButton')}
         </button>
       </header>
 
       {!showResult && activeTab === 'scanner' && (
         <div className="flex-shrink-0 flex items-start gap-3 border-b border-slate-800 px-5 py-3">
           <span className="flex-shrink-0 bg-red-700 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-white">
-            ROUND_{currentRound}
+            {t('mobile.dashboard.roundBadge', { n: currentRound })}
           </span>
           <p className="font-mono text-xs leading-5 text-slate-300">
-            {round?.riddleText ?? 'Loading riddle...'}
+            {round?.riddleText ?? t('mobile.dashboard.loadingRiddle')}
           </p>
         </div>
       )}
@@ -279,7 +285,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
       {!showResult && activeTab === 'scanner' && isExpired && (
         <div className="flex-shrink-0 border-b border-red-900/60 bg-red-950/40 px-5 py-2 text-center">
           <p className="font-mono text-xs uppercase tracking-widest text-red-400">
-            Game time expired — no more submissions
+            {t('mobile.dashboard.timeExpired')}
           </p>
         </div>
       )}
@@ -287,7 +293,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
       {syncError && (
         <div className="flex-shrink-0 border-b border-red-900/60 bg-red-950/40 px-5 py-2 text-center">
           <p className="font-mono text-xs uppercase tracking-widest text-red-400">
-            Connection error - round progress may be out of sync
+            {t('mobile.dashboard.syncError')}
           </p>
         </div>
       )}

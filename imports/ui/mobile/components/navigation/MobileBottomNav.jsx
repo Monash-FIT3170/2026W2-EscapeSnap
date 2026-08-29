@@ -1,9 +1,10 @@
 import React from 'react';
+import { useT } from '../../../../languages/LanguageProvider';
 
 const navItems = [
   {
     key: 'scanner',
-    label: 'Scanner',
+    labelKey: 'mobile.nav.scanner',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
         <path d="M4 8V6a2 2 0 0 1 2-2h2M20 8V6a2 2 0 0 0-2-2h-2M4 16v2a2 2 0 0 0 2 2h2M20 16v2a2 2 0 0 1-2 2h-2M3 12h18" />
@@ -12,7 +13,7 @@ const navItems = [
   },
   {
     key: 'letters',
-    label: 'Letters',
+    labelKey: 'mobile.nav.letters',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
         <rect x="3" y="5" width="18" height="14" rx="2" />
@@ -23,10 +24,11 @@ const navItems = [
 ];
 
 export function MobileBottomNav({ active, onChange }) {
+  const t = useT();
   return (
     <nav className="fixed bottom-0 left-0 right-0 border-t border-slate-800 bg-black/95 px-4 pb-3 pt-2 backdrop-blur-lg">
       <div className="mx-auto flex max-w-md justify-between">
-        {navItems.map(({ key, label, icon }) => (
+        {navItems.map(({ key, labelKey, icon }) => (
           <button
             key={key}
             type="button"
@@ -36,7 +38,7 @@ export function MobileBottomNav({ active, onChange }) {
             }`}
           >
             {icon}
-            <span className="font-semibold uppercase">{label}</span>
+            <span className="font-semibold uppercase">{t(labelKey)}</span>
             {active === key && (
               <span className="absolute -top-2 left-1/2 h-0.5 w-10 -translate-x-1/2 bg-red-500" />
             )}

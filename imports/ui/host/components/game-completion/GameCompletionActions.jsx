@@ -1,10 +1,12 @@
 import React from 'react';
+import { useT } from '../../../../languages/LanguageProvider';
 
 export default function GameCompletionActions({
   playAgainLabel,
   onPlayAgain,
   onViewLeaderboard,
 }) {
+  const t = useT();
   return (
     <div className="mt-10 flex flex-col items-center gap-3">
       <button
@@ -44,7 +46,7 @@ export default function GameCompletionActions({
           border: '1px solid #353534',
         }}
       >
-        VIEW GROUP LEADERBOARD
+        {t('host.gameCompletion.viewGroupLeaderboard')}
       </button>
     </div>
   );

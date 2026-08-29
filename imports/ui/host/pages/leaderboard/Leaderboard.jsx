@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Games } from '/imports/api/games/GamesCollection';
+import { useT } from '../../../../languages/LanguageProvider';
 
 function formatDuration(ms) {
   const totalSeconds = Math.max(0, Math.round(ms / 1000));
@@ -13,6 +14,7 @@ function formatDuration(ms) {
 
 const Leaderboard = () => {
   const navigate = useNavigate();
+  const t = useT();
 
   const { loading, rankedGames } = useTracker(() => {
     const sub = Meteor.subscribe('games.leaderboard');
@@ -33,7 +35,7 @@ const Leaderboard = () => {
           ESCAPESNAP
         </span>
         <span className="text-xs tracking-widest uppercase" style={{ color: '#aa8984' }}>
-          LEADERBOARD
+          {t('host.leaderboard.leaderboard')}
         </span>
       </header>
 
@@ -41,20 +43,20 @@ const Leaderboard = () => {
         <div className="w-full max-w-2xl">
           <div className="mb-8">
             <p className="text-xs tracking-widest mb-1" style={{ color: '#8b0000' }}>
-              FASTEST ESCAPES
+              {t('host.leaderboard.fastestEscapes')}
             </p>
             <h1 className="text-3xl font-bold tracking-widest uppercase" style={{ color: '#e5e2e1' }}>
-              GROUP RANKINGS
+              {t('host.leaderboard.groupRankings')}
             </h1>
           </div>
 
           {loading && (
-            <p className="text-xs tracking-widest" style={{ color: '#aa8984' }}>LOADING...</p>
+            <p className="text-xs tracking-widest" style={{ color: '#aa8984' }}>{t('host.leaderboard.loading')}</p>
           )}
 
           {!loading && rankedGames.length === 0 && (
             <p className="text-xs tracking-widest" style={{ color: '#aa8984' }}>
-              NO GROUPS HAVE ESCAPED YET
+              {t('host.leaderboard.noGroupsEscaped')}
             </p>
           )}
 
@@ -76,7 +78,7 @@ const Leaderboard = () => {
                     {g.groupName}
                   </span>
                   <span className="text-xs tracking-widest uppercase" style={{ color: '#aa8984' }}>
-                    {g.difficulty}
+                    {t(`difficulty.${g.difficulty}`)}
                   </span>
                   <span className="text-lg font-bold tabular-nums" style={{ color: '#e5e2e1' }}>
                     {formatDuration(g.durationMs)}
@@ -93,7 +95,7 @@ const Leaderboard = () => {
             onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
             onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
           >
-            NEW GAME
+            {t('host.leaderboard.newGame')}
           </button>
         </div>
       </main>

@@ -1,25 +1,30 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useT } from '../../../../languages/LanguageProvider';
+import { LanguagePicker } from '../../../../languages/LanguagePicker';
 
 function Landing() {
+  const t = useT();
+
   return (
     <div className="min-h-screen text-gray-100 flex flex-col" style={{ background: '#0e0e0e' }}>
       <header className="px-8 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #1c1b1b' }}>
         <span className="font-bold text-xl tracking-widest uppercase" style={{ color: '#e5e2e1' }}>
           ESCAPESNAP
         </span>
+        <LanguagePicker />
       </header>
 
       <main className="flex-1 flex items-center justify-center px-8 py-12">
         <div className="w-full max-w-2xl text-center">
           <p className="text-xs tracking-widest mb-3" style={{ color: '#8b0000' }}>
-            INITIATE PROTOCOL
+            {t('landing.initiateProtocol')}
           </p>
           <h1 className="text-6xl font-bold tracking-widest uppercase mb-6" style={{ color: '#e5e2e1' }}>
             ESCAPESNAP
           </h1>
           <p className="text-sm tracking-wide mb-12 max-w-md mx-auto leading-relaxed" style={{ color: '#aa8984' }}>
-            Turn your surroundings into an interactive escape room. Solve visual riddles, collect clues, and crack the final code — wherever you are.
+            {t('landing.tagline')}
           </p>
 
           <div className="flex flex-col gap-4 w-full max-w-xs mx-auto">
@@ -30,7 +35,7 @@ function Landing() {
               onMouseEnter={e => e.currentTarget.style.borderColor = '#8b0000'}
               onMouseLeave={e => e.currentTarget.style.borderColor = '#1c1b1b'}
             >
-              JOIN AS PLAYER
+              {t('landing.joinAsPlayer')}
             </Link>
             <Link
               to="/host"
@@ -39,12 +44,12 @@ function Landing() {
               onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
               onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
             >
-              HOST A GAME
+              {t('landing.hostAGame')}
             </Link>
           </div>
 
           <p className="text-xs tracking-widest mt-8" style={{ color: '#444' }}>
-            HOST A SESSION · BEGIN MISSION
+            {t('landing.footerTag')}
           </p>
         </div>
       </main>
