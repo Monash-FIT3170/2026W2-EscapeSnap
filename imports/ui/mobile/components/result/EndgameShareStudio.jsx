@@ -292,7 +292,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
 
   if (!snapshot) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-black px-8 text-center font-mono text-xs uppercase tracking-widest text-slate-500">
+      <div className="flex items-center justify-center bg-[#0e0e0e] px-8 py-16 text-center font-mono text-xs uppercase tracking-[0.2em] text-[#aa8984]">
         {t('mobile.share.preparingDebrief')}
       </div>
     );
@@ -375,22 +375,22 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
 
   return (
     <div
-      className="min-h-screen bg-black text-slate-100"
+      className="bg-[#0e0e0e] text-[#e5e2e1]"
       style={{
         backgroundImage:
           'linear-gradient(rgba(239,68,68,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(239,68,68,0.035) 1px, transparent 1px)',
         backgroundSize: '48px 48px',
       }}
     >
-      <header className="sticky top-0 z-20 border-b border-slate-800 bg-black/95 px-5 py-3 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-[#353534] bg-[#0e0e0e]/95 px-5 py-3 backdrop-blur">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 animate-pulse bg-red-600" />
+            <span className="h-2 w-2 animate-pulse bg-[#8b0000]" />
             <span className="font-mono text-xs font-black tracking-[0.18em]">
               ESCAPESNAP
             </span>
           </div>
-          <span className="font-mono text-[9px] tracking-[0.2em] text-slate-500">
+          <span className="font-mono text-[9px] tracking-[0.2em] text-[#aa8984]">
             {t('mobile.share.shareLabOnline')}
           </span>
         </div>
@@ -398,26 +398,26 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
 
       <main className="mx-auto grid w-full max-w-5xl gap-8 px-5 py-8 lg:grid-cols-[minmax(0,1fr)_minmax(330px,0.82fr)] lg:items-start">
         <section className="min-w-0">
-          <div className="border-l-4 border-red-700 pl-4">
-            <p className="font-mono text-[10px] font-bold tracking-[0.24em] text-red-500">
+          <div className="border-l-4 border-[#8b0000] pl-4">
+            <p className="font-mono text-[10px] font-bold tracking-[0.24em] text-[#aa8984]">
               {outcomeLabel}
             </p>
-            <h1 className="mt-1 font-display text-4xl font-black uppercase leading-none text-white sm:text-5xl">
+            <h1 className="mt-1 font-display text-4xl font-black uppercase leading-none text-[#e5e2e1] sm:text-5xl">
               {t('mobile.share.headlineLine1')}
               <br />
-              <span className="text-red-700">{t('mobile.share.headlineLine2')}</span>
+              <span className="text-[#8b0000]">{t('mobile.share.headlineLine2')}</span>
             </h1>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-slate-400">
+            <p className="mt-3 max-w-xl text-sm leading-6 text-[#aa8984]">
               {t('mobile.share.subheadline')}
             </p>
           </div>
 
-          <div className="mt-7 border border-slate-800 bg-slate-950/80 p-4">
+          <div className="mt-7 border border-[#353534] bg-[#1c1b1b] p-4">
             <div className="flex items-center justify-between gap-3">
-              <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-slate-300">
+              <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-[#e5e2e1]">
                 {t('mobile.share.step1Title')}
               </p>
-              <span className="font-mono text-[9px] text-slate-600">
+              <span className="font-mono text-[9px] text-[#555]">
                 {t('mobile.share.activeCount', { n: selectedCount })}
               </span>
             </div>
@@ -449,10 +449,10 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
                       {active ? '✓' : '+'}
                     </span>
                     <span className="min-w-0">
-                      <span className="block font-mono text-[11px] font-bold uppercase tracking-wider text-white">
+                      <span className="block font-mono text-[11px] font-bold uppercase tracking-wider text-[#e5e2e1]">
                         {t(option.labelKey)}
                       </span>
-                      <span className="mt-0.5 block text-[10px] text-slate-500">
+                      <span className="mt-0.5 block text-[10px] text-[#aa8984]">
                         {t(option.noteKey)}
                       </span>
                     </span>
@@ -460,20 +460,20 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
                 );
               })}
             </div>
-            <div className="mt-3 flex items-start gap-2 border-t border-slate-800 pt-3">
+            <div className="mt-3 flex items-start gap-2 border-t border-[#353534] pt-3">
               <span className="font-mono text-[10px] text-emerald-400">●</span>
-              <p className="font-mono text-[9px] leading-4 text-slate-500">
+              <p className="font-mono text-[9px] leading-4 text-[#aa8984]">
                 {t('mobile.share.privacyShield')}
               </p>
             </div>
           </div>
 
-          <div className="mt-4 border border-slate-800 bg-slate-950/80 p-4">
-            <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-slate-300">
+          <div className="mt-4 border border-[#353534] bg-[#1c1b1b] p-4">
+            <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-[#e5e2e1]">
               {t('mobile.share.step2Title')}
             </p>
             <div className="mt-4">
-              <p className="mb-2 font-mono text-[9px] tracking-widest text-slate-600">
+              <p className="mb-2 font-mono text-[9px] tracking-widest text-[#555]">
                 {t('mobile.share.cardStyleLabel')}
               </p>
               <div className="grid grid-cols-3 gap-2">
@@ -499,7 +499,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
               </div>
             </div>
             <div className="mt-4">
-              <p className="mb-2 font-mono text-[9px] tracking-widest text-slate-600">
+              <p className="mb-2 font-mono text-[9px] tracking-widest text-[#555]">
                 {t('mobile.share.outputFormatLabel')}
               </p>
               <div className="grid grid-cols-3 gap-2">
@@ -519,7 +519,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
                     }}
                   >
                     {format.label}
-                    <span className="mt-1 block text-[8px] font-normal text-slate-600">
+                    <span className="mt-1 block text-[8px] font-normal text-[#555]">
                       {format.ratio.replaceAll(' ', '')}
                     </span>
                   </button>
@@ -528,12 +528,12 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
             </div>
           </div>
 
-          <div className="mt-4 border border-slate-800 bg-slate-950/80 p-4">
+          <div className="mt-4 border border-[#353534] bg-[#1c1b1b] p-4">
             <div className="flex items-center justify-between gap-3">
-              <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-slate-300">
+              <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-[#e5e2e1]">
                 {t('mobile.share.step3Title')}
               </p>
-              <span className="font-display text-2xl font-black text-white">
+              <span className="font-display text-2xl font-black text-[#e5e2e1]">
                 {formatScore(snapshot.score)}
               </span>
             </div>
@@ -546,21 +546,21 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
               ].map(([label, value]) => (
                 <div
                   key={label}
-                  className="flex items-center justify-between gap-2 border-b border-slate-900 pb-2"
+                  className="flex items-center justify-between gap-2 border-b border-[#353534] pb-2"
                 >
-                  <span className="text-slate-600">{label}</span>
-                  <span className="text-slate-300">+{formatScore(value)}</span>
+                  <span className="text-[#555]">{label}</span>
+                  <span className="text-[#e5e2e1]">+{formatScore(value)}</span>
                 </div>
               ))}
-              <div className="flex items-center justify-between gap-2 border-b border-slate-900 pb-2">
-                <span className="text-slate-600">{t('mobile.share.penalties')}</span>
-                <span className="text-red-500">
+              <div className="flex items-center justify-between gap-2 border-b border-[#353534] pb-2">
+                <span className="text-[#555]">{t('mobile.share.penalties')}</span>
+                <span className="text-[#ef4444]">
                   −{formatScore(snapshot.scoreBreakdown.penalties)}
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-2 border-b border-slate-900 pb-2">
-                <span className="text-slate-600">{t('mobile.share.difficultyLabel')}</span>
-                <span className="text-slate-300">
+              <div className="flex items-center justify-between gap-2 border-b border-[#353534] pb-2">
+                <span className="text-[#555]">{t('mobile.share.difficultyLabel')}</span>
+                <span className="text-[#e5e2e1]">
                   ×{snapshot.scoreBreakdown.multiplier.toFixed(2)}
                 </span>
               </div>
@@ -570,10 +570,10 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
 
         <aside className="min-w-0 lg:sticky lg:top-20">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-slate-300">
+            <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-[#e5e2e1]">
               {t('mobile.share.liveCardPreview')}
             </p>
-            <span className="font-mono text-[9px] text-slate-600">
+            <span className="font-mono text-[9px] text-[#555]">
               {loading ? t('mobile.share.syncing') : t('mobile.share.verifiedData')}
             </span>
           </div>
@@ -589,7 +589,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
               type="button"
               onClick={handleShare}
               disabled={working || loading}
-              className="col-span-2 flex items-center justify-center gap-2 border border-red-600 bg-red-700 px-5 py-4 font-mono text-xs font-black uppercase tracking-[0.18em] text-white transition hover:bg-red-600 disabled:cursor-wait disabled:opacity-50"
+              className="col-span-2 flex items-center justify-center gap-2 border border-[#8b0000] bg-[#8b0000] px-5 py-4 font-mono text-xs font-black uppercase tracking-[0.18em] text-[#e5e2e1] transition active:bg-[#a50000] disabled:cursor-wait disabled:opacity-50"
             >
               <Icon name="share" />
               {working ? t('mobile.share.rendering') : t('mobile.share.shareCardButton')}
@@ -598,7 +598,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
               type="button"
               onClick={handleDownload}
               disabled={working || loading}
-              className="flex items-center justify-center gap-2 border border-slate-700 bg-slate-950 px-3 py-3 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-300 transition hover:border-slate-500 hover:text-white disabled:opacity-50"
+              className="flex items-center justify-center gap-2 border border-[#353534] bg-[#1c1b1b] px-3 py-3 font-mono text-[10px] font-bold uppercase tracking-wider text-[#e5e2e1] transition active:border-[#aa8984] disabled:opacity-50"
             >
               <Icon name="download" />
               {t('mobile.share.saveImage')}
@@ -607,7 +607,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
               type="button"
               onClick={handleCopy}
               disabled={loading}
-              className="flex items-center justify-center gap-2 border border-slate-700 bg-slate-950 px-3 py-3 font-mono text-[10px] font-bold uppercase tracking-wider text-slate-300 transition hover:border-slate-500 hover:text-white disabled:opacity-50"
+              className="flex items-center justify-center gap-2 border border-[#353534] bg-[#1c1b1b] px-3 py-3 font-mono text-[10px] font-bold uppercase tracking-wider text-[#e5e2e1] transition active:border-[#aa8984] disabled:opacity-50"
             >
               <Icon name="copy" />
               {t('mobile.share.copyStats')}
@@ -618,25 +618,25 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
             <p
               role="status"
               aria-live="polite"
-              className="font-mono text-[9px] leading-4 text-slate-400"
+              className="font-mono text-[9px] leading-4 text-[#aa8984]"
             >
               {status ||
                 t('mobile.share.statusPlaceholder')}
             </p>
           </div>
 
-          <div className="mt-3 flex items-center justify-between gap-3 border border-dashed border-slate-800 px-3 py-2">
+          <div className="mt-3 flex items-center justify-between gap-3 border border-dashed border-[#353534] px-3 py-2">
             <div>
-              <p className="font-mono text-[8px] font-bold tracking-widest text-slate-500">
+              <p className="font-mono text-[8px] font-bold tracking-widest text-[#aa8984]">
                 {t('mobile.share.globalLeaderboardPort')}
               </p>
-              <p className="mt-1 text-[9px] text-slate-700">
+              <p className="mt-1 text-[9px] text-[#555]">
                 {snapshot.globalLeaderboard.available
                   ? t('mobile.share.rankDataConnected')
                   : t('mobile.share.rankingsGoLive')}
               </p>
             </div>
-            <span className="font-mono text-[9px] text-slate-700">
+            <span className="font-mono text-[9px] text-[#555]">
               {snapshot.globalLeaderboard.available ? t('mobile.share.online') : t('mobile.share.standby')}
             </span>
           </div>
