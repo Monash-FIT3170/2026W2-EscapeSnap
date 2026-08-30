@@ -2,7 +2,31 @@ import { Meteor } from 'meteor/meteor';
 import { Rounds } from './RoundsCollection';
 import { Players } from '../players/PlayersCollection';
 import { Games } from '../games/GamesCollection';
-import { advanceGameRound } from './roundProgression';
+import { advanceIfRoundSettled } from './roundProgression';
+
+// Moves a pending round to its final status and awards its letter. The
+// `status: 'pending'` guard lives in the selector, so two racing calls for the
+// same round can never push two letters onto the player.
+async function settleRound(round, status, letter, settledAt) {
+  const $set = { status, submittedAt: settledAt };
+  if (round.startedAt) {
+    $set.solveDurationMs = Math.max(
+      0,
+      settledAt.getTime() - round.startedAt.getTime()
+    );
+  }
+
+  const updated = await Rounds.updateAsync(
+    { _id: round._id, status: 'pending' },
+    { $set }
+  );
+  if (updated === 0) return false;
+
+  await Players.updateAsync(round.playerId, {
+    $push: { revealedLetters: letter },
+  });
+  return true;
+}
 
 function assignLetters(answer, totalRounds, playerCount) {
   const letters = answer.toUpperCase().split('');
@@ -94,52 +118,39 @@ Meteor.methods({
     const submittedAt = new Date();
 
     if (expired) {
-      await Rounds.updateAsync(roundId, {
-        $set: { status: 'timeout', submittedAt },
-      });
-      await Players.updateAsync(round.playerId, {
-        $push: { revealedLetters: '?' },
-      });
+      await settleRound(round, 'timeout', '?', submittedAt);
+      await advanceIfRoundSettled(round.gameId, round.roundNumber);
       throw new Meteor.Error('timeout', 'Round timer expired');
     }
 
     const letter = isCorrect ? round.letter : '?';
 
-    const $set = {
-      status: isCorrect ? 'correct' : 'wrong',
-      submittedAt,
-    };
-    if (round.startedAt) {
-      $set.solveDurationMs = Math.max(
-        0,
-        submittedAt.getTime() - round.startedAt.getTime()
-      );
-    }
-
-    await Rounds.updateAsync(roundId, { $set });
-
-    await Players.updateAsync(round.playerId, {
-      $push: { revealedLetters: letter },
-    });
-
-    // Advance currentRound when all players have submitted for this round
-    const submittedCount = await Rounds.find({
-      gameId: round.gameId,
-      roundNumber: round.roundNumber,
-      status: { $ne: 'pending' },
-    }).countAsync();
-    const playerCount = await Players.find({
-      gameId: round.gameId,
-    }).countAsync();
-
-    if (
-      submittedCount >= playerCount &&
-      game.currentRound === round.roundNumber &&
-      round.roundNumber < game.totalRounds
-    ) {
-      await advanceGameRound(round.gameId, round.roundNumber);
+    const settled = await settleRound(
+      round,
+      isCorrect ? 'correct' : 'wrong',
+      letter,
+      submittedAt
+    );
+    if (settled) {
+      await advanceIfRoundSettled(round.gameId, round.roundNumber);
     }
 
     return letter;
+  },
+
+  // A player who can't find their object can skip the round and get a '?' instead of their letter.
+  async 'rounds.skip'(roundId) {
+    const round = await Rounds.findOneAsync(roundId);
+    if (!round) throw new Meteor.Error('not-found', 'Round not found');
+    if (round.status !== 'pending')
+      throw new Meteor.Error('invalid-state', 'Round already submitted');
+
+    // Deliberately no game-timer check: skipping only ever awards '?', and it
+    // is the one action that can still unstick a round after time runs out.
+    if (await settleRound(round, 'wrong', '?', new Date())) {
+      await advanceIfRoundSettled(round.gameId, round.roundNumber);
+    }
+
+    return '?';
   },
 });
