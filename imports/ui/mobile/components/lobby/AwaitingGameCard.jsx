@@ -1,70 +1,51 @@
+// Meteor's JSX transform still requires React in module scope.
+// eslint-disable-next-line no-unused-vars
 import React from 'react';
 import { useT } from '../../../../languages/LanguageProvider';
+
+function ClockIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  );
+}
+
+function HourglassIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+      <path d="M6 3h12M6 21h12" />
+      <path d="M7 3v3a5 5 0 0 0 2.5 4.33L12 12l-2.5 1.67A5 5 0 0 0 7 18v3" />
+      <path d="M17 3v3a5 5 0 0 1-2.5 4.33L12 12l2.5 1.67A5 5 0 0 1 17 18v3" />
+    </svg>
+  );
+}
 
 export function AwaitingGameCard({ inSession = false }) {
   const t = useT();
 
-  if (inSession) {
-    return (
-      <section className="relative w-full overflow-hidden border border-red-600/60 bg-red-950/20 px-6 py-4 text-center">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-red-500 to-transparent" />
-
-        <div className="mx-auto flex h-14 w-14 items-center justify-center border border-red-600 bg-black text-red-500">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7">
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-          </svg>
-        </div>
-
-        <h3 className="mt-3 font-mono text-sm font-semibold tracking-widest text-red-400">
-          {t('mobile.lobby.gameInSession')}
-        </h3>
-
-        <p className="mx-auto mt-3 max-w-[34ch] font-mono text-xs leading-6 text-slate-500">
-          {t('mobile.lobby.gameInSessionBody')}
-        </p>
-
-        <div className="mt-3 flex items-center justify-center gap-2.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-red-600" />
-          <span className="font-mono text-[10px] uppercase tracking-widest text-red-600">{t('mobile.lobby.active')}</span>
-          <span className="h-1.5 w-1.5 rounded-full bg-red-600" style={{ animationDelay: '0.4s' }} />
-          <span className="h-1.5 w-1.5 rounded-full bg-red-600" style={{ animationDelay: '0.8s' }} />
-        </div>
-
-        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
-      </section>
-    );
-  }
-
   return (
-    <section className="relative w-full overflow-hidden border border-red-500/20 bg-red-950/10 px-6 py-4 text-center">
-
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-red-500/50 to-transparent animate-pulse" />
-
-      <div className="mx-auto flex h-14 w-14 items-center justify-center border border-red-500/50 bg-black text-red-500">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7 animate-pulse">
-          <path d="M6 3h12M6 21h12" />
-          <path d="M7 3v3a5 5 0 0 0 2.5 4.33L12 12l-2.5 1.67A5 5 0 0 0 7 18v3" />
-          <path d="M17 3v3a5 5 0 0 1-2.5 4.33L12 12l2.5 1.67A5 5 0 0 1 17 18v3" />
-        </svg>
+    <section className="border border-[#353534] bg-[#1c1b1b] px-5 py-4 text-center">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center border border-[#8b0000] bg-[#0e0e0e] text-[#8b0000]">
+        {inSession ? <ClockIcon /> : <HourglassIcon />}
       </div>
 
-      <h3 className="mt-3 font-mono text-sm font-semibold tracking-widest text-white">
-        {t('mobile.lobby.awaitingHost')}
+      <h3 className="mt-3 font-mono text-sm font-semibold uppercase tracking-[0.2em] text-[#e5e2e1]">
+        {inSession ? t('mobile.lobby.gameInSession') : t('mobile.lobby.awaitingHost')}
       </h3>
 
-      <p className="mx-auto mt-3 max-w-[34ch] font-mono text-xs leading-6 text-slate-500">
-        {t('mobile.lobby.awaitingHostBody')}
+      <p className="mx-auto mt-2 max-w-[34ch] font-mono text-xs leading-5 text-[#aa8984]">
+        {inSession ? t('mobile.lobby.gameInSessionBody') : t('mobile.lobby.awaitingHostBody')}
       </p>
 
-      <div className="mt-3 flex items-center justify-center gap-2.5">
-        <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
-        <span className="font-mono text-[10px] uppercase tracking-widest text-slate-600">{t('mobile.lobby.standby')}</span>
-        <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" style={{ animationDelay: '0.4s' }} />
-        <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" style={{ animationDelay: '0.8s' }} />
+      <div className="mt-3 flex items-center justify-center gap-2">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#8b0000] animate-pulse" />
+        <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#555]">
+          {inSession ? t('mobile.lobby.active') : t('mobile.lobby.standby')}
+        </span>
+        <span className="h-1.5 w-1.5 rounded-full bg-[#8b0000] animate-pulse" />
       </div>
-
-      <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-red-500/30 to-transparent" />
     </section>
   );
 }

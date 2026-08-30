@@ -4,6 +4,9 @@ import React, { useState } from 'react';
 import { useT } from '../../../languages/LanguageProvider';
 import { LanguagePicker } from '../../../languages/LanguagePicker';
 
+const FIELD_CLASS =
+  'w-full border border-[#353534] bg-[#0e0e0e] px-4 py-3.5 font-mono text-base text-[#e5e2e1] placeholder:text-[#555] focus:border-[#8b0000] focus:outline-none transition-colors';
+
 export function PlayerHome({ onStart, loading = false, serverError = '', initialCode = '' }) {
   const [name, setName] = useState('');
   const [code, setCode] = useState(initialCode);
@@ -24,71 +27,65 @@ export function PlayerHome({ onStart, loading = false, serverError = '', initial
   }
 
   return (
-    <div
-      className="h-screen overflow-hidden bg-black text-white flex items-center justify-center"
-      style={{
-        backgroundImage: 'linear-gradient(rgba(239,68,68,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(239,68,68,0.04) 1px, transparent 1px)',
-        backgroundSize: '48px 48px',
-      }}
-    >
-      {/* Red corner brackets framing the full screen */}
-      <span className="pointer-events-none fixed left-4 top-4 h-10 w-10 border-l-2 border-t-2 border-red-500/70" />
-      <span className="pointer-events-none fixed right-4 top-4 h-10 w-10 border-r-2 border-t-2 border-red-500/70" />
-      <span className="pointer-events-none fixed bottom-4 left-4 h-10 w-10 border-b-2 border-l-2 border-red-500/70" />
-      <span className="pointer-events-none fixed bottom-4 right-4 h-10 w-10 border-b-2 border-r-2 border-red-500/70" />
+    // Scrolls rather than clipping: on a short phone the on-screen keyboard
+    // covers most of the viewport, and a fixed-height screen would bury the
+    // submit button under it.
+    <div className="min-h-[100dvh] bg-[#0e0e0e] text-[#e5e2e1] flex items-center justify-center px-5 py-8">
+      <div className="relative w-full max-w-sm">
 
-      <div className="relative w-full max-w-sm px-8 py-10">
-
-        <div className="absolute right-8 top-2 z-20">
+        <div className="mb-8 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-[#8b0000] animate-pulse" />
+            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#aa8984]">
+              {t('mobile.home.systemOnline')}
+            </span>
+          </div>
           <LanguagePicker compact />
         </div>
 
-        <div className="mb-6 flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-          <span className="font-mono text-xs uppercase tracking-widest text-white">{t('mobile.home.systemOnline')}</span>
-        </div>
-
-        <h1
-          className="text-center font-display text-5xl font-black leading-tight tracking-wide text-red-500"
-          style={{ textShadow: '0 0 40px rgba(239,68,68,0.45), 0 0 80px rgba(239,68,68,0.15)' }}
-        >
+        <h1 className="text-center font-display text-5xl font-black leading-tight tracking-wide text-[#8b0000]">
           ESCAPE<br />SNAP
         </h1>
 
-        <div className="mt-4 flex items-center gap-3">
-          <div className="h-px flex-1 bg-gradient-to-r from-red-500/50 to-transparent" />
-          <span className="font-mono text-xs uppercase tracking-widest text-white">{t('mobile.home.playerTerminal')}</span>
+        <div className="mt-5 flex items-center gap-3">
+          <span className="h-px flex-1 bg-[#353534]" />
+          <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#aa8984]">
+            {t('mobile.home.playerTerminal')}
+          </span>
+          <span className="h-px flex-1 bg-[#353534]" />
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-10 flex flex-col gap-6">
+        <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
 
           <div className="flex flex-col gap-2">
-            <label className="font-mono text-sm font-medium text-white">
+            <label htmlFor="player-name" className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#aa8984]">
               {t('mobile.home.playerName')}
             </label>
             <input
+              id="player-name"
               type="text"
               placeholder={t('mobile.home.playerNamePlaceholder')}
               value={name}
               onChange={e => setName(e.target.value)}
               maxLength={24}
               autoComplete="off"
-              className="w-full border border-slate-700 bg-slate-950 px-4 py-3.5 font-mono text-base text-white placeholder:text-white focus:border-red-500/70 focus:outline-none transition-colors duration-200"
+              className={FIELD_CLASS}
             />
           </div>
 
           <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <label className="font-mono text-sm font-medium text-white">
+            <div className="flex items-center justify-between gap-3">
+              <label htmlFor="game-code" className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#aa8984]">
                 {t('mobile.home.gameCode')}
               </label>
               {scannedViaQr && (
-                <span className="font-mono text-[11px] uppercase tracking-widest text-red-400">
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#4ade80]">
                   {t('mobile.home.scannedViaQr')}
                 </span>
               )}
             </div>
             <input
+              id="game-code"
               type="text"
               inputMode="numeric"
               pattern="[0-9]{4}"
@@ -97,25 +94,25 @@ export function PlayerHome({ onStart, loading = false, serverError = '', initial
               onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
               maxLength={4}
               autoComplete="one-time-code"
-              className="w-full border border-slate-700 bg-slate-950 px-4 py-3.5 font-mono text-base tracking-widest text-white placeholder:text-white focus:border-red-500/70 focus:outline-none transition-colors duration-200"
+              className={`${FIELD_CLASS} tracking-[0.4em]`}
             />
           </div>
 
           {(error || serverError) && (
-            <p className="font-mono text-sm text-red-400">⚠ {error || serverError}</p>
+            <p role="alert" className="font-mono text-xs leading-5 text-[#ef4444]">
+              ⚠ {error || serverError}
+            </p>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="group relative mt-2 w-full overflow-hidden border border-red-600/60 px-5 py-4 font-mono text-base font-semibold uppercase tracking-wider text-red-400 transition-colors duration-300 hover:text-white focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-1 w-full border border-[#8b0000] bg-[#8b0000] px-5 py-4 font-mono text-sm font-semibold uppercase tracking-[0.2em] text-[#e5e2e1] transition active:bg-[#a50000] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span className="absolute inset-0 -translate-x-full bg-red-600 transition-transform duration-300 ease-out group-hover:translate-x-0" />
-            <span className="relative">{loading ? t('mobile.home.joining') : t('mobile.home.enterGame')}</span>
+            {loading ? t('mobile.home.joining') : t('mobile.home.enterGame')}
           </button>
 
         </form>
-
       </div>
     </div>
   );
