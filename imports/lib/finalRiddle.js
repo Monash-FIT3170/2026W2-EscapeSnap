@@ -1,6 +1,8 @@
-// Offline fallback final riddles, keyed by answer length — the length must exactly
-// match totalRounds * playerCount (see rounds.createForGame), so one static riddle
-// isn't enough.
+// Offline fallback final riddles, keyed by answer length. gamesMethods.js clamps
+// the requested length to this bank's 3-12 letter range rather than asking for
+// totalRounds * playerCount letters directly — rounds.createForGame's assignLetters
+// wraps letter positions via modulo when there are more player-rounds than letters,
+// so a shorter word works fine and this bank always has an exact-length match.
 const FINAL_RIDDLE_BANK = [
   {
     riddle:

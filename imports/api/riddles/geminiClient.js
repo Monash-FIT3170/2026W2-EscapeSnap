@@ -71,9 +71,10 @@ async function callGemini(prompt, schema) {
   throw lastErr;
 }
 
-// Generates the final "escape code" riddle. `letterCount` is required — every
-// letter a player earns must map to a real position in the answer, so its length
-// must be exact (see rounds.createForGame for how letterCount is derived).
+// Generates the final "escape code" riddle. `letterCount` sets the answer's exact
+// length — the caller (gamesMethods.pregenerateRiddles) clamps this to a range the
+// offline fallback bank covers rather than passing totalRounds * playerCount
+// directly, since rounds.createForGame wraps letter positions via modulo anyway.
 const MAX_LENGTH_ATTEMPTS = 3;
 
 export async function generateFinalRiddle({

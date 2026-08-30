@@ -31,7 +31,13 @@ Meteor.methods({
       totalRounds,
       players.length
     );
-    const shuffled = game.pregeneratedRoundRiddles;
+    const pool = game.pregeneratedRoundRiddles;
+    if (!pool || pool.length === 0) {
+      throw new Meteor.Error(
+        'riddles-not-ready',
+        'Game has no pre-generated riddles — try starting the game again'
+      );
+    }
 
     const inserts = [];
     let riddleIndex = 0;
@@ -40,7 +46,7 @@ Meteor.methods({
       for (let p = 0; p < players.length; p++) {
         // The bank is smaller than totalRounds × playerCount for large games,
         // so wrap rather than deal `undefined`.
-        const riddle = shuffled[riddleIndex % shuffled.length];
+        const riddle = pool[riddleIndex % pool.length];
         const letter = letterPool[riddleIndex];
         riddleIndex++;
         inserts.push(
