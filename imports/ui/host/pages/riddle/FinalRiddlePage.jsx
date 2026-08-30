@@ -7,12 +7,14 @@ import WinScreen from '/imports/ui/host/pages/game-completion/WinScreen.jsx';
 import LoseScreen from '/imports/ui/host/pages/game-completion/LoseScreen.jsx';
 import FinalRiddleInput from '/imports/ui/host/components/riddle/FinalRiddleInput.jsx';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
+import { useT } from '../../../../languages/LanguageProvider';
 
 const BG = '#131313';
 
 const FinalRiddlePage = () => {
   const { gameId } = useParams();
   const navigate = useNavigate();
+  const t = useT();
   const [hasWon, setHasWon] = useState(false);
   const [hasLost, setHasLost] = useState(false);
   const [hintRevealed, setHintRevealed] = useState(false);
@@ -23,7 +25,7 @@ const FinalRiddlePage = () => {
   if (loading || lettersLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: BG }}>
-        <p style={{ color: '#aa8984', fontSize: 10, letterSpacing: '1px' }}>LOADING...</p>
+        <p style={{ color: '#aa8984', fontSize: 10, letterSpacing: '1px' }}>{t('host.finalRiddle.loading')}</p>
       </div>
     );
   }
@@ -66,16 +68,16 @@ const FinalRiddlePage = () => {
         <div className="flex items-center gap-3">
           <div style={{ width: 4, height: 32, background: '#8b0000' }} />
           <div>
-            <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>MISSION CRITICAL</p>
+            <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>{t('host.finalRiddle.missionCritical')}</p>
             <h1 style={{ fontWeight: 700, fontSize: 28, letterSpacing: '2px', color: '#e5e2e1', lineHeight: 1.2 }}>
-              THE FINAL <span style={{ color: '#8b0000' }}>RIDDLE</span>
+              {t('host.finalRiddle.theFinal')} <span style={{ color: '#8b0000' }}>{t('host.finalRiddle.riddle')}</span>
             </h1>
           </div>
         </div>
 
         {/* Riddle card */}
         <div style={{ background: '#0e0e0e', borderLeft: '4px solid #8b0000', padding: '32px' }}>
-          <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984', marginBottom: 12 }}>DECRYPT THE CLUE</p>
+          <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984', marginBottom: 12 }}>{t('host.finalRiddle.decryptTheClue')}</p>
           <p style={{ fontSize: 22, fontWeight: 600, color: '#e5e2e1', lineHeight: 1.6, letterSpacing: '0.5px' }}>
             "{finalRiddle}"
           </p>
@@ -111,7 +113,7 @@ const FinalRiddlePage = () => {
         <div style={{ background: '#1c1b1b', padding: '24px' }}>
           <div className="flex items-center gap-3 mb-4">
             <div style={{ width: 4, height: 16, background: '#8b0000' }} />
-            <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: '#e5e2e1' }}>REVEALED LETTERS</span>
+            <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: '#e5e2e1' }}>{t('host.finalRiddle.revealedLetters')}</span>
           </div>
           <div className="flex flex-wrap gap-3">
             {letters.map((letter, i) => (
@@ -127,7 +129,7 @@ const FinalRiddlePage = () => {
               </div>
             ))}
             {letters.length === 0 && (
-              <p style={{ fontSize: 11, color: '#aa8984', opacity: 0.6 }}>NO LETTERS REVEALED YET</p>
+              <p style={{ fontSize: 11, color: '#aa8984', opacity: 0.6 }}>{t('host.finalRiddle.noLettersRevealedYet')}</p>
             )}
           </div>
         </div>
@@ -136,7 +138,7 @@ const FinalRiddlePage = () => {
         <div style={{ background: '#0e0e0e', padding: '24px' }}>
           <div className="flex items-center gap-3 mb-4">
             <div style={{ width: 4, height: 16, background: '#8b0000' }} />
-            <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: '#e5e2e1' }}>SUBMIT ANSWER</span>
+            <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: '#e5e2e1' }}>{t('host.finalRiddle.submitAnswer')}</span>
           </div>
           <FinalRiddleInput
             gameId={gameId}

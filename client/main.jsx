@@ -5,11 +5,14 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import './main.css';
 import { App } from '../imports/ui/App';
+import { LanguageProvider } from '../imports/languages/LanguageProvider';
 
 Meteor.startup(() => {
   createRoot(document.getElementById('app')).render(
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <LanguageProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </LanguageProvider>
   );
 });

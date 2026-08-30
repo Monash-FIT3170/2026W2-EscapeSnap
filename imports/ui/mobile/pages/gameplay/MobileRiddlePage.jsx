@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Meteor } from 'meteor/meteor';
+import { useT } from '../../../../languages/LanguageProvider';
 
 // Widest edge of a captured frame, in px. Also bounds what gets stored on the
 // submission, so keep it in step with the `photoUrl` cap in the schema.
@@ -38,6 +39,7 @@ const MobileRiddlePage = ({
   isExpired = false,
   onCorrect,
 }) => {
+  const t = useT();
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
@@ -61,7 +63,7 @@ const MobileRiddlePage = ({
   async function startCamera() {
     if (!navigator.mediaDevices?.getUserMedia) {
       console.error('[camera] navigator.mediaDevices is unavailable - likely an insecure (non-HTTPS) context');
-      setCameraError('Camera requires a secure connection (HTTPS).');
+      setCameraError(t('mobile.riddle.errCameraSecure'));
       return;
     }
     try {
@@ -76,10 +78,10 @@ const MobileRiddlePage = ({
     } catch (err) {
       console.error('[camera] getUserMedia failed:', err.name, err.message);
       const message = err.name === 'NotAllowedError'
-        ? 'Camera permission denied - check your browser settings.'
+        ? t('mobile.riddle.errCameraPermission')
         : err.name === 'NotFoundError'
-          ? 'No camera found on this device.'
-          : 'Camera access denied or unavailable.';
+          ? t('mobile.riddle.errCameraNotFound')
+          : t('mobile.riddle.errCameraUnavailable');
       setCameraError(message);
     }
   }
@@ -114,7 +116,7 @@ const MobileRiddlePage = ({
         if (!blob) {
           setUploading(false);
           setValidationState('error');
-          setExplanation('Could not process the photo — please try again.');
+          setExplanation(t('mobile.riddle.errProcessPhoto'));
           return;
         }
 
@@ -140,7 +142,7 @@ const MobileRiddlePage = ({
           console.error('[submissions.classify] failed:', err.error || err.reason || err.message);
           setUploading(false);
           setValidationState('error');
-          setExplanation('Connection error — please try again.');
+          setExplanation(t('mobile.riddle.errConnection'));
         }
       },
       'image/jpeg',
@@ -156,7 +158,7 @@ const MobileRiddlePage = ({
     } catch (err) {
       console.error('[rounds.submit] failed:', err.error || err.reason || err.message);
       setValidationState('error');
-      setExplanation('Connection error — your submission was not saved. Please try again.');
+      setExplanation(t('mobile.riddle.errSubmissionNotSaved'));
     } finally {
       setUploading(false);
     }
@@ -165,7 +167,7 @@ const MobileRiddlePage = ({
   if (!roundId) {
     return (
       <div className="pt-5 font-mono text-sm text-slate-500 text-center">
-        Loading round...
+        {t('mobile.riddle.loadingRound')}
       </div>
     );
   }
@@ -196,7 +198,7 @@ const MobileRiddlePage = ({
         {showCapturedPhoto && (
           <img
             src={capturedUrl}
-            alt="captured"
+            alt={t('mobile.riddle.capturedAlt')}
             className="absolute inset-0 h-full w-full object-cover opacity-75"
           />
         )}
@@ -208,7 +210,7 @@ const MobileRiddlePage = ({
                 validationState === 'error' ? 'text-amber-400' : 'text-red-500'
               }`}
             >
-              {validationState === 'error' ? 'Couldn’t Verify' : 'Not A Match'}
+              {validationState === 'error' ? t('mobile.riddle.couldntVerify') : t('mobile.riddle.notAMatch')}
             </span>
             {explanation && (
               <span className="text-center font-mono text-[11px] text-slate-400">
@@ -240,7 +242,7 @@ const MobileRiddlePage = ({
 
             <div className="absolute inset-x-0 bottom-6 flex items-center justify-center">
               <span className="pulse-text bg-black/70 px-4 py-2 font-mono text-sm uppercase tracking-widest text-red-400">
-                Analysing...
+                {t('mobile.riddle.analysing')}
               </span>
             </div>
           </>
@@ -250,10 +252,10 @@ const MobileRiddlePage = ({
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/70">
             <span className="font-mono text-3xl text-red-500">✗</span>
             <span className="font-mono text-xs uppercase tracking-widest text-red-400">
-              Round Ended
+              {t('mobile.riddle.roundEnded')}
             </span>
             <span className="mt-1 font-mono text-[10px] uppercase tracking-widest text-red-700">
-              No submission accepted
+              {t('mobile.riddle.noSubmissionAccepted')}
             </span>
           </div>
         )}
@@ -267,7 +269,7 @@ const MobileRiddlePage = ({
             onClick={handleCapture}
             disabled={uploading || !!cameraError}
             className="flex h-16 w-16 items-center justify-center rounded-full bg-red-600 text-white shadow-lg shadow-red-900/50 transition active:scale-95 hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed"
-            aria-label="Capture photo"
+            aria-label={t('mobile.riddle.capturePhotoAria')}
           >
             <CameraIcon />
           </button>

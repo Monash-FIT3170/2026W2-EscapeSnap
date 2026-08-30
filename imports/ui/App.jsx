@@ -14,6 +14,8 @@ import ProgressPage from './host/pages/progress/ProgressPage';
 import FinalRiddlePage from './host/pages/riddle/FinalRiddlePage';
 import SummaryPage from './host/pages/summary/SummaryPage';
 import LandingPage from './host/pages/landing/Landing';
+import { useT } from '../languages/LanguageProvider';
+import { errorKey } from '../languages/errors';
 import Leaderboard from './host/pages/leaderboard/Leaderboard';
 
 function PlayerFlow({ initialCode = '' }) {
@@ -24,6 +26,7 @@ function PlayerFlow({ initialCode = '' }) {
   const [gameId, setGameId] = useState(null);
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinError, setJoinError] = useState('');
+  const t = useT();
 
   const { game, playerCount } = useTracker(() => {
     if (!gameId) return { game: null, playerCount: 0 };
@@ -57,7 +60,9 @@ function PlayerFlow({ initialCode = '' }) {
       autoAdvancedRef.current = false;
       setScreen('lobby');
     } catch (err) {
-      setJoinError(err.reason || err.message || 'Failed to join game');
+      // 'not-found' from players.join specifically means the code was wrong
+      // or the game already started.
+      setJoinError(t(errorKey(err, { 'not-found': 'errors.gameNotFoundOrStarted' })));
     } finally {
       setJoinLoading(false);
     }

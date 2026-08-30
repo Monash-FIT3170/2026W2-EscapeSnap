@@ -1,6 +1,8 @@
 import React from 'react';
+import { useT } from '../../../../languages/LanguageProvider';
 
 export function RoundTimer({ timeLeft, totalTime, compact = false }) {
+  const t = useT();
   const size = compact ? 48 : 128;
   const radius = compact ? 18 : 52;
   const strokeWidth = compact ? 3 : 8;
@@ -27,7 +29,7 @@ export function RoundTimer({ timeLeft, totalTime, compact = false }) {
         height={size}
         viewBox={`0 0 ${viewSize} ${viewSize}`}
         style={{ transform: 'rotate(-90deg)' }}
-        aria-label={isExpired ? "Time's up" : `${timeLeft} seconds remaining`}
+        aria-label={isExpired ? t('mobile.roundTimer.timesUpAria') : t('mobile.roundTimer.secondsRemainingAria', { n: timeLeft })}
       >
         <circle cx={cx} cy={cy} r={radius} fill="none" stroke="#1e293b" strokeWidth={strokeWidth} />
         <circle
@@ -45,7 +47,7 @@ export function RoundTimer({ timeLeft, totalTime, compact = false }) {
       <div className="absolute flex flex-col items-center select-none">
         {isExpired ? (
           <span className={`font-bold text-red-700 uppercase tracking-widest leading-tight text-center ${compact ? 'text-[7px]' : 'text-xs'}`}>
-            TIME&apos;S<br />UP
+            {t('mobile.roundTimer.timesUpLine1')}<br />{t('mobile.roundTimer.timesUpLine2')}
           </span>
         ) : compact ? (
           <span className="font-mono font-bold tabular-nums leading-none" style={{ fontSize: 12, color: textColor }}>
@@ -59,7 +61,7 @@ export function RoundTimer({ timeLeft, totalTime, compact = false }) {
             >
               {timeLeft}
             </span>
-            <span className="text-xs text-slate-500 uppercase tracking-wider mt-0.5">sec</span>
+            <span className="text-xs text-slate-500 uppercase tracking-wider mt-0.5">{t('mobile.roundTimer.secLabel')}</span>
           </>
         )}
       </div>
