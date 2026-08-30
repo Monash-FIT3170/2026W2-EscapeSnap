@@ -60,6 +60,11 @@ Games.attachSchema(
       type: Date,
       optional: true,
     },
+    timePenaltyMs: {
+      type: Number,
+      min: 0,
+      defaultValue: 0,
+    },
     finalRiddleAttempts: {
       type: SimpleSchema.Integer,
       optional: true,

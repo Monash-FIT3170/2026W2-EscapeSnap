@@ -6,6 +6,7 @@ import { Games } from '../../../../api/games/GamesCollection';
 import { Rounds } from '../../../../api/rounds/RoundsCollection';
 import { Players } from '../../../../api/players/PlayersCollection';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
+import { remainingGameMs } from '/imports/lib/gameClock';
 import { useT } from '../../../../languages/LanguageProvider';
 
 const MOCK_EVENTS = [
@@ -50,15 +51,11 @@ const ProgressPage = () => {
       setTimeLeft(null);
       return;
     }
-    const tick = () => {
-      const elapsed = Date.now() - new Date(game.startedAt).getTime();
-      const remaining = Math.max(0, game.timerMinutes * 60 * 1000 - elapsed);
-      setTimeLeft(remaining);
-    };
+    const tick = () => setTimeLeft(remainingGameMs(game));
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [game?.startedAt, game?.timerMinutes]);
+  }, [game?.startedAt, game?.timerMinutes, game?.timePenaltyMs]);
 
   if (loading) {
     return (
@@ -117,6 +114,11 @@ const ProgressPage = () => {
             </span>
             {!game.startedAt && (
               <span style={{ fontSize: 9, color: '#aa8984', opacity: 0.6, letterSpacing: '0.5px' }}>{t('host.progress.gameNotStarted')}</span>
+            )}
+            {game.startedAt && game.timePenaltyMs > 0 && (
+              <span style={{ fontSize: 9, color: '#ef4444', letterSpacing: '0.5px' }}>
+                {t('host.progress.hintPenalty', { time: formatTime(game.timePenaltyMs) })}
+              </span>
             )}
           </div>
 
