@@ -11,6 +11,11 @@ const DIFFICULTY_OPTIONS = [
   { value: 'hard', labelKey: 'difficulty.hard', subKey: 'difficulty.hardSub' },
 ];
 
+const THEME_OPTIONS = [
+  { value: 'classroom', label: 'CLASSROOM', sub: 'LECTURE HALL ITEMS' },
+  { value: 'home', label: 'HOME', sub: 'DOMESTIC ITEMS' },
+];
+
 const CreateGame = () => {
   const navigate = useNavigate();
   const t = useT();
@@ -21,6 +26,7 @@ const CreateGame = () => {
   const [timer, setTimer] = useState(30);
   const [capacity, setCapacity] = useState(4);
   const [difficulty, setDifficulty] = useState('medium');
+  const [theme, setTheme] = useState('classroom');
 
   const handleCreateGame = async () => {
     if (!groupName.trim()) {
@@ -30,7 +36,7 @@ const CreateGame = () => {
     setLoading(true);
     setError(null);
     try {
-      const gameId = await Meteor.callAsync('games.create', { groupName: groupName.trim(), timerMinutes: timer, capacity, difficulty });
+      const gameId = await Meteor.callAsync('games.create', { groupName: groupName.trim(), timerMinutes: timer, capacity, difficulty, theme });
       navigate(`/game/${gameId}/lobby`);
     } catch (err) {
       setError(t(errorKey(err)));
@@ -140,6 +146,39 @@ const CreateGame = () => {
               </div>
             </div>
 
+            <div className="p-4" style={{ border: '1px solid #1c1b1b' }}>
+              <label className="block text-xs tracking-widest mb-3" style={{ color: '#aa8984' }}>
+                RIDDLE THEME
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {THEME_OPTIONS.map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setTheme(opt.value)}
+                    className="p-3 text-left transition-colors cursor-pointer"
+                    style={{
+                      border: theme === opt.value ? '1px solid #8b0000' : '1px solid #1c1b1b',
+                      background: theme === opt.value ? '#1c0000' : 'transparent',
+                    }}
+                  >
+                    <div className="text-xs font-bold" style={{ color: '#e5e2e1' }}>
+                      {opt.label}
+                    </div>
+                    <div className="text-xs mt-1 leading-tight" style={{ color: theme === opt.value ? '#aa8984' : '#555' }}>
+                      {opt.sub}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-3" style={{ border: '1px solid #1c1b1b' }}>
+              <p className="text-xs tracking-wide" style={{ color: '#444' }}>
+                SPRINT_1 // PRESET PLAYER: DYLAN ·
+                STATUS WILL BE SET TO{' '}
+                <span style={{ color: '#555' }}>LOBBY</span>
+              </p>
+            </div>
 
             {error && (
               <p className="text-xs tracking-widest" style={{ color: '#8b0000' }}>

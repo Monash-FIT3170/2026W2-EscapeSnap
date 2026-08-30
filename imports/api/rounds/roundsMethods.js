@@ -2,7 +2,6 @@ import { Meteor } from 'meteor/meteor';
 import { Rounds } from './RoundsCollection';
 import { Players } from '../players/PlayersCollection';
 import { Games } from '../games/GamesCollection';
-import { RIDDLE_BANK } from '../../lib/riddleBank';
 import { advanceGameRound } from './roundProgression';
 
 function assignLetters(answer, totalRounds, playerCount) {
@@ -16,29 +15,29 @@ function assignLetters(answer, totalRounds, playerCount) {
   return pool;
 }
 
-// Fisher–Yates over a copy, so the module-level bank is never mutated.
-function shuffle(list) {
-  const out = [...list];
-  for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [out[i], out[j]] = [out[j], out[i]];
-  }
-  return out;
-}
-
 Meteor.methods({
+  // Reads the riddles games.start already prepared — no Gemini calls here.
   async 'rounds.createForGame'(gameId, firstRoundStartedAt = new Date()) {
     const game = await Games.findOneAsync(gameId);
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
 
     const players = await Players.find({ gameId }).fetchAsync();
-    // if (players.length === 0)
-    //   throw new Meteor.Error('no-players', 'No players in game');
+    if (players.length === 0)
+      throw new Meteor.Error('no-players', 'No players in game');
 
     const totalRounds = game.totalRounds;
-    const answer = game.finalRiddle.answer;
-    const letterPool = assignLetters(answer, totalRounds, players.length);
-    const shuffled = shuffle(RIDDLE_BANK);
+    const letterPool = assignLetters(
+      game.finalRiddle.answer,
+      totalRounds,
+      players.length
+    );
+    const pool = game.pregeneratedRoundRiddles;
+    if (!pool || pool.length === 0) {
+      throw new Meteor.Error(
+        'riddles-not-ready',
+        'Game has no pre-generated riddles — try starting the game again'
+      );
+    }
 
     const inserts = [];
     let riddleIndex = 0;
@@ -47,7 +46,7 @@ Meteor.methods({
       for (let p = 0; p < players.length; p++) {
         // The bank is smaller than totalRounds × playerCount for large games,
         // so wrap rather than deal `undefined`.
-        const riddle = shuffled[riddleIndex % shuffled.length];
+        const riddle = pool[riddleIndex % pool.length];
         const letter = letterPool[riddleIndex];
         riddleIndex++;
         inserts.push(
@@ -56,6 +55,7 @@ Meteor.methods({
             playerId: players[p]._id,
             roundNumber: round,
             riddleText: riddle.text,
+            hint: riddle.hint,
             answer: riddle.answer,
             letter,
             status: 'pending',

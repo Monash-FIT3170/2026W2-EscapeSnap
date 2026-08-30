@@ -1,70 +1,104 @@
 import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
 import 'meteor/aldeed:collection2/static';
+import { THEMES } from '/imports/lib/cocoClasses';
 
 export const Games = new Mongo.Collection('games');
 
-Games.attachSchema(new SimpleSchema({
-  joinCode: {
-    type: String,
-    min: 4,
-    max: 4,
-  },
-  groupName: {
-    type: String,
-    min: 1,
-    max: 40,
-  },
-  status: {
-    type: String,
-    allowedValues: ['lobby', 'in_progress', 'final_riddle', 'won', 'lost'],
-  },
-  currentRound: {
-    type: SimpleSchema.Integer,
-    min: 1,
-  },
-  totalRounds: {
-    type: SimpleSchema.Integer,
-    min: 1,
-    max: 10,
-  },
-  timerMinutes: {
-    type: SimpleSchema.Integer,
-    min: 10,
-    max: 60,
-  },
-  capacity: {
-    type: SimpleSchema.Integer,
-    min: 1,
-    max: 4,
-  },
-  difficulty: {
-    type: String,
-    allowedValues: ['easy', 'medium', 'hard'],
-  },
-  createdAt: {
-    type: Date,
-  },
-  startedAt: {
-    type: Date,
-    optional: true,
-  },
-  endedAt: {
-    type: Date,
-    optional: true,
-  },
-  finalRiddleAttempts: {
-    type: SimpleSchema.Integer,
-    optional: true,
-    min: 0,
-  },
-  'finalRiddle': {
-    type: Object,
-  },
-  'finalRiddle.riddle': {
-    type: String,
-  },
-  'finalRiddle.answer': {
-    type: String,
-  },
-}));
+Games.attachSchema(
+  new SimpleSchema({
+    joinCode: {
+      type: String,
+      min: 4,
+      max: 4,
+    },
+    groupName: {
+      type: String,
+      min: 1,
+      max: 40,
+    },
+    status: {
+      type: String,
+      allowedValues: ['lobby', 'in_progress', 'final_riddle', 'won', 'lost'],
+    },
+    currentRound: {
+      type: SimpleSchema.Integer,
+      min: 1,
+    },
+    totalRounds: {
+      type: SimpleSchema.Integer,
+      min: 1,
+      max: 10,
+    },
+    timerMinutes: {
+      type: SimpleSchema.Integer,
+      min: 10,
+      max: 60,
+    },
+    capacity: {
+      type: SimpleSchema.Integer,
+      min: 1,
+      max: 4,
+    },
+    difficulty: {
+      type: String,
+      allowedValues: ['easy', 'medium', 'hard'],
+    },
+    theme: {
+      type: String,
+      allowedValues: THEMES,
+      defaultValue: 'classroom',
+    },
+    createdAt: {
+      type: Date,
+    },
+    startedAt: {
+      type: Date,
+      optional: true,
+    },
+    endedAt: {
+      type: Date,
+      optional: true,
+    },
+    finalRiddleAttempts: {
+      type: SimpleSchema.Integer,
+      optional: true,
+      min: 0,
+    },
+    finalRiddle: {
+      type: Object,
+    },
+    'finalRiddle.riddle': {
+      type: String,
+    },
+    'finalRiddle.hint': {
+      type: String,
+    },
+    'finalRiddle.answer': {
+      type: String,
+    },
+    // Set once finalRiddle + pregeneratedRoundRiddles are both ready.
+    riddlesReady: {
+      type: Boolean,
+      optional: true,
+      defaultValue: false,
+    },
+    // Generated at games.create so START MISSION is instant.
+    pregeneratedRoundRiddles: {
+      type: Array,
+      optional: true,
+    },
+    'pregeneratedRoundRiddles.$': {
+      type: Object,
+    },
+    'pregeneratedRoundRiddles.$.text': {
+      type: String,
+    },
+    'pregeneratedRoundRiddles.$.hint': {
+      type: String,
+    },
+    'pregeneratedRoundRiddles.$.answer': {
+      type: String,
+    },
+  })
+);
