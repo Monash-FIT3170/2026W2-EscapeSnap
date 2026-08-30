@@ -42,3 +42,13 @@ body {
 .pulse-text {
   animation: pulse-text 1.4s ease-in-out infinite;
 }
+
+html {
+  background: #0e0e0e;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: #0e0e0e;
+  overscroll-behavior-y: none;
+}
