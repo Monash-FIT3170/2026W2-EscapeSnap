@@ -600,7 +600,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
                   onCorrect={handleCorrectAnswer}
                 />
                 {round?._id && (
-                  <div className="flex-shrink-0 border-t border-slate-900 bg-black px-5 pb-4">
+                  <div className="flex-shrink-0 border-t border-slate-900 bg-black px-5 pb-8">
                     <SkipRoundButton
                       armed={skipArmed}
                       pending={skipping}
