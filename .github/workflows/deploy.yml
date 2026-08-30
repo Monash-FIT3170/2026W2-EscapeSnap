@@ -31,9 +31,10 @@ jobs:
       - name: Write Galaxy settings
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          MONGO_URL: ${{ secrets.MONGO_URL }}
         run: |
-          jq -n --arg key "$GEMINI_API_KEY" \
-            '{"galaxy.meteor.com": {"env": {"GEMINI_API_KEY": $key}}}' \
+          jq -n --arg key "$GEMINI_API_KEY" --arg mongo "$MONGO_URL" \
+            '{"galaxy.meteor.com": {"env": {"GEMINI_API_KEY": $key, "MONGO_URL": $mongo}}}' \
             > galaxy-settings.json
 
       - name: Deploy
