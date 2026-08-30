@@ -33,33 +33,41 @@ function LettersScreen({ revealedLetters, totalRounds }) {
   return (
     <section className="flex flex-col gap-5 pt-5">
       <div>
-        <p className="font-mono text-xs uppercase tracking-widest text-red-500">
-          {t('mobile.dashboard.lettersCollected')}
-        </p>
-        <h2 className="mt-1 font-mono text-xl font-bold tracking-wide text-white">
+        <div className="flex items-center gap-3">
+          <span className="h-4 w-1 bg-[#8b0000]" />
+          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#aa8984]">
+            {t('mobile.dashboard.lettersCollected')}
+          </p>
+        </div>
+        <h2 className="mt-2 font-mono text-lg font-bold tracking-[0.1em] text-[#e5e2e1]">
           {t('mobile.dashboard.roundsComplete', {
             n: revealedLetters.filter((l) => l && l !== '?').length,
             total: totalRounds,
           })}
         </h2>
       </div>
-      <div className="flex gap-3 mt-2">
+      {/* totalRounds runs 1-10, so the tiles wrap instead of overflowing
+          a narrow phone the way a single flex row would. */}
+      <div
+        className="mt-2 grid gap-2"
+        style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(88px, 1fr))' }}
+      >
         {Array.from({ length: totalRounds }, (_, i) => {
           const letter = revealedLetters[i];
           const hasLetter = letter && letter !== '?';
           return (
             <div
               key={i}
-              className={`flex-1 border py-6 text-center ${
+              className={`min-w-0 border py-5 text-center ${
                 hasLetter
-                  ? 'border-red-900/60 bg-red-950/20'
-                  : 'border-slate-800 bg-slate-950/40'
+                  ? 'border-[#8b0000] bg-[#1c1b1b]'
+                  : 'border-[#353534] bg-[#1c1b1b]'
               }`}
             >
-              <p className="font-mono text-[10px] uppercase tracking-widest text-slate-500 mb-3">
+              <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.15em] text-[#aa8984]">
                 {t('mobile.dashboard.roundLabel', { n: i + 1 })}
               </p>
-              <p className="font-display text-4xl font-black text-white">
+              <p className={`font-display text-4xl font-black ${hasLetter ? 'text-[#e5e2e1]' : 'text-[#555]'}`}>
                 {letter ?? '?'}
               </p>
             </div>
@@ -79,10 +87,10 @@ function SkipRoundButton({ armed, pending, onArm, onConfirm }) {
       type="button"
       disabled={pending}
       onClick={armed ? onConfirm : onArm}
-      className={`w-full border px-5 py-4 font-mono text-sm font-semibold uppercase tracking-[0.3em] transition disabled:opacity-40 disabled:cursor-not-allowed ${
+      className={`min-h-[52px] w-full border px-5 font-mono text-xs font-semibold uppercase tracking-[0.25em] transition disabled:cursor-not-allowed disabled:opacity-40 ${
         armed
-          ? 'border-amber-500 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20'
-          : 'border-slate-700 bg-transparent text-slate-500 hover:border-slate-500 hover:text-slate-300'
+          ? 'border-[#ef4444] bg-[#1c1b1b] text-[#ef4444]'
+          : 'border-[#353534] bg-transparent text-[#aa8984] active:border-[#aa8984]'
       }`}
     >
       {pending
@@ -106,8 +114,8 @@ function TeamWaitScreen({ ready, total, isFinalRound, holding }) {
   // so it would read 0 / N and look like a regression.
   if (holding) {
     return (
-      <div className="mt-2 border border-slate-700 bg-slate-950/70 px-6 py-6 text-center">
-        <p className="pulse-text font-mono text-sm uppercase tracking-[0.3em] text-red-500">
+      <div className="border border-[#353534] bg-[#1c1b1b] px-5 py-6 text-center">
+        <p className="pulse-text font-mono text-xs uppercase tracking-[0.25em] text-[#aa8984]">
           {t('mobile.dashboard.nextRoundStarting')}
         </p>
       </div>
@@ -115,18 +123,18 @@ function TeamWaitScreen({ ready, total, isFinalRound, holding }) {
   }
 
   return (
-    <div className="mt-2 border border-slate-700 bg-slate-950/70 px-6 py-6 text-center">
-      <p className="font-mono text-sm uppercase tracking-[0.3em] text-red-500">
+    <div className="border border-[#353534] bg-[#1c1b1b] px-5 py-6 text-center">
+      <p className="font-mono text-xs uppercase tracking-[0.25em] text-[#aa8984]">
         {finished
           ? t('mobile.dashboard.allRoundsCompleted')
           : t('mobile.dashboard.awaitingTeam')}
       </p>
       {!finished && total > 0 && (
-        <p className="mt-4 font-display text-3xl font-black text-white">
+        <p className="mt-3 font-display text-3xl font-black text-[#e5e2e1]">
           {t('mobile.dashboard.operativesReady', { ready, total })}
         </p>
       )}
-      <p className="mt-4 text-sm leading-6 text-slate-400">
+      <p className="mt-3 font-mono text-xs leading-5 text-[#aa8984]">
         {finished
           ? t('mobile.dashboard.reportToTerminal')
           : t('mobile.dashboard.waitingBody')}
@@ -151,9 +159,9 @@ function ResultScreen({
 }) {
   const t = useT();
   return (
-    <div className="flex-1 overflow-y-auto px-5">
-      <section className="flex flex-col gap-6 pt-5">
-        <h1 className="font-display text-6xl font-black text-red-700">
+    <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-6">
+      <section className="flex flex-col gap-5 pt-5">
+        <h1 className="font-display text-5xl font-black leading-none text-[#8b0000]">
           {answerCorrect
             ? t('mobile.dashboard.correctBang')
             : settled
@@ -164,28 +172,28 @@ function ResultScreen({
         {/* Only a settled round has actually banked (or forfeited) a letter —
             a failed scan can still be retried, so nothing is revealed yet. */}
         {settled && (
-          <div className="border border-slate-700 bg-slate-950/70 px-6 py-10 text-center">
-            <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-slate-500">
+          <div className="border border-[#353534] bg-[#1c1b1b] px-6 py-8 text-center">
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#aa8984]">
               {t('mobile.dashboard.dataRecoveryActive')}
             </p>
-            <p className="mt-8 font-display text-8xl font-black text-white">
+            <p className="mt-6 font-display text-7xl font-black leading-none text-[#e5e2e1]">
               {revealedLetter ?? '?'}
             </p>
-            <p className="mt-6 font-mono text-sm uppercase tracking-[0.35em] text-slate-400">
+            <p className="mt-5 font-mono text-[11px] uppercase tracking-[0.3em] text-[#aa8984]">
               {t('mobile.dashboard.letterRevealed')}
             </p>
           </div>
         )}
 
-        <div className="border-l-4 border-red-600 bg-slate-900/80 px-6 py-6">
-          <h2 className="font-display text-xl font-bold tracking-widest text-white">
+        <div className="border-l-4 border-[#8b0000] bg-[#1c1b1b] px-5 py-5">
+          <h2 className="font-display text-lg font-bold tracking-[0.15em] text-[#e5e2e1]">
             {answerCorrect
               ? t('mobile.dashboard.puzzleSolved')
               : settled
                 ? t('mobile.dashboard.letterForfeited')
                 : t('mobile.dashboard.wrongObjectDetected')}
           </h2>
-          <p className="mt-4 text-sm leading-6 text-slate-400">
+          <p className="mt-3 font-mono text-xs leading-5 text-[#aa8984]">
             {answerCorrect
               ? t('mobile.dashboard.correctBody')
               : settled
@@ -206,7 +214,7 @@ function ResultScreen({
             <button
               type="button"
               onClick={onRetry}
-              className="w-full border border-slate-600 bg-transparent px-5 py-4 font-mono text-sm font-semibold uppercase tracking-[0.3em] text-slate-400 hover:border-slate-400 hover:text-slate-200 transition"
+              className="min-h-[52px] w-full border border-[#8b0000] bg-[#8b0000] px-5 font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#e5e2e1] transition active:bg-[#a50000]"
             >
               {t('mobile.dashboard.retry')}
             </button>
@@ -482,51 +490,51 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-black text-slate-100 overflow-hidden">
-      <header className="flex-shrink-0 flex items-center justify-between border-b border-slate-800 px-4 py-2">
-        <div className="flex flex-1 items-center justify-center gap-3">
-          <span className="font-mono text-xs font-bold uppercase tracking-widest text-white">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-[#0e0e0e] text-[#e5e2e1]">
+      <header className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-[#353534] px-4 pt-[calc(0.5rem+env(safe-area-inset-top))] pb-2">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="h-4 w-1 flex-shrink-0 bg-[#8b0000]" />
+          <span className="truncate font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#e5e2e1]">
             {t('mobile.dashboard.roundHeader', { n: shownRound })}
           </span>
+        </div>
+        <div className="flex flex-shrink-0 items-center gap-3">
           <RoundTimer
             timeLeft={timeLeft ?? totalGameSeconds}
             totalTime={totalGameSeconds}
-            compact
           />
+          <button
+            type="button"
+            onClick={onExit}
+            className="min-h-[44px] border border-[#353534] px-3 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[#aa8984] transition active:border-[#aa8984]"
+          >
+            {t('mobile.dashboard.lobbyButton')}
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={onExit}
-          className="flex-shrink-0 border border-red-600 bg-red-600/10 px-4 py-2 font-mono text-xs font-semibold uppercase tracking-widest text-red-400 transition hover:bg-red-600 hover:text-white"
-        >
-          {t('mobile.dashboard.lobbyButton')}
-        </button>
       </header>
 
       {!showResult && activeTab === 'scanner' && (
-        <div className="flex-shrink-0 flex items-start gap-3 border-b border-slate-800 px-5 py-3">
-          <span className="flex-shrink-0 bg-red-700 px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-white">
+        <div className="flex flex-shrink-0 items-start gap-3 border-b border-[#353534] bg-[#1c1b1b] px-4 py-3">
+          <span className="flex-shrink-0 bg-[#8b0000] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-[#e5e2e1]">
             {t('mobile.dashboard.roundBadge', { n: currentRound })}
           </span>
-          <p className="font-mono text-xs leading-5 text-slate-300">
+          <p className="min-w-0 font-mono text-xs leading-5 text-[#e5e2e1]">
             {round?.riddleText ?? t('mobile.dashboard.loadingRiddle')}
           </p>
         </div>
       )}
 
       {!showResult && activeTab === 'scanner' && round?._id && (
-        <div className="flex-shrink-0 border-b border-slate-800 px-5 py-2">
+        <div className="flex-shrink-0 border-b border-[#353534] px-4 py-2">
           {hint ? (
-            <p className="font-mono text-xs text-amber-400">💡 {hint}</p>
+            <p className="font-mono text-xs leading-5 text-[#aa8984]">💡 {hint}</p>
           ) : (
             <button
               type="button"
               disabled={hintLoading}
               onClick={hintArmed ? handleRevealHint : () => setHintArmed(true)}
-              className={`font-mono text-[10px] uppercase tracking-widest transition disabled:opacity-40 ${
-                hintArmed
-                  ? 'text-red-400 hover:text-red-300'
-                  : 'text-amber-500 hover:text-amber-300'
+              className={`min-h-[44px] font-mono text-[10px] uppercase tracking-[0.2em] transition disabled:opacity-40 ${
+                hintArmed ? 'text-[#ef4444]' : 'text-[#aa8984]'
               }`}
             >
               💡{' '}
@@ -545,23 +553,23 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
       )}
 
       {!showResult && activeTab === 'scanner' && isExpired && (
-        <div className="flex-shrink-0 border-b border-red-900/60 bg-red-950/40 px-5 py-2 text-center">
-          <p className="font-mono text-xs uppercase tracking-widest text-red-400">
+        <div className="flex-shrink-0 border-b border-[#353534] bg-[#1c1b1b] px-4 py-2 text-center">
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#ef4444]">
             {t('mobile.dashboard.timeExpired')}
           </p>
         </div>
       )}
 
       {skipError && (
-        <div className="flex-shrink-0 border-b border-red-900/60 bg-red-950/40 px-5 py-2 text-center">
-          <p className="font-mono text-xs uppercase tracking-widest text-red-400">
+        <div className="flex-shrink-0 border-b border-[#353534] bg-[#1c1b1b] px-4 py-2 text-center">
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#ef4444]">
             {t('mobile.dashboard.skipFailed')}
           </p>
         </div>
       )}
 
       <div
-        className={`flex-1 min-h-0 flex flex-col ${showResult ? '' : 'pb-16'}`}
+        className={`flex min-h-0 flex-1 flex-col ${showResult ? '' : 'pb-[calc(4rem+env(safe-area-inset-bottom))]'}`}
       >
 
         {showResult ? (
@@ -582,7 +590,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
         ) : (
           <>
             {activeTab === 'letters' && (
-              <div className="flex-1 overflow-y-auto px-5">
+              <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-6">
                 <LettersScreen
                   revealedLetters={revealedLetters}
                   totalRounds={totalRounds}
@@ -594,13 +602,12 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
               <>
                 <MobileRiddlePage
                   roundId={round?._id}
-                  riddleText={round?.riddleText}
                   targetObject={round?.answer}
                   isExpired={isExpired}
                   onCorrect={handleCorrectAnswer}
                 />
                 {round?._id && (
-                  <div className="flex-shrink-0 border-t border-slate-900 bg-black px-5 pb-8">
+                  <div className="flex-shrink-0 border-t border-[#353534] bg-[#0e0e0e] px-5 pb-4 pt-3">
                     <SkipRoundButton
                       armed={skipArmed}
                       pending={skipping}
