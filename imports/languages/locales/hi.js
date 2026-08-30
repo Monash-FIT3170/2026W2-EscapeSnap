@@ -245,8 +245,6 @@ export const hi = {
       gameInSession: 'गेम चल रहा है',
       gameInSessionBody: 'एक राउंड अभी सक्रिय है। अपना मिशन पूरा करने के लिए स्कैनर पर लौटें।',
       active: 'सक्रिय',
-      fearLevelStabilizing: 'भय स्तर स्थिर हो रहे हैं',
-      fearLevelAria: 'भय स्तर स्थिरीकरण',
       playerDefault: 'खिलाड़ी',
       awaitingGuidance: 'मार्गदर्शन की प्रतीक्षा',
     },
@@ -309,7 +307,6 @@ export const hi = {
       secondsRemainingAria: '{n} सेकंड शेष',
       timesUpLine1: 'समय',
       timesUpLine2: 'समाप्त',
-      secLabel: 'सेकंड',
     },
     winScreen: {
       missionLine1: 'मिशन',

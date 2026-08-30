@@ -245,8 +245,6 @@ export const id = {
       gameInSession: 'PERMAINAN BERLANGSUNG',
       gameInSessionBody: 'Sebuah ronde sedang berlangsung. Kembali ke pemindai untuk menyelesaikan misimu.',
       active: 'Aktif',
-      fearLevelStabilizing: 'TINGKAT KETAKUTAN SEDANG STABIL',
-      fearLevelAria: 'Stabilisasi tingkat ketakutan',
       playerDefault: 'PEMAIN',
       awaitingGuidance: 'MENUNGGU ARAHAN',
     },
@@ -309,7 +307,6 @@ export const id = {
       secondsRemainingAria: '{n} detik tersisa',
       timesUpLine1: 'WAKTU',
       timesUpLine2: 'HABIS',
-      secLabel: 'dtk',
     },
     winScreen: {
       missionLine1: 'Misi',

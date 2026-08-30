@@ -245,8 +245,6 @@ export const es = {
       gameInSession: 'PARTIDA EN CURSO',
       gameInSessionBody: 'Hay una ronda activa. Vuelve al escáner para completar tu misión.',
       active: 'Activa',
-      fearLevelStabilizing: 'NIVELES DE MIEDO ESTABILIZÁNDOSE',
-      fearLevelAria: 'Estabilización del nivel de miedo',
       playerDefault: 'JUGADOR',
       awaitingGuidance: 'ESPERANDO INSTRUCCIONES',
     },
@@ -310,7 +308,6 @@ export const es = {
       secondsRemainingAria: '{n} segundos restantes',
       timesUpLine1: 'SE ACABÓ',
       timesUpLine2: 'EL TIEMPO',
-      secLabel: 'seg',
     },
     winScreen: {
       missionLine1: 'Misión',

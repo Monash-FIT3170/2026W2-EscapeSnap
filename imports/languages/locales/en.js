@@ -249,8 +249,6 @@ export const en = {
       gameInSession: 'GAME IN SESSION',
       gameInSessionBody: 'A round is currently active. Return to the scanner to complete your mission.',
       active: 'Active',
-      fearLevelStabilizing: 'FEAR LEVELS STABILIZING',
-      fearLevelAria: 'Fear level stabilization',
       playerDefault: 'PLAYER',
       awaitingGuidance: 'AWAITING GUIDANCE',
     },
@@ -313,7 +311,6 @@ export const en = {
       secondsRemainingAria: '{n} seconds remaining',
       timesUpLine1: "TIME'S",
       timesUpLine2: 'UP',
-      secLabel: 'sec',
     },
     winScreen: {
       missionLine1: 'Mission',
