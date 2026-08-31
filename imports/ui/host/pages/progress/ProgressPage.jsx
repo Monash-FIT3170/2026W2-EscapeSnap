@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
@@ -75,9 +75,6 @@ const ProgressPage = () => {
       </div>
     );
   }
-
-  const pinRaw = gameId.slice(-6).toUpperCase();
-  const pin = pinRaw.slice(0, 3) + '-' + pinRaw.slice(3);
 
   const formatTime = (ms) => {
     if (ms === null) return '--:--';

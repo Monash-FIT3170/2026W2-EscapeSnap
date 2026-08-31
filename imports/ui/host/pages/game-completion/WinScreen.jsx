@@ -1,4 +1,3 @@
-import React from 'react';
 import PostGameLeaderboard from '../../components/leaderboard/PostGameLeaderboard';
 import { useT } from '../../../../languages/LanguageProvider';
 

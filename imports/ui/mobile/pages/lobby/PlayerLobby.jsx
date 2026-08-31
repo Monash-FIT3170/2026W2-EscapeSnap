@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useT } from '../../../../languages/LanguageProvider';
 import { LobbyHeader } from '../../components/lobby/LobbyHeader';
 import { SurvivorIdCard } from '../../components/lobby/SurvivorIdCard';
@@ -18,7 +18,6 @@ export function PlayerLobby({
   inSession = false,
   gameStartedAt = null,
   roundDuration = 60,
-  onGameStart,
   onExit
 }) {
   const calcTimeLeft = () =>

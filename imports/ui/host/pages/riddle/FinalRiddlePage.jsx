@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useFinalRiddle } from '/imports/ui/shared/hooks/useFinalRiddle.js';
 import { useRevealedLetters } from '/imports/ui/shared/hooks/useRevealedLetters.js';
@@ -18,7 +18,7 @@ const FinalRiddlePage = () => {
   const [hasWon, setHasWon] = useState(false);
   const [hasLost, setHasLost] = useState(false);
 
-  const { loading, finalRiddle, gameStatus } = useFinalRiddle(gameId);
+  const { loading, finalRiddle } = useFinalRiddle(gameId);
   const { lettersLoading, letters } = useRevealedLetters(gameId);
 
   if (loading || lettersLoading) {
@@ -78,7 +78,7 @@ const FinalRiddlePage = () => {
         <div style={{ background: '#0e0e0e', borderLeft: '4px solid #8b0000', padding: '32px' }}>
           <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984', marginBottom: 12 }}>{t('host.finalRiddle.decryptTheClue')}</p>
           <p style={{ fontSize: 22, fontWeight: 600, color: '#e5e2e1', lineHeight: 1.6, letterSpacing: '0.5px' }}>
-            "{finalRiddle}"
+            &ldquo;{finalRiddle}&rdquo;
           </p>
         </div>
 

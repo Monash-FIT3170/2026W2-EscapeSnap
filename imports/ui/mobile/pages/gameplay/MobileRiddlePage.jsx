@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useT } from '../../../../languages/LanguageProvider';
 
@@ -34,7 +34,6 @@ function CameraIcon() {
 
 const MobileRiddlePage = ({
   roundId,
-  riddleText,
   targetObject,
   isExpired = false,
   onCorrect,

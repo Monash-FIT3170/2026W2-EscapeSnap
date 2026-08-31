@@ -1,4 +1,3 @@
-import React from 'react';
 import { useT } from '../../../../languages/LanguageProvider';
 
 export default function GameCompletionActions({

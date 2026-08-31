@@ -1,4 +1,3 @@
-import React from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useGameSummary } from '/imports/ui/shared/hooks/useGameSummary.js';
 import GameNotFound from '/imports/ui/shared/components/GameNotFound.jsx';

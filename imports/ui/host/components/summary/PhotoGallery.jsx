@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useT } from '../../../../languages/LanguageProvider';
 
 const PANEL = '#1c1b1b';

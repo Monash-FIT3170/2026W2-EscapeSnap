@@ -28,4 +28,12 @@ export default [
       react: { version: 'detect' },
     },
   },
+  {
+    files: ['**/*.test.js', '**/*.tests.js'],
+    languageOptions: {
+      globals: {
+        ...globals.mocha,
+      },
+    },
+  },
 ];

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from './LanguageProvider';
 import { LOCALES, LOCALE_CODES } from './index';
 import { Flag } from './Flags';
