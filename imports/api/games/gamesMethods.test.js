@@ -16,7 +16,7 @@ if (Meteor.isServer) {
 
     describe('games.create', function () {
       it('creates a game in lobby status with a four digit join code', async function () {
-        const gameId = await Meteor.callAsync('games.create');
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
         const game = await Games.findOneAsync(gameId);
 
         assert.equal(game.status, 'lobby');
@@ -26,7 +26,7 @@ if (Meteor.isServer) {
       });
 
       it('applies the documented defaults when called with no options', async function () {
-        const gameId = await Meteor.callAsync('games.create');
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
         const game = await Games.findOneAsync(gameId);
 
         assert.equal(game.totalRounds, 3);
@@ -37,6 +37,7 @@ if (Meteor.isServer) {
 
       it('honours supplied options', async function () {
         const gameId = await Meteor.callAsync('games.create', {
+          groupName: 'Team Rocket',
           timerMinutes: 45,
           totalRounds: 5,
           capacity: 2,
@@ -52,7 +53,7 @@ if (Meteor.isServer) {
 
       it('rejects a difficulty outside the allowed values', async function () {
         try {
-          await Meteor.callAsync('games.create', { difficulty: 'impossible' });
+          await Meteor.callAsync('games.create', { groupName: 'Team Rocket', difficulty: 'impossible' });
           assert.fail('expected the schema to reject an unknown difficulty');
         } catch (error) {
           assert.ok(error, 'an error was thrown');
@@ -62,7 +63,7 @@ if (Meteor.isServer) {
 
     describe('games.start', function () {
       it('moves a lobby game to in_progress and stamps startedAt', async function () {
-        const gameId = await Meteor.callAsync('games.create');
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
         await Meteor.callAsync('games.start', gameId);
         const game = await Games.findOneAsync(gameId);
 
@@ -80,7 +81,7 @@ if (Meteor.isServer) {
       });
 
       it('refuses to start a game that has already left the lobby', async function () {
-        const gameId = await Meteor.callAsync('games.create');
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
         await Meteor.callAsync('games.start', gameId);
 
         try {
@@ -93,6 +94,7 @@ if (Meteor.isServer) {
 
       it('creates one round per player per round number', async function () {
         const gameId = await Meteor.callAsync('games.create', {
+          groupName: 'Team Rocket',
           totalRounds: 3,
         });
         const game = await Games.findOneAsync(gameId);

@@ -15,7 +15,7 @@ if (Meteor.isServer) {
       await Games.removeAsync({});
       await Players.removeAsync({});
 
-      gameId = await Meteor.callAsync('games.create', { capacity: 2 });
+      gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket', capacity: 2 });
       joinCode = (await Games.findOneAsync(gameId)).joinCode;
     });
 
