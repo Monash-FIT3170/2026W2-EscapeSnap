@@ -1,3 +1,4 @@
+import React from 'react';
 
 // Inline SVG flags — emoji flags (🇪🇸) render as bare letters on Windows browsers,
 // so these are drawn instead. Sized for ~20px wide display; deliberately simplified.

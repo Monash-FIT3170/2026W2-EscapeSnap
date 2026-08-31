@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useFinalRiddle } from '/imports/ui/shared/hooks/useFinalRiddle.js';
 import { useRevealedLetters } from '/imports/ui/shared/hooks/useRevealedLetters.js';

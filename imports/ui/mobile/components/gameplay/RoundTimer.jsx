@@ -1,3 +1,4 @@
+import React from 'react';
 import { useT } from '../../../../languages/LanguageProvider';
 
 export function RoundTimer({ timeLeft, totalTime, compact = false }) {

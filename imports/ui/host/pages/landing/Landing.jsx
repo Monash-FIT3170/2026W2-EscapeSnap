@@ -1,3 +1,4 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useT } from '../../../../languages/LanguageProvider';
 import { LanguagePicker } from '../../../../languages/LanguagePicker';

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useT } from '../../../../languages/LanguageProvider';
 import { LobbyHeader } from '../../components/lobby/LobbyHeader';
 import { SurvivorIdCard } from '../../components/lobby/SurvivorIdCard';

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import { LOCALES, LOCALE_CODES, DEFAULT_LOCALE } from './index';
 
 const STORAGE_KEY = 'escapesnap.locale';
