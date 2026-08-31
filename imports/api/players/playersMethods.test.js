@@ -52,10 +52,12 @@ if (Meteor.isServer) {
     });
 
     it('throws not-found once the game has left the lobby', async function () {
+      await Meteor.callAsync('players.join', joinCode, 'Ada');
+      await Meteor.callAsync('players.join', joinCode, 'Grace');
       await Meteor.callAsync('games.start', gameId);
 
       try {
-        await Meteor.callAsync('players.join', joinCode, 'Ada');
+        await Meteor.callAsync('players.join', joinCode, 'Katherine');
         assert.fail('expected players.join to throw');
       } catch (error) {
         assert.equal(error.error, 'not-found');

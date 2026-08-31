@@ -63,7 +63,10 @@ if (Meteor.isServer) {
 
     describe('games.start', function () {
       it('moves a lobby game to in_progress and stamps startedAt', async function () {
-        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket', capacity: 1 });
+        const { joinCode } = await Games.findOneAsync(gameId);
+        await Meteor.callAsync('players.join', joinCode, 'Ada');
+
         await Meteor.callAsync('games.start', gameId);
         const game = await Games.findOneAsync(gameId);
 
@@ -81,7 +84,9 @@ if (Meteor.isServer) {
       });
 
       it('refuses to start a game that has already left the lobby', async function () {
-        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket', capacity: 1 });
+        const { joinCode } = await Games.findOneAsync(gameId);
+        await Meteor.callAsync('players.join', joinCode, 'Ada');
         await Meteor.callAsync('games.start', gameId);
 
         try {
@@ -96,6 +101,7 @@ if (Meteor.isServer) {
         const gameId = await Meteor.callAsync('games.create', {
           groupName: 'Team Rocket',
           totalRounds: 3,
+          capacity: 2,
         });
         const game = await Games.findOneAsync(gameId);
         await Meteor.callAsync('players.join', game.joinCode, 'Ada');
