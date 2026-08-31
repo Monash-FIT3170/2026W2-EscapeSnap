@@ -17,8 +17,9 @@ const FinalRiddlePage = () => {
   const t = useT();
   const [hasWon, setHasWon] = useState(false);
   const [hasLost, setHasLost] = useState(false);
+  const [hintRevealed, setHintRevealed] = useState(false);
 
-  const { loading, finalRiddle } = useFinalRiddle(gameId);
+  const { loading, finalRiddle, finalRiddleHint } = useFinalRiddle(gameId);
   const { lettersLoading, letters } = useRevealedLetters(gameId);
 
   if (loading || lettersLoading) {
@@ -80,6 +81,32 @@ const FinalRiddlePage = () => {
           <p style={{ fontSize: 22, fontWeight: 600, color: '#e5e2e1', lineHeight: 1.6, letterSpacing: '0.5px' }}>
             &ldquo;{finalRiddle}&rdquo;
           </p>
+
+          {finalRiddleHint && (
+            <div style={{ marginTop: 20 }}>
+              {hintRevealed ? (
+                <p style={{ fontSize: 13, color: '#aa8984', letterSpacing: '0.3px' }}>
+                  💡 HINT: {finalRiddleHint}
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setHintRevealed(true)}
+                  style={{
+                    fontSize: 11,
+                    letterSpacing: '1.5px',
+                    color: '#8b0000',
+                    background: 'transparent',
+                    border: '1px solid #8b0000',
+                    padding: '8px 16px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  REVEAL HINT
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Revealed Letters */}

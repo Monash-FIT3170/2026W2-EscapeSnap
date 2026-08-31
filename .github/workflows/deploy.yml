@@ -40,6 +40,9 @@ jobs:
       # Required at runtime by server/main.js to call the Gemini API for
       # photo verification — must be present in the Galaxy settings env.
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      # The deployed app's MongoDB connection string — must also be present
+      # in the Galaxy settings env.
+      MONGO_URL: ${{ secrets.MONGO_URL }}
 
     steps:
       - name: Check out repository
@@ -55,6 +58,11 @@ jobs:
 
           if [ -z "$GEMINI_API_KEY" ]; then
             echo "::error::No GEMINI_API_KEY secret set. The deployed app needs it to verify submitted photos."
+            exit 1
+          fi
+
+          if [ -z "$MONGO_URL" ]; then
+            echo "::error::No MONGO_URL secret set. The deployed app needs it to connect to MongoDB."
             exit 1
           fi
 
@@ -87,8 +95,8 @@ jobs:
           umask 077
           printf '%s' "$GALAXY_SESSION" > "$RUNNER_TEMP/meteor-session.json"
 
-          jq -n --arg key "$GEMINI_API_KEY" \
-            '{"galaxy.meteor.com": {"env": {"GEMINI_API_KEY": $key}}}' \
+          jq -n --arg key "$GEMINI_API_KEY" --arg mongo "$MONGO_URL" \
+            '{"galaxy.meteor.com": {"env": {"GEMINI_API_KEY": $key, "MONGO_URL": $mongo}}}' \
             > "$RUNNER_TEMP/settings.json"
 
       - name: Deploy to Galaxy
