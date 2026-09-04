@@ -19,7 +19,7 @@ const FinalRiddlePage = () => {
   const [hasLost, setHasLost] = useState(false);
   const [hintRevealed, setHintRevealed] = useState(false);
 
-  const { loading, finalRiddle, finalRiddleHint, gameStatus } = useFinalRiddle(gameId);
+  const { loading, finalRiddle, finalRiddleHint } = useFinalRiddle(gameId);
   const { lettersLoading, letters } = useRevealedLetters(gameId);
 
   if (loading || lettersLoading) {
@@ -79,7 +79,7 @@ const FinalRiddlePage = () => {
         <div style={{ background: '#0e0e0e', borderLeft: '4px solid #8b0000', padding: '32px' }}>
           <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984', marginBottom: 12 }}>{t('host.finalRiddle.decryptTheClue')}</p>
           <p style={{ fontSize: 22, fontWeight: 600, color: '#e5e2e1', lineHeight: 1.6, letterSpacing: '0.5px' }}>
-            "{finalRiddle}"
+            &ldquo;{finalRiddle}&rdquo;
           </p>
 
           {finalRiddleHint && (

@@ -1,5 +1,4 @@
 // React must remain in scope for Meteor's classic JSX transform.
-// eslint-disable-next-line no-unused-vars
 import React from 'react';
 import { AchievementBadge } from './AchievementBadge';
 import { useT } from '../../../../languages/LanguageProvider';

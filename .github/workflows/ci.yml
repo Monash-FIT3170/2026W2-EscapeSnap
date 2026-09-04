@@ -1,0 +1,172 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
+  NODE_ENV: test
+  PORT: 3000
+  ROOT_URL: http://localhost:3000
+  MONGO_URL: mongodb://127.0.0.1:27017/escapesnap_test
+  # Store private CI settings and API keys in the CI_METEOR_SETTINGS
+  # repository secret. Never use production credentials in this workflow.
+  METEOR_SETTINGS: ${{ secrets.CI_METEOR_SETTINGS || '{}' }}
+
+jobs:
+  # Rejects PRs whose branch is not feature/<name>, fix/<name> or spike/<name>
+  # in kebab-case. Keeps the branch list readable and matches the PMP.
+  branch-name:
+    name: Branch naming convention
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Check branch name
+        shell: bash
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
+        run: |
+          echo "Branch: $BRANCH_NAME"
+
+          if [[ ! "$BRANCH_NAME" =~ ^(feature|fix|spike)/[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+            echo "::error::Branch '$BRANCH_NAME' must use feature/<name>, fix/<name>, or spike/<name>, with the name written in kebab-case."
+            exit 1
+          fi
+
+  # Checks every non-merge commit in the PR against
+  # "[Role] [Task ID] <type>: <description>" so the history stays traceable
+  # back to the board. Merge commits are skipped.
+  commit-format:
+    name: Commit message format
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Check out complete Git history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Check commit messages
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          PATTERN='^\[(RTE|PM|SA)\] \[[A-Z][A-Z0-9]*-[0-9]+\] (feat|fix|docs|chore): .+$'
+          FAILED=0
+
+          while IFS= read -r SHA; do
+            PARENT_COUNT=$(git rev-list --parents -n 1 "$SHA" | awk '{print NF - 1}')
+
+            if (( PARENT_COUNT > 1 )); then
+              echo "::notice::Skipping merge commit $SHA."
+              continue
+            fi
+
+            MESSAGE=$(git log -1 --format=%s "$SHA")
+
+            if [[ ! "$MESSAGE" =~ $PATTERN ]]; then
+              echo "::error::Commit $SHA does not follow '[Role] [Task ID] <type>: <description>' — \"$MESSAGE\""
+              FAILED=1
+            else
+              echo "Valid: $MESSAGE"
+            fi
+          done < <(git rev-list "$BASE_SHA..$HEAD_SHA")
+
+          exit "$FAILED"
+
+  # The actual build gate: installs dependencies, lints, runs the test suite
+  # against a throwaway MongoDB, and proves the app still bundles. Runs on
+  # every trigger, not just PRs, so a broken main is caught immediately.
+  verify:
+    name: Lint, test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    services:
+      mongodb:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Validate environment configuration
+        shell: bash
+        run: |
+          python3 -c 'import json, os; json.loads(os.environ["METEOR_SETTINGS"])'
+          echo "CI environment configuration is valid."
+
+      - name: Cache Meteor
+        uses: actions/cache@v5
+        with:
+          path: ~/.meteor
+          key: meteor-${{ runner.os }}-${{ hashFiles('.meteor/release') }}
+          restore-keys: |
+            meteor-${{ runner.os }}-
+
+      - name: Install Meteor
+        shell: bash
+        run: |
+          if [ ! -x "$HOME/.meteor/meteor" ]; then
+            curl -fsSL https://install.meteor.com/ | sh
+          fi
+
+          echo "$HOME/.meteor" >> "$GITHUB_PATH"
+          "$HOME/.meteor/meteor" --version
+
+      - name: Install dependencies
+        run: meteor npm ci
+
+      - name: Run lint
+        run: >-
+          meteor npm run lint -- --rule 'prettier/prettier: off'
+
+      - name: Run tests
+        shell: bash
+        run: |
+          TEST_SCRIPT=$(python3 -c "import json; print(json.load(open('package.json')).get('scripts', {}).get('test', ''))")
+
+          if [ -z "$TEST_SCRIPT" ]; then
+            echo "::warning::No test script is defined in package.json. Automated tests were skipped."
+            exit 0
+          fi
+
+          echo "Waiting for MongoDB..."
+          for ATTEMPT in {1..30}; do
+            if (echo > /dev/tcp/127.0.0.1/27017) >/dev/null 2>&1; then
+              echo "MongoDB is ready."
+              meteor npm test
+              exit $?
+            fi
+
+            sleep 1
+          done
+
+          echo "::error::MongoDB did not become available on port 27017."
+          exit 1
+
+      - name: Build Meteor application
+        shell: bash
+        run: |
+          rm -rf /tmp/escapesnap-build
+          meteor build --directory /tmp/escapesnap-build

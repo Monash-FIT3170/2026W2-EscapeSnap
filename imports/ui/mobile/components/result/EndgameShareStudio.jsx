@@ -1,5 +1,4 @@
 // Meteor's JSX transform still requires React in module scope.
-// eslint-disable-next-line no-unused-vars
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   buildShareText,
