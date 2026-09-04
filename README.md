@@ -57,3 +57,12 @@ meteor run --settings settings.example.json
 
 ## Environment
 
+Copy `.env.example` to `.env` and fill in:
+
+```
+GEMINI_API_KEY=       # required for photo verification + AI-generated riddles
+GEMINI_MODEL=         # optional, defaults to gemini-3-flash-preview
+```
+
+Get a key from https://aistudio.google.com/apikey. The app boots without `.env` — every variable is optional for startup — but photo submissions and riddle generation will fail without `GEMINI_API_KEY`. `scripts/start.mjs` loads `.env` automatically for `meteor npm run start`.
+
