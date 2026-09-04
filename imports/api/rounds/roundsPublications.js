@@ -9,6 +9,14 @@ Meteor.publish('rounds.forPlayer', function (playerId, roundNumber) {
   );
 });
 
+// Mobile: just enough of the team's rounds to show who is still scanning.
+Meteor.publish('rounds.progress', function (gameId, roundNumber) {
+  return Rounds.find(
+    { gameId, roundNumber },
+    { fields: { gameId: 1, playerId: 1, roundNumber: 1, status: 1 } }
+  );
+});
+
 // Host: all rounds for the game (for progress screen)
 Meteor.publish('rounds.forGame', function (gameId) {
   return Rounds.find(
