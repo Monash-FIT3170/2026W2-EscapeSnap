@@ -1,4 +1,5 @@
 import { BADGE_IDS } from './badgeDefinitions.js';
+import { gameBudgetMs } from '../../lib/gameClock.js';
 
 function toTimestamp(value) {
   if (!value) return null;
@@ -166,7 +167,9 @@ export function calculateGameResults({
       });
   }
 
-  const timerDurationMs = (game.timerMinutes ?? 0) * 60 * 1000;
+  // Hint penalties bring the deadline forward, so the clutch window moves with
+  // them — otherwise the badge would key off a deadline that never applied.
+  const timerDurationMs = gameBudgetMs(game);
   const timerEndsAt =
     gameStartedAt === null ? null : gameStartedAt + timerDurationMs;
   const clutchWindowMs = timerDurationMs * 0.1;

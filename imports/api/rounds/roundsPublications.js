@@ -5,7 +5,7 @@ import { Rounds } from './RoundsCollection';
 Meteor.publish('rounds.forPlayer', function (playerId, roundNumber) {
   return Rounds.find(
     { playerId, roundNumber },
-    { fields: { letter: 0 } }
+    { fields: { letter: 0, hint: 0 } }
   );
 });
 

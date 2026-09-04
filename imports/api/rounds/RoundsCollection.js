@@ -39,6 +39,10 @@ Rounds.attachSchema(
       type: Date,
       optional: true,
     },
+    hintRevealedAt: {
+      type: Date,
+      optional: true,
+    },
     submittedAt: {
       type: Date,
       optional: true,

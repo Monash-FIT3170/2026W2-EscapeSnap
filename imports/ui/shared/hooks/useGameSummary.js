@@ -4,6 +4,7 @@ import { Games } from '/imports/api/games/GamesCollection';
 import { Players } from '/imports/api/players/PlayersCollection';
 import { Rounds } from '/imports/api/rounds/RoundsCollection';
 import { Submissions, PHOTO_TTL_MS } from '/imports/api/submissions/SubmissionsCollection';
+import { gameBudgetMs } from '/imports/lib/gameClock';
 
 const ENDED = ['won', 'lost'];
 
@@ -54,8 +55,9 @@ function totalTimeFor(game, rounds) {
 
   if (totalTimeMs === null) return { totalTimeMs: null, approximate: false };
 
-  // Never report longer than the game was ever allowed to run.
-  const limitMs = (game.timerMinutes ?? 0) * 60 * 1000;
+  // Never report longer than the game was ever allowed to run — hint penalties
+  // included, since they shortened that allowance.
+  const limitMs = gameBudgetMs(game);
   const capped = limitMs > 0 ? Math.min(totalTimeMs, limitMs) : totalTimeMs;
   return { totalTimeMs: Math.max(0, capped), approximate };
 }
@@ -147,7 +149,8 @@ export function deriveSummary({ game, players, rounds, submissions, now = Date.n
     team: {
       totalTimeMs,
       totalTimeApproximate: approximate,
-      timeLimitMs: (game.timerMinutes ?? 0) * 60 * 1000,
+      timeLimitMs: gameBudgetMs(game),
+      hintPenaltyMs: game.timePenaltyMs ?? 0,
       roundsSolved: correct,
       roundsDealt: rounds.length,
       correct,

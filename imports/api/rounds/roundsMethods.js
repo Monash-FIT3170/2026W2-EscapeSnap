@@ -3,6 +3,7 @@ import { Rounds } from './RoundsCollection';
 import { Players } from '../players/PlayersCollection';
 import { Games } from '../games/GamesCollection';
 import { advanceIfRoundSettled } from './roundProgression';
+import { HINT_PENALTY_MS, remainingGameMs } from '../../lib/gameClock';
 
 // Moves a pending round to its final status and awards its letter. The
 // `status: 'pending'` guard lives in the selector, so two racing calls for the
@@ -111,9 +112,8 @@ Meteor.methods({
       throw new Meteor.Error('invalid-state', 'Round already submitted');
 
     const game = await Games.findOneAsync(round.gameId);
-    const expired =
-      game?.startedAt &&
-      Date.now() - game.startedAt.getTime() > game.timerMinutes * 60 * 1000;
+    const remaining = remainingGameMs(game);
+    const expired = remaining !== null && remaining <= 0;
 
     const submittedAt = new Date();
 
@@ -136,6 +136,23 @@ Meteor.methods({
     }
 
     return letter;
+  },
+
+  async 'rounds.revealHint'(roundId) {
+    const round = await Rounds.findOneAsync(roundId);
+    if (!round) throw new Meteor.Error('not-found', 'Round not found');
+
+    const charged = await Rounds.updateAsync(
+      { _id: roundId, hintRevealedAt: null },
+      { $set: { hintRevealedAt: new Date() } }
+    );
+    if (charged === 1) {
+      await Games.updateAsync(round.gameId, {
+        $inc: { timePenaltyMs: HINT_PENALTY_MS },
+      });
+    }
+
+    return { hint: round.hint, penaltyMs: charged === 1 ? HINT_PENALTY_MS : 0 };
   },
 
   // A player who can't find their object can skip the round and get a '?' instead of their letter.

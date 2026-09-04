@@ -11,6 +11,11 @@ import { RoundTimer } from '../components/gameplay/RoundTimer';
 import { PlayerWinScreen } from './result/PlayerWinScreen';
 import { PlayerLoseScreen } from './result/PlayerLoseScreen';
 import { buildEndgameShareSnapshot } from '../components/result/shareSnapshot';
+import {
+  HINT_PENALTY_MINUTES,
+  gameBudgetMs,
+  remainingGameMs,
+} from '/imports/lib/gameClock';
 import { useT } from '../../../languages/LanguageProvider';
 
 // How long the armed skip button waits for the confirming tap before it
@@ -223,7 +228,10 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   const [revealedLetter, setRevealedLetter] = useState(null);
   const [answerCorrect, setAnswerCorrect] = useState(null);
   const [timeLeft, setTimeLeft] = useState(null);
-  const [hintRevealed, setHintRevealed] = useState(false);
+  // The hint text only exists on the client once it has been paid for.
+  const [hint, setHint] = useState(null);
+  const [hintArmed, setHintArmed] = useState(false);
+  const [hintLoading, setHintLoading] = useState(false);
   const [skipError, setSkipError] = useState(false);
   const [skipArmed, setSkipArmed] = useState(false);
   const [skipping, setSkipping] = useState(false);
@@ -320,11 +328,36 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   useEffect(() => {
     setRevealedLetter(null);
     setAnswerCorrect(null);
-    setHintRevealed(false);
+    setHint(null);
+    setHintArmed(false);
     setSkipArmed(false);
     setSkipError(false);
     setActiveTab('scanner');
   }, [currentRound]);
+
+  useEffect(() => {
+    if (!round?._id || !round.hintRevealedAt || hint) return;
+    let cancelled = false;
+    Meteor.callAsync('rounds.revealHint', round._id)
+      .then((res) => {
+        if (!cancelled) setHint(res.hint);
+      })
+      .catch((err) =>
+        console.error(
+          '[rounds.revealHint] restore failed:',
+          err.error || err.reason || err.message
+        )
+      );
+    return () => {
+      cancelled = true;
+    };
+  }, [round?._id, round?.hintRevealedAt, hint]);
+
+  useEffect(() => {
+    if (!hintArmed) return;
+    const timer = setTimeout(() => setHintArmed(false), SKIP_CONFIRM_MS);
+    return () => clearTimeout(timer);
+  }, [hintArmed]);
 
   // Settling pins the result to the screen...
   useEffect(() => {
@@ -361,25 +394,45 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
     Meteor.call('rounds.markStarted', round._id);
   }, [round?._id, roundSettled]);
 
+  // Depends on timePenaltyMs too, so a hint bought by any player shortens
+  // everyone's countdown the moment it lands.
   useEffect(() => {
     if (!game?.startedAt || !game?.timerMinutes) return;
     const tick = () => {
-      const elapsed = Date.now() - new Date(game.startedAt).getTime();
-      const remaining = Math.max(0, game.timerMinutes * 60 * 1000 - elapsed);
-      setTimeLeft(Math.floor(remaining / 1000));
+      const remaining = remainingGameMs(game);
+      setTimeLeft(remaining === null ? null : Math.floor(remaining / 1000));
     };
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [game?.startedAt, game?.timerMinutes]);
+  }, [game?.startedAt, game?.timerMinutes, game?.timePenaltyMs]);
 
   const isExpired = timeLeft !== null && timeLeft <= 0;
-  const totalGameSeconds = (game?.timerMinutes ?? 30) * 60;
+  const totalGameSeconds = game
+    ? Math.round(gameBudgetMs(game) / 1000)
+    : 30 * 60;
 
   const handleCorrectAnswer = useCallback((letter, isCorrect) => {
     setRevealedLetter(letter);
     setAnswerCorrect(isCorrect);
   }, []);
+
+  const handleRevealHint = useCallback(async () => {
+    if (!round?._id || hintLoading) return;
+    setHintLoading(true);
+    try {
+      const res = await Meteor.callAsync('rounds.revealHint', round._id);
+      setHint(res.hint);
+    } catch (err) {
+      console.error(
+        '[rounds.revealHint] failed:',
+        err.error || err.reason || err.message
+      );
+    } finally {
+      setHintLoading(false);
+      setHintArmed(false);
+    }
+  }, [round?._id, hintLoading]);
 
   const handleSkip = useCallback(async () => {
     if (!round?._id || skipping) return;
@@ -460,17 +513,31 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
         </div>
       )}
 
-      {!showResult && activeTab === 'scanner' && round?.hint && (
+      {!showResult && activeTab === 'scanner' && round?._id && (
         <div className="flex-shrink-0 border-b border-slate-800 px-5 py-2">
-          {hintRevealed ? (
-            <p className="font-mono text-xs text-amber-400">💡 {round.hint}</p>
+          {hint ? (
+            <p className="font-mono text-xs text-amber-400">💡 {hint}</p>
           ) : (
             <button
               type="button"
-              onClick={() => setHintRevealed(true)}
-              className="font-mono text-[10px] uppercase tracking-widest text-amber-500 transition hover:text-amber-300"
+              disabled={hintLoading}
+              onClick={hintArmed ? handleRevealHint : () => setHintArmed(true)}
+              className={`font-mono text-[10px] uppercase tracking-widest transition disabled:opacity-40 ${
+                hintArmed
+                  ? 'text-red-400 hover:text-red-300'
+                  : 'text-amber-500 hover:text-amber-300'
+              }`}
             >
-              💡 Reveal Hint
+              💡{' '}
+              {hintLoading
+                ? t('mobile.dashboard.revealingHint')
+                : hintArmed
+                  ? t('mobile.dashboard.hintConfirm', {
+                      n: HINT_PENALTY_MINUTES,
+                    })
+                  : t('mobile.dashboard.revealHint', {
+                      n: HINT_PENALTY_MINUTES,
+                    })}
             </button>
           )}
         </div>
@@ -532,7 +599,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
                   onCorrect={handleCorrectAnswer}
                 />
                 {round?._id && (
-                  <div className="flex-shrink-0 border-t border-slate-900 bg-black px-5 pb-4">
+                  <div className="flex-shrink-0 border-t border-slate-900 bg-black px-5 pb-8">
                     <SkipRoundButton
                       armed={skipArmed}
                       pending={skipping}

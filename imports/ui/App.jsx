@@ -14,6 +14,7 @@ import ProgressPage from './host/pages/progress/ProgressPage';
 import FinalRiddlePage from './host/pages/riddle/FinalRiddlePage';
 import SummaryPage from './host/pages/summary/SummaryPage';
 import LandingPage from './host/pages/landing/Landing';
+import { gameBudgetMs } from '../lib/gameClock';
 import { useT } from '../languages/LanguageProvider';
 import { errorKey } from '../languages/errors';
 import Leaderboard from './host/pages/leaderboard/Leaderboard';
@@ -95,7 +96,7 @@ function PlayerFlow({ initialCode = '' }) {
         playerCount={playerCount}
         inSession={game?.status === 'in_progress'}
         gameStartedAt={game?.startedAt ? new Date(game.startedAt).getTime() : null}
-        roundDuration={(game?.timerMinutes ?? 30) * 60}
+        roundDuration={game ? Math.round(gameBudgetMs(game) / 1000) : 30 * 60}
         onExit={game?.status === 'in_progress' ? () => setScreen('dashboard') : handleExitToHome}
       />
     );

@@ -60,13 +60,14 @@ const SectionHeader = ({ label }) => (
   </div>
 );
 
-const StatTile = ({ label, value, hint }) => (
+const StatTile = ({ label, value, hint, subHint }) => (
   <div style={{ background: INNER, border: `1px solid ${BORDER}`, padding: '20px 24px', flex: 1, minWidth: 0 }}>
     <p style={{ fontSize: 10, letterSpacing: '1px', color: MUTED, whiteSpace: 'nowrap' }}>{label}</p>
     <p style={{ fontSize: 32, fontWeight: 700, letterSpacing: '1px', color: TEXT, marginTop: 8, lineHeight: 1 }}>
       {value}
     </p>
     {hint && <p style={{ fontSize: 10, letterSpacing: '0.5px', color: DIM, marginTop: 8 }}>{hint}</p>}
+    {subHint && <p style={{ fontSize: 10, letterSpacing: '0.5px', color: INCORRECT, marginTop: 4 }}>{subHint}</p>}
   </div>
 );
 
@@ -194,6 +195,13 @@ const SummaryPage = () => {
                   : team.totalTimeApproximate
                     ? t('host.summary.approximateNoEndTimestamp')
                     : t('host.summary.limitLabel', { time: formatClock(team.timeLimitMs) })
+              }
+              // The limit above is already net of penalties, so spell out where
+              // the missing minutes went.
+              subHint={
+                team.hintPenaltyMs > 0
+                  ? t('host.summary.hintPenaltyLabel', { time: formatClock(team.hintPenaltyMs) })
+                  : null
               }
             />
             <StatTile
