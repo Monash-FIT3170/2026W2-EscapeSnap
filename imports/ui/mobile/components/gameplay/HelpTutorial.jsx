@@ -52,27 +52,20 @@ export function HelpTutorial({ onComplete }) {
   };
 
   return (
-    <div
-      className="h-screen overflow-hidden bg-black text-white flex flex-col"
-      style={{
-        backgroundImage:
-          'linear-gradient(rgba(239,68,68,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(239,68,68,0.04) 1px, transparent 1px)',
-        backgroundSize: '48px 48px',
-      }}
-    >
-      <div className="flex-1 flex flex-col w-full max-w-md mx-auto px-6 py-8">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-[#0e0e0e] text-[#e5e2e1]">
+      <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col px-5 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <div className="flex items-center justify-between">
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.3em] text-red-500">
+            <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#aa8984]">
               {t('mobile.tutorial.missionBriefing')}
             </p>
 
-            <h1 className="mt-2 font-display text-3xl font-black tracking-wide text-white">
+            <h1 className="mt-2 font-display text-2xl font-black tracking-[0.1em] text-[#e5e2e1]">
               {t('mobile.tutorial.howToPlay')}
             </h1>
           </div>
 
-          <span className="font-mono text-xs text-slate-500">
+          <span className="font-mono text-xs tabular-nums text-[#aa8984]">
             {currentStep + 1}/{tutorialSteps.length}
           </span>
         </div>
@@ -82,29 +75,30 @@ export function HelpTutorial({ onComplete }) {
             <div
               key={index}
               className={`h-1 flex-1 ${
-                index <= currentStep ? 'bg-red-600' : 'bg-slate-800'
+                index <= currentStep ? 'bg-[#8b0000]' : 'bg-[#353534]'
               }`}
             />
           ))}
         </div>
 
-        <div className="flex-1 flex flex-col justify-center">
-          <div className="border border-red-900/60 bg-slate-950/80 px-6 py-10">
-            <p className="font-display text-6xl font-black text-red-700">
+        {/* Scrolls on short phones so step copy is never clipped. */}
+        <div className="flex min-h-0 flex-1 flex-col justify-center gap-4 overflow-y-auto py-6">
+          <div className="border border-[#353534] bg-[#1c1b1b] px-5 py-8">
+            <p className="font-display text-5xl font-black text-[#8b0000]">
               {step.number}
             </p>
 
-            <h2 className="mt-6 font-display text-2xl font-bold tracking-widest text-white">
+            <h2 className="mt-5 font-display text-xl font-bold tracking-[0.15em] text-[#e5e2e1]">
               {t(step.titleKey)}
             </h2>
 
-            <p className="mt-5 font-mono text-sm leading-7 text-slate-400">
+            <p className="mt-4 font-mono text-sm leading-6 text-[#aa8984]">
               {t(step.descriptionKey)}
             </p>
           </div>
 
-          <div className="mt-5 border-l-4 border-red-600 bg-red-950/20 px-5 py-4">
-            <p className="font-mono text-xs leading-5 uppercase tracking-wider text-slate-400">
+          <div className="border-l-4 border-[#8b0000] bg-[#1c1b1b] px-5 py-4">
+            <p className="font-mono text-xs uppercase leading-5 tracking-[0.15em] text-[#aa8984]">
               {t('mobile.tutorial.objectiveHint')}
             </p>
           </div>
@@ -115,7 +109,7 @@ export function HelpTutorial({ onComplete }) {
             <button
               type="button"
               onClick={handleBack}
-              className="flex-1 border border-slate-700 px-4 py-4 font-mono text-sm font-semibold uppercase tracking-widest text-slate-400 transition hover:border-slate-500 hover:text-white"
+              className="min-h-[52px] flex-1 border border-[#353534] px-4 font-mono text-sm font-semibold uppercase tracking-[0.2em] text-[#aa8984] transition active:border-[#aa8984]"
             >
               {t('mobile.tutorial.back')}
             </button>
@@ -124,7 +118,7 @@ export function HelpTutorial({ onComplete }) {
           <button
             type="button"
             onClick={handleNext}
-            className="flex-1 border border-red-600 bg-red-600 px-4 py-4 font-mono text-sm font-semibold uppercase tracking-widest text-white transition hover:bg-red-500"
+            className="min-h-[52px] flex-1 border border-[#8b0000] bg-[#8b0000] px-4 font-mono text-sm font-semibold uppercase tracking-[0.2em] text-[#e5e2e1] transition active:bg-[#a50000]"
           >
             {isLastStep ? t('mobile.tutorial.startMission') : t('mobile.tutorial.next')}
           </button>
@@ -133,7 +127,7 @@ export function HelpTutorial({ onComplete }) {
         <button
           type="button"
           onClick={onComplete}
-          className="mt-4 font-mono text-xs uppercase tracking-widest text-slate-600 transition hover:text-slate-400"
+          className="mt-3 min-h-[44px] font-mono text-[11px] uppercase tracking-[0.2em] text-[#555] transition active:text-[#aa8984]"
         >
           {t('mobile.tutorial.skipTutorial')}
         </button>

@@ -1,3 +1,5 @@
+// Meteor's JSX transform still requires React in module scope.
+// eslint-disable-next-line no-unused-vars
 import React, { useEffect, useState } from 'react';
 import { useT } from '../../../../languages/LanguageProvider';
 import { LobbyHeader } from '../../components/lobby/LobbyHeader';
@@ -11,92 +13,76 @@ function formatTime(seconds) {
 }
 
 export function PlayerLobby({
-  playerName = 'PLAYER',
+  playerName = '',
   gameCode = '',
-  photoUrl,
   playerCount = 0,
   inSession = false,
   gameStartedAt = null,
   roundDuration = 60,
-  onExit
+  onExit,
 }) {
-  const calcTimeLeft = () =>
-    gameStartedAt
-      ? Math.max(0, roundDuration - Math.floor((Date.now() - gameStartedAt) / 1000))
-      : roundDuration;
-
-  const [timeLeft, setTimeLeft] = useState(calcTimeLeft);
+  const [timeLeft, setTimeLeft] = useState(roundDuration);
   const t = useT();
 
   useEffect(() => {
-    if (!inSession || !gameStartedAt) return;
-    const id = setInterval(() => {
-      const remaining = calcTimeLeft();
-      setTimeLeft(remaining);
-      if (remaining <= 0) clearInterval(id);
-    }, 1000);
+    if (!gameStartedAt) {
+      setTimeLeft(roundDuration);
+      return;
+    }
+    const tick = () =>
+      setTimeLeft(
+        Math.max(0, roundDuration - Math.floor((Date.now() - gameStartedAt) / 1000))
+      );
+    tick();
+    if (!inSession) return;
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, [inSession, gameStartedAt]);
+  }, [inSession, gameStartedAt, roundDuration]);
 
   const isExpired = timeLeft <= 0;
 
   return (
-    <div
-      className="h-screen overflow-hidden flex flex-col bg-black text-slate-100"
-      style={{
-        backgroundImage: 'linear-gradient(rgba(239,68,68,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(239,68,68,0.03) 1px, transparent 1px)',
-        backgroundSize: '48px 48px',
-      }}
-    >
-      <div className="flex flex-col flex-1 min-h-0 w-full max-w-md mx-auto px-5 pt-4 pb-2">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-[#0e0e0e] text-[#e5e2e1]">
+      <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col px-5 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
 
-        {/* Header */}
         <div className="flex-shrink-0">
-          <LobbyHeader unitLabel={gameCode || 'OPERATIONAL_UNIT_01'} playerCount={playerCount} onExit={onExit} />
+          <LobbyHeader unitLabel={gameCode || 'OPERATIVE'} onExit={onExit} />
         </div>
 
-        {/* ID card — shrinks to fill whatever space is between header and bottom rows */}
-        <div className="flex-1 min-h-0 flex items-center justify-center py-2">
+        {/* Takes whatever height is left between the header and the fixed
+            bottom stack, so the card shrinks on short phones instead of
+            pushing the standby panel off-screen. */}
+        <div className="flex min-h-0 flex-1 items-center justify-center py-4">
           <SurvivorIdCard
-            photoUrl={photoUrl}
             callSign={playerName.toUpperCase()}
-            refCode={gameCode ? `CODE_${gameCode}` : 'REF_SEC_U012_X'}
-            zoneCode="C_SECTOR_X"
-            duration="0:00MS"
+            refCode={gameCode ? `CODE_${gameCode}` : null}
             status={t('mobile.lobby.awaitingGuidance')}
           />
         </div>
 
-        {/* Fixed bottom section */}
-        <div className="flex-shrink-0 flex flex-col gap-2">
-
-          {/* Players in lobby */}
-          <div className="flex items-center gap-3 border border-slate-800/60 bg-slate-950/60 px-4 py-2.5">
-            <span className="h-2 w-2 flex-shrink-0 rounded-full bg-red-500 animate-pulse" />
-            <span className="flex-1 font-mono text-[11px] uppercase tracking-[0.25em] text-slate-400">{t('mobile.lobby.playersInLobby')}</span>
-            <span className="font-mono text-lg font-bold text-white">{playerCount}</span>
+        <div className="flex flex-shrink-0 flex-col gap-2">
+          <div className="flex items-center gap-3 border border-[#353534] bg-[#1c1b1b] px-4 py-3">
+            <span className="h-2 w-2 flex-shrink-0 rounded-full bg-[#8b0000] animate-pulse" />
+            <span className="flex-1 font-mono text-[10px] uppercase tracking-[0.25em] text-[#aa8984]">
+              {t('mobile.lobby.playersInLobby')}
+            </span>
+            <span className="font-mono text-lg font-bold tabular-nums text-[#e5e2e1]">{playerCount}</span>
           </div>
 
-          {/* Round timer — only when in session */}
           {inSession && (
-            <div className={`flex items-center gap-4 border px-4 py-3 ${
-              isExpired ? 'border-slate-800 bg-slate-950/40' : 'border-red-900/60 bg-red-950/20'
-            }`}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"
-                strokeLinecap="round" strokeLinejoin="round"
-                className={`h-5 w-5 flex-shrink-0 ${isExpired ? 'text-slate-600' : 'text-red-500'}`}>
-                <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-              </svg>
-              <span className="flex-1 font-mono text-xs uppercase tracking-[0.25em] text-slate-400">{t('mobile.lobby.roundTimer')}</span>
-              <span className={`font-mono text-xl font-bold tabular-nums ${
-                isExpired ? 'text-slate-600' : timeLeft <= 10 ? 'text-red-400 animate-pulse' : 'text-white'
+            <div className="flex items-center gap-3 border border-[#353534] bg-[#1c1b1b] px-4 py-3">
+              <span className={`h-2 w-2 flex-shrink-0 ${isExpired ? 'bg-[#555]' : 'bg-[#8b0000]'}`} />
+              <span className="flex-1 font-mono text-[10px] uppercase tracking-[0.25em] text-[#aa8984]">
+                {t('mobile.lobby.roundTimer')}
+              </span>
+              <span className={`font-mono text-lg font-bold tabular-nums ${
+                isExpired ? 'text-[#555]' : timeLeft <= 30 ? 'text-[#ef4444]' : 'text-[#e5e2e1]'
               }`}>
                 {isExpired ? t('mobile.lobby.expired') : formatTime(timeLeft)}
               </span>
             </div>
           )}
 
-          {/* Awaiting / in-session card */}
           <AwaitingGameCard inSession={inSession} />
         </div>
       </div>

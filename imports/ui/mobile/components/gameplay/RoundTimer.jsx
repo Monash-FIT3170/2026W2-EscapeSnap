@@ -1,70 +1,69 @@
+// Meteor's JSX transform still requires React in module scope.
+// eslint-disable-next-line no-unused-vars
 import React from 'react';
+import { COLORS } from '../../theme';
 import { useT } from '../../../../languages/LanguageProvider';
 
-export function RoundTimer({ timeLeft, totalTime, compact = false }) {
+const SIZE = 48;
+const VIEW = 44;
+const RADIUS = 18;
+const STROKE = 3;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+// Ring + mm:ss for the whole-game clock, sized for the dashboard header.
+export function RoundTimer({ timeLeft, totalTime }) {
   const t = useT();
-  const size = compact ? 48 : 128;
-  const radius = compact ? 18 : 52;
-  const strokeWidth = compact ? 3 : 8;
-  const circumference = 2 * Math.PI * radius;
-  const fraction = Math.max(0, timeLeft / totalTime);
-  const strokeDashoffset = circumference * (1 - fraction);
-  const isLow = timeLeft > 0 && timeLeft <= 10;
+  const fraction = totalTime > 0 ? Math.min(1, Math.max(0, timeLeft / totalTime)) : 0;
   const isExpired = timeLeft <= 0;
+  // The last minute is the one worth reacting to on a game-length clock.
+  const isLow = !isExpired && timeLeft <= 60;
 
-  const ringColor = isExpired ? '#7f1d1d' : isLow ? '#ef4444' : '#dc2626';
-  const textColor = isExpired ? '#7f1d1d' : isLow ? '#ef4444' : '#ffffff';
-
-  const viewSize = compact ? 44 : 120;
-  const cx = viewSize / 2;
-  const cy = viewSize / 2;
-
-  const mm = String(Math.floor(timeLeft / 60)).padStart(2, '0');
-  const ss = String(timeLeft % 60).padStart(2, '0');
+  const color = isExpired ? COLORS.dim : isLow ? COLORS.incorrect : COLORS.text;
+  const mm = String(Math.floor(Math.max(0, timeLeft) / 60)).padStart(2, '0');
+  const ss = String(Math.max(0, timeLeft) % 60).padStart(2, '0');
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+    <div className="relative flex items-center justify-center" style={{ width: SIZE, height: SIZE }}>
       <svg
-        width={size}
-        height={size}
-        viewBox={`0 0 ${viewSize} ${viewSize}`}
+        width={SIZE}
+        height={SIZE}
+        viewBox={`0 0 ${VIEW} ${VIEW}`}
         style={{ transform: 'rotate(-90deg)' }}
-        aria-label={isExpired ? t('mobile.roundTimer.timesUpAria') : t('mobile.roundTimer.secondsRemainingAria', { n: timeLeft })}
+        role="img"
+        aria-label={
+          isExpired
+            ? t('mobile.roundTimer.timesUpAria')
+            : t('mobile.roundTimer.secondsRemainingAria', { n: timeLeft })
+        }
       >
-        <circle cx={cx} cy={cy} r={radius} fill="none" stroke="#1e293b" strokeWidth={strokeWidth} />
+        <circle cx={VIEW / 2} cy={VIEW / 2} r={RADIUS} fill="none" stroke={COLORS.border} strokeWidth={STROKE} />
         <circle
-          cx={cx} cy={cy} r={radius}
+          cx={VIEW / 2}
+          cy={VIEW / 2}
+          r={RADIUS}
           fill="none"
-          stroke={ringColor}
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
+          stroke={isExpired ? COLORS.dim : COLORS.accent}
+          strokeWidth={STROKE}
+          strokeDasharray={CIRCUMFERENCE}
+          strokeDashoffset={CIRCUMFERENCE * (1 - fraction)}
           strokeLinecap="round"
           style={{ transition: 'stroke-dashoffset 0.9s linear, stroke 0.3s' }}
         />
       </svg>
 
-      <div className="absolute flex flex-col items-center select-none">
+      <span className="absolute select-none text-center leading-none" aria-hidden="true">
         {isExpired ? (
-          <span className={`font-bold text-red-700 uppercase tracking-widest leading-tight text-center ${compact ? 'text-[7px]' : 'text-xs'}`}>
-            {t('mobile.roundTimer.timesUpLine1')}<br />{t('mobile.roundTimer.timesUpLine2')}
-          </span>
-        ) : compact ? (
-          <span className="font-mono font-bold tabular-nums leading-none" style={{ fontSize: 12, color: textColor }}>
-            {mm}:{ss}
+          <span className="font-mono text-[7px] font-bold uppercase tracking-widest" style={{ color: COLORS.incorrect }}>
+            {t('mobile.roundTimer.timesUpLine1')}
+            <br />
+            {t('mobile.roundTimer.timesUpLine2')}
           </span>
         ) : (
-          <>
-            <span
-              className="text-3xl font-mono font-bold leading-none"
-              style={{ color: textColor, animation: isLow ? 'pulse 1s ease-in-out infinite' : 'none' }}
-            >
-              {timeLeft}
-            </span>
-            <span className="text-xs text-slate-500 uppercase tracking-wider mt-0.5">{t('mobile.roundTimer.secLabel')}</span>
-          </>
+          <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color }}>
+            {mm}:{ss}
+          </span>
         )}
-      </div>
+      </span>
     </div>
   );
 }

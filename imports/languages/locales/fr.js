@@ -245,8 +245,6 @@ export const fr = {
       gameInSession: 'PARTIE EN COURS',
       gameInSessionBody: 'Une manche est en cours. Retournez au scanner pour terminer votre mission.',
       active: 'Active',
-      fearLevelStabilizing: 'NIVEAUX DE PEUR EN STABILISATION',
-      fearLevelAria: 'Stabilisation du niveau de peur',
       playerDefault: 'JOUEUR',
       awaitingGuidance: "EN ATTENTE D'INSTRUCTIONS",
     },
@@ -310,7 +308,6 @@ export const fr = {
       secondsRemainingAria: '{n} secondes restantes',
       timesUpLine1: 'TEMPS',
       timesUpLine2: 'ÉCOULÉ',
-      secLabel: 'sec',
     },
     winScreen: {
       missionLine1: 'Mission',

@@ -165,7 +165,7 @@ const MobileRiddlePage = ({
 
   if (!roundId) {
     return (
-      <div className="pt-5 font-mono text-sm text-slate-500 text-center">
+      <div className="px-5 pt-6 text-center font-mono text-xs uppercase tracking-[0.2em] text-[#aa8984]">
         {t('mobile.riddle.loadingRound')}
       </div>
     );
@@ -177,10 +177,10 @@ const MobileRiddlePage = ({
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="relative flex-1 overflow-hidden bg-black">
+      <div className="relative min-h-0 flex-1 overflow-hidden bg-black">
         {cameraError ? (
           <div className="absolute inset-0 flex items-center justify-center">
-            <p className="px-8 text-center font-mono text-xs uppercase tracking-widest text-slate-500">
+            <p className="px-8 text-center font-mono text-xs uppercase tracking-widest text-[#aa8984]">
               {cameraError}
             </p>
           </div>
@@ -203,16 +203,16 @@ const MobileRiddlePage = ({
         )}
 
         {(validationState === 'fail' || validationState === 'error') && (
-          <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-1 bg-black/80 px-6 py-4">
+          <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-1 bg-[#0e0e0e]/90 px-6 py-4">
             <span
               className={`font-mono text-xs uppercase tracking-widest ${
-                validationState === 'error' ? 'text-amber-400' : 'text-red-500'
+                validationState === 'error' ? 'text-[#aa8984]' : 'text-[#ef4444]'
               }`}
             >
               {validationState === 'error' ? t('mobile.riddle.couldntVerify') : t('mobile.riddle.notAMatch')}
             </span>
             {explanation && (
-              <span className="text-center font-mono text-[11px] text-slate-400">
+              <span className="text-center font-mono text-[11px] leading-5 text-[#aa8984]">
                 {explanation}
               </span>
             )}
@@ -221,26 +221,26 @@ const MobileRiddlePage = ({
 
         {!uploading && !inResultsMode && !isExpired && !cameraError && (
           <>
-            <div className="pointer-events-none absolute left-5 top-5 h-8 w-8 border-l-2 border-t-2 border-red-500" />
-            <div className="pointer-events-none absolute right-5 top-5 h-8 w-8 border-r-2 border-t-2 border-red-500" />
-            <div className="pointer-events-none absolute bottom-5 left-5 h-8 w-8 border-b-2 border-l-2 border-red-500" />
-            <div className="pointer-events-none absolute bottom-5 right-5 h-8 w-8 border-b-2 border-r-2 border-red-500" />
+            <div className="pointer-events-none absolute left-5 top-5 h-8 w-8 border-l-2 border-t-2 border-[#8b0000]" />
+            <div className="pointer-events-none absolute right-5 top-5 h-8 w-8 border-r-2 border-t-2 border-[#8b0000]" />
+            <div className="pointer-events-none absolute bottom-5 left-5 h-8 w-8 border-b-2 border-l-2 border-[#8b0000]" />
+            <div className="pointer-events-none absolute bottom-5 right-5 h-8 w-8 border-b-2 border-r-2 border-[#8b0000]" />
           </>
         )}
 
         {uploading && (
           <>
-            <div className="pointer-events-none absolute left-5 top-5 h-8 w-8 border-l-2 border-t-2 border-red-500" />
-            <div className="pointer-events-none absolute right-5 top-5 h-8 w-8 border-r-2 border-t-2 border-red-500" />
-            <div className="pointer-events-none absolute bottom-5 left-5 h-8 w-8 border-b-2 border-l-2 border-red-500" />
-            <div className="pointer-events-none absolute bottom-5 right-5 h-8 w-8 border-b-2 border-r-2 border-red-500" />
+            <div className="pointer-events-none absolute left-5 top-5 h-8 w-8 border-l-2 border-t-2 border-[#8b0000]" />
+            <div className="pointer-events-none absolute right-5 top-5 h-8 w-8 border-r-2 border-t-2 border-[#8b0000]" />
+            <div className="pointer-events-none absolute bottom-5 left-5 h-8 w-8 border-b-2 border-l-2 border-[#8b0000]" />
+            <div className="pointer-events-none absolute bottom-5 right-5 h-8 w-8 border-b-2 border-r-2 border-[#8b0000]" />
 
             <div className="pointer-events-none absolute inset-5 overflow-hidden">
-              <div className="scan-sweep absolute inset-x-0 h-0.5 bg-red-500 shadow-[0_0_8px_2px_rgba(239,68,68,0.7)]" />
+              <div className="scan-sweep absolute inset-x-0 h-0.5 bg-[#8b0000] shadow-[0_0_8px_2px_rgba(139,0,0,0.8)]" />
             </div>
 
             <div className="absolute inset-x-0 bottom-6 flex items-center justify-center">
-              <span className="pulse-text bg-black/70 px-4 py-2 font-mono text-sm uppercase tracking-widest text-red-400">
+              <span className="pulse-text bg-[#0e0e0e]/80 px-4 py-2 font-mono text-xs uppercase tracking-[0.25em] text-[#aa8984]">
                 {t('mobile.riddle.analysing')}
               </span>
             </div>
@@ -248,12 +248,12 @@ const MobileRiddlePage = ({
         )}
 
         {isExpired && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/70">
-            <span className="font-mono text-3xl text-red-500">✗</span>
-            <span className="font-mono text-xs uppercase tracking-widest text-red-400">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[#0e0e0e]/80">
+            <span className="font-mono text-3xl text-[#ef4444]">✗</span>
+            <span className="font-mono text-xs uppercase tracking-[0.25em] text-[#ef4444]">
               {t('mobile.riddle.roundEnded')}
             </span>
-            <span className="mt-1 font-mono text-[10px] uppercase tracking-widest text-red-700">
+            <span className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-[#555]">
               {t('mobile.riddle.noSubmissionAccepted')}
             </span>
           </div>
@@ -262,12 +262,12 @@ const MobileRiddlePage = ({
 
       <canvas ref={canvasRef} className="hidden" />
 
-      <div className="flex items-center justify-center py-6 bg-black">
+      <div className="flex flex-shrink-0 items-center justify-center bg-[#0e0e0e] py-5">
         {!isExpired && (
           <button
             onClick={handleCapture}
             disabled={uploading || !!cameraError}
-            className="flex h-16 w-16 items-center justify-center rounded-full bg-red-600 text-white shadow-lg shadow-red-900/50 transition active:scale-95 hover:bg-red-500 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex h-[72px] w-[72px] items-center justify-center rounded-full border-2 border-[#8b0000] bg-[#8b0000] text-[#e5e2e1] transition active:scale-95 active:bg-[#a50000] disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label={t('mobile.riddle.capturePhotoAria')}
           >
             <CameraIcon />
@@ -275,7 +275,7 @@ const MobileRiddlePage = ({
         )}
 
         {isExpired && (
-          <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-slate-800 bg-slate-950 opacity-40">
+          <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full border-2 border-[#353534] bg-[#1c1b1b] text-[#555]">
             <CameraIcon />
           </div>
         )}

@@ -246,8 +246,6 @@ export const ar = {
       gameInSession: 'اللعبة جارية',
       gameInSessionBody: 'هناك جولة نشطة حاليًا. عد إلى الماسح لإكمال مهمتك.',
       active: 'نشطة',
-      fearLevelStabilizing: 'مستويات الخوف تستقر',
-      fearLevelAria: 'استقرار مستوى الخوف',
       playerDefault: 'اللاعب',
       awaitingGuidance: 'في انتظار التوجيه',
     },
@@ -309,7 +307,6 @@ export const ar = {
       secondsRemainingAria: '{n} ثانية متبقية',
       timesUpLine1: 'انتهى',
       timesUpLine2: 'الوقت',
-      secLabel: 'ثا',
     },
     winScreen: {
       missionLine1: 'اكتملت',

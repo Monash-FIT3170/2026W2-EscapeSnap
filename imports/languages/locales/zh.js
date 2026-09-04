@@ -244,8 +244,6 @@ export const zh = {
       gameInSession: '游戏进行中',
       gameInSessionBody: '当前回合正在进行。返回扫描器完成你的任务。',
       active: '进行中',
-      fearLevelStabilizing: '恐惧值趋于稳定',
-      fearLevelAria: '恐惧值稳定情况',
       playerDefault: '玩家',
       awaitingGuidance: '等待指引',
     },
@@ -306,7 +304,6 @@ export const zh = {
       secondsRemainingAria: '剩余 {n} 秒',
       timesUpLine1: '时间',
       timesUpLine2: '到',
-      secLabel: '秒',
     },
     winScreen: {
       missionLine1: '任务',
