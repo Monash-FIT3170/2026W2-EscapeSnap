@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import { useT } from '/imports/languages/LanguageProvider'
 
 const GameNotFound = () => {

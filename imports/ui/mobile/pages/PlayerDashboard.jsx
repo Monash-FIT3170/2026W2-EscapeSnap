@@ -1,5 +1,4 @@
 // Meteor's JSX transform still requires React in module scope.
-// eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';

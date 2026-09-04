@@ -10,7 +10,6 @@ export default [
   },
   js.configs.recommended,
   react.configs.flat.recommended,
-  react.configs.flat['jsx-runtime'],
   {
     plugins: { prettier },
     languageOptions: {
@@ -26,6 +25,14 @@ export default [
     },
     settings: {
       react: { version: 'detect' },
+    },
+  },
+  {
+    files: ['**/*.test.js', '**/*.tests.js'],
+    languageOptions: {
+      globals: {
+        ...globals.mocha,
+      },
     },
   },
 ];

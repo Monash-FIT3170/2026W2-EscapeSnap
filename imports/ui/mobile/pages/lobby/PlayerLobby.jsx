@@ -18,7 +18,6 @@ export function PlayerLobby({
   inSession = false,
   gameStartedAt = null,
   roundDuration = 60,
-  onGameStart,
   onExit
 }) {
   const calcTimeLeft = () =>

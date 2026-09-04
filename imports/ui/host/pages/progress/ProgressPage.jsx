@@ -76,9 +76,6 @@ const ProgressPage = () => {
     );
   }
 
-  const pinRaw = gameId.slice(-6).toUpperCase();
-  const pin = pinRaw.slice(0, 3) + '-' + pinRaw.slice(3);
-
   const formatTime = (ms) => {
     if (ms === null) return '--:--';
     const total = Math.floor(ms / 1000);

@@ -34,7 +34,6 @@ function CameraIcon() {
 
 const MobileRiddlePage = ({
   roundId,
-  riddleText,
   targetObject,
   isExpired = false,
   onCorrect,

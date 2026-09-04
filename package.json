@@ -6,7 +6,9 @@
     "patch:meteor-win": "powershell -ExecutionPolicy Bypass -File ./scripts/patch-meteor-win-npm.ps1",
     "start:windows": "powershell -ExecutionPolicy Bypass -File ./scripts/start-windows.ps1",
     "lint": "eslint . --ext .js,.jsx",
-    "test": "node --experimental-default-type=module --test imports/api/achievements/calculateGameResults.test.js",
+    "test": "npm run test:unit && npm run test:meteor",
+    "test:unit": "node --experimental-default-type=module --test imports/api/achievements/calculateGameResults.test.js",
+    "test:meteor": "cross-env TEST_CLIENT=0 meteor test --once --driver-package meteortesting:mocha",
     "format": "prettier --write '**/*.{js,jsx,css,md}'"
   },
   "dependencies": {
@@ -27,6 +29,8 @@
   "devDependencies": {
     "@babel/eslint-parser": "^7.28.6",
     "@eslint/js": "^9.39.4",
+    "chai": "^4.5.0",
+    "cross-env": "^10.1.0",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",

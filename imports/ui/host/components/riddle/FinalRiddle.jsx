@@ -17,7 +17,7 @@ const FinalRiddle = ({ finalRiddle }) => {
       </h1>
       <div className="border-l-4 border-red-600 p-8" style={{ backgroundColor: '#1a1a1a' }}>
         <p className="text-white font-bold text-xl leading-relaxed tracking-wide">
-          "{finalRiddle}"
+          &ldquo;{finalRiddle}&rdquo;
         </p>
       </div>
     </div>
