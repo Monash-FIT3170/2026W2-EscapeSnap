@@ -18,10 +18,28 @@ export const zh = {
   },
   landing: {
     initiateProtocol: '启动协议',
-    tagline: '把你所在的环境变成一个互动密室。解开视觉谜题，收集线索，破译最终密码——无论你身在何处。',
+    tagline:
+      '把你所在的环境变成一个互动密室。解开视觉谜题，收集线索，破译最终密码，无论你身在何处。',
     joinAsPlayer: '以玩家身份加入',
     hostAGame: '创建游戏',
     footerTag: '创建房间 · 开始任务',
+    welcome:
+      '无需下载，无需注册。主持人在大屏幕上打开游戏，其他人用口袋里的手机加入。',
+    noCodeYet: '还没有代码？',
+    hostBlurb: '设置时间、队伍人数和难度，然后把加入代码显示在大屏幕上。',
+    specPlayers: '2-4 名玩家',
+    specDuration: '10-60 分钟',
+    specInstall: '轻松上手',
+    specDevices: '一块屏幕 + 手机',
+    finalCode: '最终密码',
+    sampleFinalRiddle:
+      '我有城市，却无人居住；我有山脉，却不长树木；我有道路，却无车通行。我是什么？',
+    finalNote:
+      '每张正确的照片都会揭示一个字母。在主持人的屏幕上汇集这些字母，在时间耗尽前破解最后的谜题。',
+    howItWorks: '玩法说明',
+    choosePressure: '设定难度',
+    pressureNote: '主持人在创建房间时选择难度。',
+    leaderboard: '排行榜',
   },
   difficulty: {
     easy: '简单',
@@ -110,7 +128,8 @@ export const zh = {
       loading: '加载中...',
       missionDebrief: '任务简报',
       missionStillActive: '任务仍在进行',
-      debriefLockedBody: '任务结束后简报才会解锁。队员仍在外勤时，照片和谜题答案将保持封存。',
+      debriefLockedBody:
+        '任务结束后简报才会解锁。队员仍在外勤时，照片和谜题答案将保持封存。',
       backToOperatives: '返回队员',
       finalRiddle: '最终谜题',
       missionSuccess: '任务成功',
@@ -153,7 +172,8 @@ export const zh = {
       attemptsCount: '{n} 次尝试',
       photoArchive: '照片存档',
       photoArchivePurged: '照片存档已清除',
-      photoArchivePurgedDetail: '图像在任务结束后保留6小时，随后自动删除。\n以上所有任务统计数据仍保留在记录中。',
+      photoArchivePurgedDetail:
+        '图像在任务结束后保留6小时，随后自动删除。\n以上所有任务统计数据仍保留在记录中。',
       noPhotosOnRecord: '暂无照片记录',
       noCapturesSubmitted: '本次任务未提交任何拍摄内容。',
       outcome: '结果',
