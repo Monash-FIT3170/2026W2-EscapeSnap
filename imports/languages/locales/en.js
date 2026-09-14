@@ -29,7 +29,7 @@ export const en = {
     footerTag: 'HOST A SESSION · BEGIN MISSION',
     welcome:
       'No downloads or sign-ups. Host opens the game on a big screen and everyone else plays from the phone in their pocket.',
-    noCodeYet: 'No code yet?',
+    noCodeYet: 'Want to Start a Game?',
     hostBlurb:
       'Set the timer, the team size and the difficulty, then put the join code on the big screen.',
     specPlayers: '2-4 PLAYERS',
