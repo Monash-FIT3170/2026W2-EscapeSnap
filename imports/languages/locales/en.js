@@ -23,22 +23,30 @@ export const en = {
   landing: {
     initiateProtocol: 'INITIATE PROTOCOL',
     tagline:
-      'Turn your surroundings into an interactive escape room. Solve visual riddles, collect clues, and crack the final code — wherever you are.',
+      'Turn your surroundings into an interactive escape room. Solve visual riddles, collect clues, and crack the final code, wherever you are.',
     joinAsPlayer: 'JOIN AS PLAYER',
     hostAGame: 'HOST A GAME',
     footerTag: 'HOST A SESSION · BEGIN MISSION',
     welcome:
-      'No downloads and no setup. The host opens one screen, everyone else plays from the phone already in their pocket.',
-    hostHint: 'Run the session on this screen',
-    playerHint: 'Have a 4-digit code?',
-    specPlayers: '2–4 PLAYERS',
-    specDuration: '10–60 MINUTES',
+      'No downloads and no sign-ups. One person opens the game on a big screen, everyone else plays from the phone already in their pocket.',
+    noCodeYet: 'No code yet?',
+    hostBlurb:
+      'Set the timer, the team size and the difficulty, then put the join code on the big screen.',
+    specPlayers: '2-4 PLAYERS',
+    specDuration: '10-60 MINUTES',
     specInstall: 'NO INSTALL',
     specDevices: 'ONE SCREEN + PHONES',
+    finalCode: 'THE FINAL CODE',
+    lettersRecovered: 'LETTERS RECOVERED',
+    finalRiddleLabel: 'FINAL RIDDLE',
+    sampleFinalRiddle:
+      'I have cities, but no houses live there. I have mountains, but no trees grow there. I have roads, but no cars drive there. What am I?',
+    answerLabel: 'ANSWER',
+    finalNote:
+      'Every correct photo reveals one letter. Pool them at the host screen and crack the last riddle before the timer runs out.',
     howItWorks: 'HOW IT WORKS',
-    sampleSession: 'SAMPLE SESSION',
-    sampleNote:
-      'The host watches the team clear rounds in real time while players hunt.',
+    choosePressure: 'SET THE PRESSURE',
+    pressureNote: 'The host picks the difficulty when the session is created.',
     leaderboard: 'LEADERBOARD',
   },
   difficulty: {
