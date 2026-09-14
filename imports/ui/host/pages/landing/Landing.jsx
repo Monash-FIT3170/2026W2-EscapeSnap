@@ -3,11 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useT } from '../../../../languages/LanguageProvider';
 import { LanguagePicker } from '../../../../languages/LanguagePicker';
 
-// #8b0000 is a fill and a border here, never a text colour, because it reads
-// 1.9:1 on the near-black background. Accent labels carry the 4px red bar
-// instead, which only has to clear the 3:1 non-text threshold. BRAND is the one
-// red used as text, and only at display size where 3:1 applies. DIM replaces the
-// #555/#444 used elsewhere in the host pages, which fail AA on #0e0e0e.
 const BG = '#0e0e0e';
 const PANEL = '#141313';
 const LINE = '#353534';
@@ -33,16 +28,19 @@ const DIFFICULTIES = [
 // exactly as a real game would.
 const SAMPLE_LETTERS = ['M', 'A', '?', 'P'];
 
-function SectionLabel({ children }) {
+const CARD = { background: PANEL, border: `1px solid ${LINE}` };
+const LABEL = { letterSpacing: '2px', color: MUTED };
+
+function SectionHeader({ children }) {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3 mb-8">
       <div style={{ width: 4, height: 16, background: RED }} />
-      <span
+      <h2
         className="font-mono text-xs uppercase"
         style={{ fontWeight: 700, letterSpacing: '1.4px', color: INK }}
       >
         {children}
-      </span>
+      </h2>
     </div>
   );
 }
@@ -95,10 +93,7 @@ function Landing() {
               className="h-1.5 w-1.5 rounded-full animate-pulse"
               style={{ background: BRAND }}
             />
-            <span
-              className="font-mono text-xs uppercase"
-              style={{ letterSpacing: '2px', color: MUTED }}
-            >
+            <span className="font-mono text-xs uppercase" style={LABEL}>
               {t('mobile.home.systemOnline')}
             </span>
           </span>
@@ -107,131 +102,24 @@ function Landing() {
       </header>
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-6 md:px-12">
-        {/* Hero: 7/5 split, so the copy column and the goal panel sit off-centre. */}
-        <section className="grid md:grid-cols-12 gap-10 md:gap-14 pt-12 md:pt-20 pb-16 items-start">
-          <div className="md:col-span-7">
+        <section className="pt-12 md:pt-20 pb-16">
+          <div className="max-w-3xl mx-auto text-center">
             <h1 className="font-display text-5xl md:text-7xl font-black tracking-wider leading-none">
               <span style={{ color: INK }}>ESCAPE</span>
               <span style={{ color: BRAND }}>SNAP</span>
             </h1>
 
             <p
-              className="text-sm mt-8 max-w-xl leading-relaxed"
+              className="text-sm mt-8 leading-relaxed"
               style={{ color: MUTED }}
             >
               {t('landing.tagline')}
             </p>
-            <p
-              className="text-sm mt-4 max-w-xl leading-relaxed"
-              style={{ color: DIM }}
-            >
+            <p className="text-sm mt-4 leading-relaxed" style={{ color: DIM }}>
               {t('landing.welcome')}
             </p>
 
-            {/* The player path leads: most people arriving here were handed a code. */}
-            <form
-              onSubmit={handleJoin}
-              className="mt-10 p-6"
-              style={{ background: PANEL, border: `1px solid ${LINE}` }}
-            >
-              <label
-                htmlFor="join-code"
-                className="font-mono text-xs uppercase block"
-                style={{ letterSpacing: '2px', color: MUTED }}
-              >
-                {t('mobile.home.gameCode')}
-              </label>
-
-              <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                <input
-                  id="join-code"
-                  value={code}
-                  onChange={(e) => {
-                    setCode(e.target.value.replace(/\D/g, '').slice(0, 4));
-                    setError('');
-                  }}
-                  inputMode="numeric"
-                  autoComplete="off"
-                  maxLength={4}
-                  placeholder="0000"
-                  aria-invalid={Boolean(error)}
-                  aria-describedby={error ? 'join-code-error' : undefined}
-                  className="flex-1 min-w-0 font-mono px-5 py-4 text-2xl placeholder:text-[#8a8886] focus:outline-none transition-colors"
-                  style={{
-                    background: BG,
-                    border: `1px solid ${error ? ALERT : LINE}`,
-                    color: INK,
-                    letterSpacing: '10px',
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = RED_HOVER;
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = error ? ALERT : LINE;
-                  }}
-                />
-                <button
-                  type="submit"
-                  className="font-mono text-sm uppercase px-8 py-4 transition-colors whitespace-nowrap"
-                  style={{ background: RED, color: INK, letterSpacing: '2px' }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = RED_HOVER;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = RED;
-                  }}
-                >
-                  {t('mobile.home.enterGame')}
-                </button>
-              </div>
-
-              {error && (
-                <p
-                  id="join-code-error"
-                  role="alert"
-                  className="font-mono text-xs mt-4"
-                  style={{ letterSpacing: '1px', color: ALERT }}
-                >
-                  !! {error}
-                </p>
-              )}
-            </form>
-
-            {/* Hosting is the other half of the product, not a footnote, so it gets
-                a button at the same weight as the join control. */}
-            <div className="mt-6 p-6" style={{ border: `1px solid ${LINE}` }}>
-              <p
-                className="font-mono text-xs uppercase"
-                style={{ letterSpacing: '2px', color: MUTED }}
-              >
-                {t('landing.noCodeYet')}
-              </p>
-              <p
-                className="text-sm mt-3 leading-relaxed"
-                style={{ color: DIM }}
-              >
-                {t('landing.hostBlurb')}
-              </p>
-              <Link
-                to="/host"
-                className="block w-full text-center font-mono text-sm uppercase px-8 py-4 mt-5 transition-colors"
-                style={{
-                  border: `1px solid ${RED}`,
-                  color: INK,
-                  letterSpacing: '2px',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = RED;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                }}
-              >
-                {t('landing.hostAGame')}
-              </Link>
-            </div>
-
-            <ul className="flex flex-wrap gap-x-6 gap-y-3 mt-8">
+            <ul className="flex flex-wrap justify-center gap-x-6 gap-y-3 mt-8">
               {specs.map((spec) => (
                 <li
                   key={spec}
@@ -248,36 +136,129 @@ function Landing() {
             </ul>
           </div>
 
-          {/* What the whole game builds toward. Text and tiles only, no mock
-              device chrome. */}
-          <div
-            className="md:col-span-5"
-            style={{ background: PANEL, border: `1px solid ${LINE}` }}
-          >
-            <div
-              className="px-6 py-4"
-              style={{ borderBottom: `1px solid ${LINE}` }}
+          {/* Three equal cards in one row. Equal columns is what actually keeps the
+              final-code panel level with the other two: the earlier 7/5 split left
+              the short column with ~130px of dead space under it. Each card is a
+              flex column so the buttons line up along the bottom edge. */}
+          <div className="grid md:grid-cols-3 gap-6 mt-14">
+            {/* The player path leads: most people arriving here were handed a code. */}
+            <form
+              onSubmit={handleJoin}
+              className="p-6 flex flex-col"
+              style={CARD}
             >
-              <SectionLabel>{t('landing.finalCode')}</SectionLabel>
+              <label
+                htmlFor="join-code"
+                className="font-mono text-xs uppercase block"
+                style={LABEL}
+              >
+                {t('mobile.home.gameCode')}
+              </label>
+
+              <input
+                id="join-code"
+                value={code}
+                onChange={(e) => {
+                  setCode(e.target.value.replace(/\D/g, '').slice(0, 4));
+                  setError('');
+                }}
+                inputMode="numeric"
+                autoComplete="off"
+                maxLength={4}
+                placeholder="0000"
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? 'join-code-error' : undefined}
+                className="w-full font-mono px-5 py-4 mt-4 text-2xl text-center placeholder:text-[#8a8886] focus:outline-none transition-colors"
+                style={{
+                  background: BG,
+                  border: `1px solid ${error ? ALERT : LINE}`,
+                  color: INK,
+                  letterSpacing: '10px',
+                  textIndent: '10px',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = RED_HOVER;
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = error ? ALERT : LINE;
+                }}
+              />
+
+              {error && (
+                <p
+                  id="join-code-error"
+                  role="alert"
+                  className="font-mono text-xs mt-3"
+                  style={{ letterSpacing: '1px', color: ALERT }}
+                >
+                  !! {error}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                className="w-full font-mono text-sm uppercase px-6 py-4 mt-auto transition-colors"
+                style={{ background: RED, color: INK, letterSpacing: '2px' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = RED_HOVER;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = RED;
+                }}
+              >
+                {t('mobile.home.enterGame')}
+              </button>
+            </form>
+
+            <div className="p-6 flex flex-col" style={CARD}>
+              <p className="font-mono text-xs uppercase" style={LABEL}>
+                {t('landing.noCodeYet')}
+              </p>
+              <p
+                className="text-sm mt-4 leading-relaxed"
+                style={{ color: DIM }}
+              >
+                {t('landing.hostBlurb')}
+              </p>
+              <Link
+                to="/host"
+                className="w-full text-center font-mono text-sm uppercase px-6 py-4 mt-auto transition-colors"
+                style={{
+                  border: `1px solid ${RED}`,
+                  color: INK,
+                  letterSpacing: '2px',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = RED;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                {t('landing.hostAGame')}
+              </Link>
             </div>
 
-            <div className="p-6">
-              <p
-                className="font-mono text-xs uppercase"
-                style={{ letterSpacing: '2px', color: MUTED }}
-              >
-                {t('landing.lettersRecovered')}
+            {/* What the whole game builds toward. */}
+            <div className="p-6 flex flex-col" style={CARD}>
+              <p className="font-mono text-xs uppercase" style={LABEL}>
+                {t('landing.finalCode')}
               </p>
+
               <div className="flex gap-2 mt-4">
                 {SAMPLE_LETTERS.map((letter, i) => (
                   <span
                     key={i}
-                    className="font-display w-11 h-11 flex items-center justify-center text-base font-bold"
-                    style={{
-                      border: `1px solid ${letter === '?' ? LINE : RED}`,
-                      background: letter === '?' ? 'transparent' : '#1c0000',
-                      color: letter === '?' ? DIM : INK,
-                    }}
+                    className="font-display flex-1 h-11 flex items-center justify-center text-base font-bold"
+                    style={
+                      letter === '?'
+                        ? { border: `1px dashed ${LINE}`, color: DIM }
+                        : {
+                            border: `1px solid ${RED}`,
+                            background: '#1c0000',
+                            color: INK,
+                          }
+                    }
                   >
                     {letter}
                   </span>
@@ -285,40 +266,18 @@ function Landing() {
               </div>
 
               <p
-                className="font-mono text-xs uppercase mt-8"
-                style={{ letterSpacing: '2px', color: MUTED }}
-              >
-                {t('landing.finalRiddleLabel')}
-              </p>
-              <p
-                className="text-base mt-4 leading-relaxed"
+                className="text-sm mt-5 leading-relaxed"
                 style={{
                   color: INK,
                   borderLeft: `2px solid ${LINE}`,
-                  paddingLeft: 16,
+                  paddingLeft: 14,
                 }}
               >
                 {t('landing.sampleFinalRiddle')}
               </p>
 
               <p
-                className="font-mono text-xs uppercase mt-8"
-                style={{ letterSpacing: '2px', color: MUTED }}
-              >
-                {t('landing.answerLabel')}
-              </p>
-              <div className="flex gap-2 mt-4" aria-hidden>
-                {[0, 1, 2].map((i) => (
-                  <span
-                    key={i}
-                    className="w-11 h-11"
-                    style={{ borderBottom: `2px solid ${LINE}` }}
-                  />
-                ))}
-              </div>
-
-              <p
-                className="text-xs mt-8 leading-relaxed"
+                className="text-xs mt-auto pt-5 leading-relaxed"
                 style={{ color: DIM }}
               >
                 {t('landing.finalNote')}
@@ -327,80 +286,63 @@ function Landing() {
           </div>
         </section>
 
-        {/* How it works: 3/9 split, label rail on the left. */}
-        <section
-          className="grid md:grid-cols-12 gap-8 md:gap-14 py-16"
-          style={{ borderTop: `1px solid ${LINE}` }}
-        >
-          <div className="md:col-span-3">
-            <SectionLabel>{t('landing.howItWorks')}</SectionLabel>
-          </div>
+        {/* Label above the content, not beside it: a left-hand rail left a third of
+            the row empty and squeezed the five steps into an orphaned 2x3 grid. */}
+        <section className="py-16" style={{ borderTop: `1px solid ${LINE}` }}>
+          <SectionHeader>{t('landing.howItWorks')}</SectionHeader>
 
-          <ol className="md:col-span-9 grid sm:grid-cols-2 gap-x-12 gap-y-8">
+          <ol className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
             {STEPS.map((n) => (
-              <li key={n} className="flex gap-4">
+              <li
+                key={n}
+                className="pt-4"
+                style={{ borderTop: `2px solid ${LINE}` }}
+              >
                 <span
-                  className="font-mono text-xs pt-1"
-                  style={{ letterSpacing: '1.5px', color: MUTED }}
+                  className="font-mono text-xs"
+                  style={{ letterSpacing: '1.5px', color: BRAND }}
                 >
                   {String(n).padStart(2, '0')}
                 </span>
-                <div>
-                  <h2
-                    className="font-mono text-sm uppercase"
-                    style={{
-                      fontWeight: 700,
-                      letterSpacing: '1.5px',
-                      color: INK,
-                    }}
-                  >
-                    {t(`mobile.tutorial.step${n}Title`)}
-                  </h2>
-                  <p
-                    className="text-xs mt-2 leading-relaxed"
-                    style={{ color: DIM }}
-                  >
-                    {t(`mobile.tutorial.step${n}Description`)}
-                  </p>
-                </div>
+                <h3
+                  className="font-mono text-sm uppercase mt-3"
+                  style={{
+                    fontWeight: 700,
+                    letterSpacing: '1.5px',
+                    color: INK,
+                  }}
+                >
+                  {t(`mobile.tutorial.step${n}Title`)}
+                </h3>
+                <p
+                  className="text-xs mt-2 leading-relaxed"
+                  style={{ color: DIM }}
+                >
+                  {t(`mobile.tutorial.step${n}Description`)}
+                </p>
               </li>
             ))}
           </ol>
         </section>
 
         {/* Difficulty: reuses the labels the host sees on the create screen. */}
-        <section
-          className="grid md:grid-cols-12 gap-8 md:gap-14 py-16"
-          style={{ borderTop: `1px solid ${LINE}` }}
-        >
-          <div className="md:col-span-3">
-            <SectionLabel>{t('landing.choosePressure')}</SectionLabel>
-            <p className="text-xs mt-4 leading-relaxed" style={{ color: DIM }}>
-              {t('landing.pressureNote')}
-            </p>
-          </div>
+        <section className="py-16" style={{ borderTop: `1px solid ${LINE}` }}>
+          <SectionHeader>{t('landing.choosePressure')}</SectionHeader>
 
-          <div className="md:col-span-9 grid sm:grid-cols-3 gap-4">
+          <div className="grid sm:grid-cols-3 gap-6">
             {DIFFICULTIES.map(({ key, bars }) => (
-              <div
-                key={key}
-                className="p-5"
-                style={{ background: PANEL, border: `1px solid ${LINE}` }}
-              >
-                <div className="flex gap-1" aria-hidden>
+              <div key={key} className="p-6" style={CARD}>
+                <div className="flex gap-1.5" aria-hidden>
                   {[1, 2, 3].map((i) => (
                     <span
                       key={i}
-                      style={{
-                        height: 4,
-                        width: 20,
-                        background: i <= bars ? RED : LINE,
-                      }}
+                      className="flex-1"
+                      style={{ height: 6, background: i <= bars ? RED : LINE }}
                     />
                   ))}
                 </div>
-                <h2
-                  className="font-mono text-sm uppercase mt-4"
+                <h3
+                  className="font-mono text-sm uppercase mt-5"
                   style={{
                     fontWeight: 700,
                     letterSpacing: '1.5px',
@@ -408,16 +350,17 @@ function Landing() {
                   }}
                 >
                   {t(`difficulty.${key}`)}
-                </h2>
-                <p
-                  className="font-mono text-xs uppercase mt-2"
-                  style={{ letterSpacing: '1.5px', color: MUTED }}
-                >
+                </h3>
+                <p className="font-mono text-xs uppercase mt-2" style={LABEL}>
                   {t(`difficulty.${key}Sub`)}
                 </p>
               </div>
             ))}
           </div>
+
+          <p className="text-xs mt-6 leading-relaxed" style={{ color: DIM }}>
+            {t('landing.pressureNote')}
+          </p>
         </section>
       </main>
 
