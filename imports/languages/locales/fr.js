@@ -19,10 +19,28 @@ export const fr = {
   landing: {
     initiateProtocol: 'LANCER LE PROTOCOLE',
     tagline:
-      "Transformez votre environnement en salle d'évasion interactive. Résolvez des énigmes visuelles, rassemblez des indices et percez le code final — où que vous soyez.",
+      "Transformez votre environnement en salle d'évasion interactive. Résolvez des énigmes visuelles, rassemblez des indices et percez le code final, où que vous soyez.",
     joinAsPlayer: 'REJOINDRE LA PARTIE',
     hostAGame: 'CRÉER UNE PARTIE',
     footerTag: 'CRÉEZ UNE SESSION · LANCEZ LA MISSION',
+    welcome:
+      "Aucun téléchargement ni inscription. L'hôte ouvre le jeu sur grand écran et tout le monde joue depuis le téléphone qu'il a en poche.",
+    noCodeYet: 'Pas encore de code ?',
+    hostBlurb:
+      "Choisissez la durée, la taille de l'équipe et la difficulté, puis affichez le code d'accès sur le grand écran.",
+    specPlayers: '2-4 JOUEURS',
+    specDuration: '10-60 MINUTES',
+    specInstall: 'MISE EN PLACE RAPIDE',
+    specDevices: 'UN ÉCRAN + DES TÉLÉPHONES',
+    finalCode: 'LE CODE FINAL',
+    sampleFinalRiddle:
+      "J'ai des villes, mais personne n'y habite. J'ai des montagnes, mais aucun arbre n'y pousse. J'ai des routes, mais aucune voiture n'y roule. Que suis-je ?",
+    finalNote:
+      "Chaque photo correcte révèle une lettre. Rassemblez-les sur l'écran de l'hôte et percez la dernière énigme avant la fin du chrono.",
+    howItWorks: 'COMMENT ÇA MARCHE',
+    choosePressure: 'RÉGLEZ LA PRESSION',
+    pressureNote: "L'hôte choisit la difficulté à la création de la session.",
+    leaderboard: 'CLASSEMENT',
   },
   difficulty: {
     easy: 'FACILE',
@@ -55,7 +73,8 @@ export const fr = {
       copyTitle: 'Sélectionnez et copiez ce code de partie à 4 chiffres',
       shareHint: 'Partagez ce code à 4 chiffres avec les joueurs.',
       scanToDeploy: 'SCANNEZ POUR DÉPLOYER',
-      distributeHint: "Les agents scannent ce code pour rejoindre instantanément — aucune saisie de code PIN n'est nécessaire.",
+      distributeHint:
+        "Les agents scannent ce code pour rejoindre instantanément — aucune saisie de code PIN n'est nécessaire.",
       gameDifficulty: 'DIFFICULTÉ DE LA PARTIE',
       awaitingStart: 'EN ATTENTE DU DÉMARRAGE...',
       capacity: 'CAPACITÉ',
@@ -100,7 +119,8 @@ export const fr = {
       noLettersRevealedYet: "AUCUNE LETTRE RÉVÉLÉE POUR L'INSTANT",
       submitAnswer: 'SOUMETTRE LA RÉPONSE',
       enterOverridePlaceholder: 'SAISISSEZ LE CODE PRIORITAIRE...',
-      connectionError: 'ERREUR DE CONNEXION - VÉRIFIEZ VOTRE RÉSEAU ET RÉESSAYEZ',
+      connectionError:
+        'ERREUR DE CONNEXION - VÉRIFIEZ VOTRE RÉSEAU ET RÉESSAYEZ',
       incorrectTryAgain: 'INCORRECT - RÉESSAYEZ',
       attempt: 'TENTATIVE',
       attempts: 'TENTATIVES',
@@ -111,7 +131,8 @@ export const fr = {
       loading: 'CHARGEMENT...',
       missionDebrief: 'DÉBRIEFING DE MISSION',
       missionStillActive: 'MISSION TOUJOURS ACTIVE',
-      debriefLockedBody: 'LE DÉBRIEFING SE DÉBLOQUE À LA FIN DE LA MISSION. LES PHOTOS ET LES RÉPONSES AUX ÉNIGMES RESTENT SCELLÉES TANT QUE LES AGENTS SONT SUR LE TERRAIN.',
+      debriefLockedBody:
+        'LE DÉBRIEFING SE DÉBLOQUE À LA FIN DE LA MISSION. LES PHOTOS ET LES RÉPONSES AUX ÉNIGMES RESTENT SCELLÉES TANT QUE LES AGENTS SONT SUR LE TERRAIN.',
       backToOperatives: 'RETOUR AUX AGENTS',
       finalRiddle: 'ÉNIGME FINALE',
       missionSuccess: 'MISSION RÉUSSIE',
@@ -143,7 +164,8 @@ export const fr = {
       avg: 'MOY',
       fastest: 'PLUS RAPIDE',
       slowest: 'PLUS LENT',
-      untimedNote: "CERTAINES MANCHES N'ONT PAS DE DONNÉES DE TEMPS ET SONT EXCLUES DES MOYENNES.",
+      untimedNote:
+        "CERTAINES MANCHES N'ONT PAS DE DONNÉES DE TEMPS ET SONT EXCLUES DES MOYENNES.",
       roundTiming: 'CHRONO_MANCHES',
       noRoundsOnRecord: 'AUCUNE MANCHE ENREGISTRÉE',
       round: 'MANCHE {n}',
@@ -154,9 +176,11 @@ export const fr = {
       attemptsCount: '{n} TENTATIVES',
       photoArchive: 'ARCHIVE_PHOTOS',
       photoArchivePurged: 'ARCHIVE PHOTO PURGÉE',
-      photoArchivePurgedDetail: 'LES IMAGES SONT CONSERVÉES PENDANT 6 HEURES APRÈS UNE MISSION, PUIS SUPPRIMÉES AUTOMATIQUEMENT.\nTOUTES LES STATISTIQUES DE MISSION CI-DESSUS RESTENT ENREGISTRÉES.',
+      photoArchivePurgedDetail:
+        'LES IMAGES SONT CONSERVÉES PENDANT 6 HEURES APRÈS UNE MISSION, PUIS SUPPRIMÉES AUTOMATIQUEMENT.\nTOUTES LES STATISTIQUES DE MISSION CI-DESSUS RESTENT ENREGISTRÉES.',
       noPhotosOnRecord: 'AUCUNE PHOTO ENREGISTRÉE',
-      noCapturesSubmitted: "AUCUNE CAPTURE N'A ÉTÉ SOUMISE PENDANT CETTE MISSION.",
+      noCapturesSubmitted:
+        "AUCUNE CAPTURE N'A ÉTÉ SOUMISE PENDANT CETTE MISSION.",
       outcome: 'RÉSULTAT',
       all: 'TOUT',
       correctLabel: 'CORRECT',
@@ -240,22 +264,26 @@ export const fr = {
       roundTimer: 'Minuteur',
       expired: 'Expiré',
       awaitingHost: "EN ATTENTE DE L'HÔTE",
-      awaitingHostBody: "Patientez pendant que l'hôte prépare la partie. Restez vigilant — ça commence bientôt.",
+      awaitingHostBody:
+        "Patientez pendant que l'hôte prépare la partie. Restez vigilant — ça commence bientôt.",
       standby: 'En attente',
       gameInSession: 'PARTIE EN COURS',
-      gameInSessionBody: 'Une manche est en cours. Retournez au scanner pour terminer votre mission.',
+      gameInSessionBody:
+        'Une manche est en cours. Retournez au scanner pour terminer votre mission.',
       active: 'Active',
       playerDefault: 'JOUEUR',
       awaitingGuidance: "EN ATTENTE D'INSTRUCTIONS",
     },
     riddle: {
       errCameraSecure: 'La caméra nécessite une connexion sécurisée (HTTPS).',
-      errCameraPermission: 'Autorisation caméra refusée - vérifiez les paramètres de votre navigateur.',
+      errCameraPermission:
+        'Autorisation caméra refusée - vérifiez les paramètres de votre navigateur.',
       errCameraNotFound: 'Aucune caméra trouvée sur cet appareil.',
       errCameraUnavailable: 'Accès à la caméra refusé ou indisponible.',
       errProcessPhoto: 'Impossible de traiter la photo — veuillez réessayer.',
       errConnection: 'Erreur de connexion — veuillez réessayer.',
-      errSubmissionNotSaved: "Erreur de connexion — votre soumission n'a pas été enregistrée. Veuillez réessayer.",
+      errSubmissionNotSaved:
+        "Erreur de connexion — votre soumission n'a pas été enregistrée. Veuillez réessayer.",
       loadingRound: 'Chargement de la manche...',
       capturedAlt: 'capturé',
       couldntVerify: 'Vérification impossible',
@@ -277,8 +305,10 @@ export const fr = {
       wrongObjectDetected: 'MAUVAIS OBJET DÉTECTÉ',
       roundSkipped: 'PASSÉE !',
       letterForfeited: 'LETTRE PERDUE',
-      correctBody: 'Vous avez obtenu une lettre révélée. Utilisez-la pour aider à assembler le code final.',
-      incorrectBody: "Vous n'avez pas obtenu de lettre révélée pour cette manche.",
+      correctBody:
+        'Vous avez obtenu une lettre révélée. Utilisez-la pour aider à assembler le code final.',
+      incorrectBody:
+        "Vous n'avez pas obtenu de lettre révélée pour cette manche.",
       retryOrSkipBody:
         'Scannez à nouveau, ou passez la manche pour continuer sans sa lettre.',
       retry: 'Réessayer',
@@ -351,20 +381,26 @@ export const fr = {
       keepAtLeastOne: 'Gardez au moins un élément sur la carte.',
       shareTitle: 'Mon débriefing de mission EscapeSnap',
       statusSent: 'Débriefing envoyé au-delà du périmètre.',
-      statusStatsShared: "Statistiques de mission partagées. Enregistrez la carte pour le partage d'image.",
-      statusSavedCopied: "Carte enregistrée et légende copiée — collez-la n'importe où.",
-      statusShareBlocked: "Le partage a été bloqué. Essayez Enregistrer l'image ou Copier les stats.",
+      statusStatsShared:
+        "Statistiques de mission partagées. Enregistrez la carte pour le partage d'image.",
+      statusSavedCopied:
+        "Carte enregistrée et légende copiée — collez-la n'importe où.",
+      statusShareBlocked:
+        "Le partage a été bloqué. Essayez Enregistrer l'image ou Copier les stats.",
       statusCardSaved: 'Carte {format} enregistrée au format PNG.',
       statusCreateImageFailed: "Impossible de créer l'image sur cet appareil.",
       statusCaptionCopied: 'Légende de partage copiée.',
-      statusClipboardBlocked: "L'accès au presse-papiers a été bloqué par ce navigateur.",
+      statusClipboardBlocked:
+        "L'accès au presse-papiers a été bloqué par ce navigateur.",
       shareLabOnline: 'LABO_PARTAGE // EN LIGNE',
       headlineLine1: 'Créez votre',
       headlineLine2: 'débriefing.',
-      subheadline: 'Choisissez ce qui quitte la mission, façonnez la carte, puis partagez-la comme une vraie image.',
+      subheadline:
+        'Choisissez ce qui quitte la mission, façonnez la carte, puis partagez-la comme une vraie image.',
       step1Title: '01 // RENSEIGNEMENTS À INCLURE',
       activeCount: '{n}/5 ACTIFS',
-      privacyShield: 'BOUCLIER DE CONFIDENTIALITÉ : LE CODE DE PARTIE, LES RÉPONSES AUX ÉNIGMES ET LES LETTRES NON RÉCUPÉRÉES NE SONT JAMAIS EXPORTÉS.',
+      privacyShield:
+        'BOUCLIER DE CONFIDENTIALITÉ : LE CODE DE PARTIE, LES RÉPONSES AUX ÉNIGMES ET LES LETTRES NON RÉCUPÉRÉES NE SONT JAMAIS EXPORTÉS.',
       step2Title: '02 // CANAL VISUEL',
       cardStyleLabel: 'STYLE DE CARTE',
       outputFormatLabel: 'FORMAT DE SORTIE',
@@ -390,18 +426,24 @@ export const fr = {
     },
     tutorial: {
       step1Title: "LISEZ L'ÉNIGME",
-      step1Description: 'Chaque manche vous propose une énigme décrivant un objet que vous devez trouver.',
+      step1Description:
+        'Chaque manche vous propose une énigme décrivant un objet que vous devez trouver.',
       step2Title: "TROUVEZ L'OBJET",
-      step2Description: "Déduisez la réponse à l'énigme et trouvez l'objet correspondant dans le monde réel.",
+      step2Description:
+        "Déduisez la réponse à l'énigme et trouvez l'objet correspondant dans le monde réel.",
       step3Title: 'PRENEZ UNE PHOTO',
-      step3Description: "Utilisez le scanner pour prendre une photo de l'objet avant l'expiration du minuteur.",
+      step3Description:
+        "Utilisez le scanner pour prendre une photo de l'objet avant l'expiration du minuteur.",
       step4Title: 'COLLECTEZ DES LETTRES',
-      step4Description: 'Les bonnes réponses révèlent des lettres. Conservez les lettres que vous collectez à chaque manche.',
+      step4Description:
+        'Les bonnes réponses révèlent des lettres. Conservez les lettres que vous collectez à chaque manche.',
       step5Title: 'ÉVADEZ-VOUS',
-      step5Description: "Terminez toutes les manches et utilisez les lettres collectées pour résoudre l'énigme finale.",
+      step5Description:
+        "Terminez toutes les manches et utilisez les lettres collectées pour résoudre l'énigme finale.",
       missionBriefing: 'Briefing de mission',
       howToPlay: 'COMMENT JOUER',
-      objectiveHint: "Terminez chaque objectif avant que le minuteur de la partie n'atteigne zéro.",
+      objectiveHint:
+        "Terminez chaque objectif avant que le minuteur de la partie n'atteigne zéro.",
       back: 'Retour',
       startMission: 'Démarrer la mission',
       next: 'Suivant',

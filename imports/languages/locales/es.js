@@ -19,10 +19,28 @@ export const es = {
   landing: {
     initiateProtocol: 'INICIAR PROTOCOLO',
     tagline:
-      'Convierte tu entorno en una sala de escape interactiva. Resuelve acertijos visuales, reúne pistas y descifra el código final — estés donde estés.',
+      'Convierte tu entorno en una sala de escape interactiva. Resuelve acertijos visuales, reúne pistas y descifra el código final, estés donde estés.',
     joinAsPlayer: 'ENTRAR COMO JUGADOR',
     hostAGame: 'CREAR PARTIDA',
     footerTag: 'CREA UNA SESIÓN · INICIA LA MISIÓN',
+    welcome:
+      'Sin descargas ni registros. El anfitrión abre el juego en una pantalla grande y el resto juega desde el móvil que lleva en el bolsillo.',
+    noCodeYet: '¿Aún no tienes código?',
+    hostBlurb:
+      'Elige el tiempo, el tamaño del equipo y la dificultad, y muestra el código de acceso en la pantalla grande.',
+    specPlayers: '2-4 JUGADORES',
+    specDuration: '10-60 MINUTOS',
+    specInstall: 'CONFIGURACIÓN FÁCIL',
+    specDevices: 'UNA PANTALLA + MÓVILES',
+    finalCode: 'EL CÓDIGO FINAL',
+    sampleFinalRiddle:
+      'Tengo ciudades, pero en ellas no vive nadie. Tengo montañas, pero en ellas no crecen árboles. Tengo carreteras, pero por ellas no circulan coches. ¿Qué soy?',
+    finalNote:
+      'Cada foto correcta revela una letra. Reúnelas en la pantalla del anfitrión y descifra el último acertijo antes de que se acabe el tiempo.',
+    howItWorks: 'CÓMO FUNCIONA',
+    choosePressure: 'ELIGE LA PRESIÓN',
+    pressureNote: 'El anfitrión elige la dificultad al crear la sesión.',
+    leaderboard: 'CLASIFICACIÓN',
   },
   difficulty: {
     easy: 'FÁCIL',
@@ -55,7 +73,8 @@ export const es = {
       copyTitle: 'Selecciona y copia este código de partida de 4 dígitos',
       shareHint: 'Comparte este código de 4 dígitos con los jugadores.',
       scanToDeploy: 'ESCANEA PARA DESPLEGAR',
-      distributeHint: 'Los operativos escanean este código para unirse al instante — no necesitan introducir el PIN.',
+      distributeHint:
+        'Los operativos escanean este código para unirse al instante — no necesitan introducir el PIN.',
       gameDifficulty: 'DIFICULTAD DE LA PARTIDA',
       awaitingStart: 'ESPERANDO EL INICIO...',
       capacity: 'CAPACIDAD',
@@ -100,7 +119,8 @@ export const es = {
       noLettersRevealedYet: 'AÚN NO HAY LETRAS REVELADAS',
       submitAnswer: 'ENVIAR RESPUESTA',
       enterOverridePlaceholder: 'INTRODUCIR ANULACIÓN DE TERMINAL...',
-      connectionError: 'ERROR DE CONEXIÓN - COMPRUEBA TU RED E INTÉNTALO DE NUEVO',
+      connectionError:
+        'ERROR DE CONEXIÓN - COMPRUEBA TU RED E INTÉNTALO DE NUEVO',
       incorrectTryAgain: 'INCORRECTO - INTÉNTALO DE NUEVO',
       attempt: 'INTENTO',
       attempts: 'INTENTOS',
@@ -111,7 +131,8 @@ export const es = {
       loading: 'CARGANDO...',
       missionDebrief: 'INFORME DE MISIÓN',
       missionStillActive: 'MISIÓN AÚN ACTIVA',
-      debriefLockedBody: 'EL INFORME SE DESBLOQUEA CUANDO TERMINA LA MISIÓN. LAS FOTOS Y LAS RESPUESTAS DE LOS ACERTIJOS PERMANECEN SELLADAS MIENTRAS LOS OPERATIVOS SIGUEN EN EL TERRENO.',
+      debriefLockedBody:
+        'EL INFORME SE DESBLOQUEA CUANDO TERMINA LA MISIÓN. LAS FOTOS Y LAS RESPUESTAS DE LOS ACERTIJOS PERMANECEN SELLADAS MIENTRAS LOS OPERATIVOS SIGUEN EN EL TERRENO.',
       backToOperatives: 'VOLVER A OPERATIVOS',
       finalRiddle: 'ACERTIJO FINAL',
       missionSuccess: 'MISIÓN EXITOSA',
@@ -143,7 +164,8 @@ export const es = {
       avg: 'PROM',
       fastest: 'MÁS RÁPIDO',
       slowest: 'MÁS LENTO',
-      untimedNote: 'ALGUNAS RONDAS NO TIENEN DATOS DE TIEMPO Y QUEDAN EXCLUIDAS DE LOS PROMEDIOS.',
+      untimedNote:
+        'ALGUNAS RONDAS NO TIENEN DATOS DE TIEMPO Y QUEDAN EXCLUIDAS DE LOS PROMEDIOS.',
       roundTiming: 'TIEMPO_DE_RONDA',
       noRoundsOnRecord: 'NO HAY RONDAS REGISTRADAS',
       round: 'RONDA {n}',
@@ -154,7 +176,8 @@ export const es = {
       attemptsCount: '{n} INTENTOS',
       photoArchive: 'ARCHIVO_DE_FOTOS',
       photoArchivePurged: 'ARCHIVO DE FOTOS ELIMINADO',
-      photoArchivePurgedDetail: 'LAS IMÁGENES SE CONSERVAN DURANTE 6 HORAS DESPUÉS DE UNA MISIÓN Y LUEGO SE ELIMINAN AUTOMÁTICAMENTE.\nTODAS LAS ESTADÍSTICAS DE LA MISIÓN ANTERIORES PERMANECEN REGISTRADAS.',
+      photoArchivePurgedDetail:
+        'LAS IMÁGENES SE CONSERVAN DURANTE 6 HORAS DESPUÉS DE UNA MISIÓN Y LUEGO SE ELIMINAN AUTOMÁTICAMENTE.\nTODAS LAS ESTADÍSTICAS DE LA MISIÓN ANTERIORES PERMANECEN REGISTRADAS.',
       noPhotosOnRecord: 'NO HAY FOTOS REGISTRADAS',
       noCapturesSubmitted: 'NO SE ENVIARON CAPTURAS DURANTE ESTA MISIÓN.',
       outcome: 'RESULTADO',
@@ -240,22 +263,26 @@ export const es = {
       roundTimer: 'Temporizador',
       expired: 'Expirado',
       awaitingHost: 'ESPERANDO AL ANFITRIÓN',
-      awaitingHostBody: 'Espera mientras el anfitrión prepara la partida. Mantente alerta — empieza pronto.',
+      awaitingHostBody:
+        'Espera mientras el anfitrión prepara la partida. Mantente alerta — empieza pronto.',
       standby: 'En espera',
       gameInSession: 'PARTIDA EN CURSO',
-      gameInSessionBody: 'Hay una ronda activa. Vuelve al escáner para completar tu misión.',
+      gameInSessionBody:
+        'Hay una ronda activa. Vuelve al escáner para completar tu misión.',
       active: 'Activa',
       playerDefault: 'JUGADOR',
       awaitingGuidance: 'ESPERANDO INSTRUCCIONES',
     },
     riddle: {
       errCameraSecure: 'La cámara requiere una conexión segura (HTTPS).',
-      errCameraPermission: 'Permiso de cámara denegado - revisa la configuración de tu navegador.',
+      errCameraPermission:
+        'Permiso de cámara denegado - revisa la configuración de tu navegador.',
       errCameraNotFound: 'No se encontró ninguna cámara en este dispositivo.',
       errCameraUnavailable: 'Acceso a la cámara denegado o no disponible.',
       errProcessPhoto: 'No se pudo procesar la foto — inténtalo de nuevo.',
       errConnection: 'Error de conexión — inténtalo de nuevo.',
-      errSubmissionNotSaved: 'Error de conexión — tu envío no se guardó. Inténtalo de nuevo.',
+      errSubmissionNotSaved:
+        'Error de conexión — tu envío no se guardó. Inténtalo de nuevo.',
       loadingRound: 'Cargando ronda...',
       capturedAlt: 'capturado',
       couldntVerify: 'No Se Pudo Verificar',
@@ -277,7 +304,8 @@ export const es = {
       wrongObjectDetected: 'OBJETO INCORRECTO DETECTADO',
       roundSkipped: '¡OMITIDA!',
       letterForfeited: 'LETRA PERDIDA',
-      correctBody: 'Has obtenido una letra revelada. Úsala para ayudar a armar el código final.',
+      correctBody:
+        'Has obtenido una letra revelada. Úsala para ayudar a armar el código final.',
       incorrectBody: 'No lograste obtener una letra revelada para esta ronda.',
       retryOrSkipBody:
         'Escanea de nuevo, u omite la ronda para avanzar sin su letra.',
@@ -351,20 +379,27 @@ export const es = {
       keepAtLeastOne: 'Mantén al menos un detalle en la tarjeta.',
       shareTitle: 'Mi informe de misión de EscapeSnap',
       statusSent: 'Informe enviado más allá del perímetro.',
-      statusStatsShared: 'Estadísticas de la misión compartidas. Guarda la tarjeta para compartir la imagen.',
-      statusSavedCopied: 'Tarjeta guardada y leyenda copiada — pégala donde quieras.',
-      statusShareBlocked: 'No se pudo compartir. Prueba con Guardar imagen o Copiar estadísticas.',
+      statusStatsShared:
+        'Estadísticas de la misión compartidas. Guarda la tarjeta para compartir la imagen.',
+      statusSavedCopied:
+        'Tarjeta guardada y leyenda copiada — pégala donde quieras.',
+      statusShareBlocked:
+        'No se pudo compartir. Prueba con Guardar imagen o Copiar estadísticas.',
       statusCardSaved: 'Tarjeta {format} guardada como PNG.',
-      statusCreateImageFailed: 'No se pudo crear la imagen en este dispositivo.',
+      statusCreateImageFailed:
+        'No se pudo crear la imagen en este dispositivo.',
       statusCaptionCopied: 'Leyenda para compartir copiada.',
-      statusClipboardBlocked: 'Este navegador bloqueó el acceso al portapapeles.',
+      statusClipboardBlocked:
+        'Este navegador bloqueó el acceso al portapapeles.',
       shareLabOnline: 'LABORATORIO_DE_COMPARTIR // EN LÍNEA',
       headlineLine1: 'Construye tu',
       headlineLine2: 'informe.',
-      subheadline: 'Elige qué sale de la misión, da forma a la tarjeta y compártela como una imagen real.',
+      subheadline:
+        'Elige qué sale de la misión, da forma a la tarjeta y compártela como una imagen real.',
       step1Title: '01 // INFORMACIÓN A INCLUIR',
       activeCount: '{n}/5 ACTIVOS',
-      privacyShield: 'ESCUDO DE PRIVACIDAD: EL CÓDIGO DE PARTIDA, LAS RESPUESTAS DE LOS ACERTIJOS Y LAS LETRAS NO RECUPERADAS NUNCA SE EXPORTAN.',
+      privacyShield:
+        'ESCUDO DE PRIVACIDAD: EL CÓDIGO DE PARTIDA, LAS RESPUESTAS DE LOS ACERTIJOS Y LAS LETRAS NO RECUPERADAS NUNCA SE EXPORTAN.',
       step2Title: '02 // CANAL VISUAL',
       cardStyleLabel: 'ESTILO DE TARJETA',
       outputFormatLabel: 'FORMATO DE SALIDA',
@@ -390,18 +425,24 @@ export const es = {
     },
     tutorial: {
       step1Title: 'LEE EL ACERTIJO',
-      step1Description: 'Cada ronda te da un acertijo que describe un objeto que debes encontrar.',
+      step1Description:
+        'Cada ronda te da un acertijo que describe un objeto que debes encontrar.',
       step2Title: 'ENCUENTRA EL OBJETO',
-      step2Description: 'Descifra la respuesta del acertijo y encuentra el objeto correspondiente en el mundo real.',
+      step2Description:
+        'Descifra la respuesta del acertijo y encuentra el objeto correspondiente en el mundo real.',
       step3Title: 'TOMA UNA FOTO',
-      step3Description: 'Usa el escáner para tomar una foto del objeto antes de que expire el temporizador.',
+      step3Description:
+        'Usa el escáner para tomar una foto del objeto antes de que expire el temporizador.',
       step4Title: 'RECOLECTA LETRAS',
-      step4Description: 'Las respuestas correctas revelan letras. Conserva las letras que recolectes en cada ronda.',
+      step4Description:
+        'Las respuestas correctas revelan letras. Conserva las letras que recolectes en cada ronda.',
       step5Title: 'ESCAPA',
-      step5Description: 'Completa todas las rondas y usa las letras que recolectaste para ayudar a resolver el acertijo final.',
+      step5Description:
+        'Completa todas las rondas y usa las letras que recolectaste para ayudar a resolver el acertijo final.',
       missionBriefing: 'Instrucciones de la Misión',
       howToPlay: 'CÓMO JUGAR',
-      objectiveHint: 'Completa cada objetivo antes de que el temporizador de la partida llegue a cero.',
+      objectiveHint:
+        'Completa cada objetivo antes de que el temporizador de la partida llegue a cero.',
       back: 'Atrás',
       startMission: 'Iniciar Misión',
       next: 'Siguiente',

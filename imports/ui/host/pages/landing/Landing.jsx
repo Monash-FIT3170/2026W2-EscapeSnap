@@ -1,64 +1,42 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { useT } from '../../../../languages/LanguageProvider';
-import { LanguagePicker } from '../../../../languages/LanguagePicker';
+import LandingHeader from '../../components/landing/LandingHeader';
+import LandingHero from '../../components/landing/LandingHero';
+import JoinCard from '../../components/landing/JoinCard';
+import HostCard from '../../components/landing/HostCard';
+import FinalCodeCard from '../../components/landing/FinalCodeCard';
+import HowItWorks from '../../components/landing/HowItWorks';
+import DifficultyTiers from '../../components/landing/DifficultyTiers';
+import LandingFooter from '../../components/landing/LandingFooter';
+import { BG, INK } from '../../components/landing/theme';
 
 function Landing() {
-  const t = useT();
-
   return (
-    <div className="min-h-screen text-gray-100 flex flex-col" style={{ background: '#0e0e0e' }}>
-      <header className="px-8 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #1c1b1b' }}>
-        <span className="font-bold text-xl tracking-widest uppercase" style={{ color: '#e5e2e1' }}>
-          ESCAPESNAP
-        </span>
-        <LanguagePicker />
-      </header>
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ background: BG, color: INK }}
+    >
+      <LandingHeader />
 
-      <main className="flex-1 flex items-center justify-center px-8 py-12">
-        <div className="w-full max-w-2xl text-center">
-          <p className="text-xs tracking-widest mb-3" style={{ color: '#8b0000' }}>
-            {t('landing.initiateProtocol')}
-          </p>
-          <h1 className="text-6xl font-bold tracking-widest uppercase mb-6" style={{ color: '#e5e2e1' }}>
-            ESCAPESNAP
-          </h1>
-          <p className="text-sm tracking-wide mb-12 max-w-md mx-auto leading-relaxed" style={{ color: '#aa8984' }}>
-            {t('landing.tagline')}
-          </p>
+      <main className="flex-1 w-full max-w-6xl mx-auto px-6 md:px-12">
+        <section className="pt-12 md:pt-20 pb-16">
+          <LandingHero />
 
-          <div className="flex flex-col gap-4 w-full max-w-xs mx-auto">
-            <Link
-              to="/player"
-              className="block w-full py-4 text-center text-sm tracking-widest uppercase transition-colors cursor-pointer"
-              style={{ border: '1px solid #1c1b1b', color: '#e5e2e1', background: 'transparent' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = '#8b0000'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = '#1c1b1b'}
-            >
-              {t('landing.joinAsPlayer')}
-            </Link>
-            <Link
-              to="/host"
-              className="block w-full py-4 text-center text-sm tracking-widest uppercase transition-colors cursor-pointer"
-              style={{ background: '#8b0000', color: '#e5e2e1' }}
-              onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
-              onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
-            >
-              {t('landing.hostAGame')}
-            </Link>
+          {/* Three equal cards in one row. Equal columns is what keeps the
+              final-code panel level with the other two: an earlier 7/5 split
+              left the short column with ~130px of dead space under it. Each
+              card is a flex column, so the buttons share a baseline. */}
+          <div className="grid md:grid-cols-3 gap-6 mt-14">
+            <JoinCard />
+            <HostCard />
+            <FinalCodeCard />
           </div>
+        </section>
 
-          <p className="text-xs tracking-widest mt-8" style={{ color: '#444' }}>
-            {t('landing.footerTag')}
-          </p>
-        </div>
+        <HowItWorks />
+        <DifficultyTiers />
       </main>
 
-      <footer className="px-8 py-4 text-center" style={{ borderTop: '1px solid #1c1b1b' }}>
-        <p className="text-xs tracking-widest" style={{ color: '#444' }}>
-          ESCAPESNAP
-        </p>
-      </footer>
+      <LandingFooter />
     </div>
   );
 }
