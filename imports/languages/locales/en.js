@@ -27,6 +27,19 @@ export const en = {
     joinAsPlayer: 'JOIN AS PLAYER',
     hostAGame: 'HOST A GAME',
     footerTag: 'HOST A SESSION · BEGIN MISSION',
+    welcome:
+      'No downloads and no setup. The host opens one screen, everyone else plays from the phone already in their pocket.',
+    hostHint: 'Run the session on this screen',
+    playerHint: 'Have a 4-digit code?',
+    specPlayers: '2–4 PLAYERS',
+    specDuration: '10–60 MINUTES',
+    specInstall: 'NO INSTALL',
+    specDevices: 'ONE SCREEN + PHONES',
+    howItWorks: 'HOW IT WORKS',
+    sampleSession: 'SAMPLE SESSION',
+    sampleNote:
+      'The host watches the team clear rounds in real time while players hunt.',
+    leaderboard: 'LEADERBOARD',
   },
   difficulty: {
     easy: 'EASY',
