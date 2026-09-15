@@ -24,9 +24,12 @@ Players.attachSchema(new SimpleSchema({
     type: String,
     allowedValues: [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''), '?'],
   },
-  // Set when the player's connection drops, cleared when they reconnect.
   disconnectedAt: {
     type: Date,
+    optional: true,
+  },
+  connectionId: {
+    type: String,
     optional: true,
   },
 }));

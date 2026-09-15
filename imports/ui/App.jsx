@@ -33,11 +33,12 @@ function PlayerFlow({ initialCode = '' }) {
     if (!gameId) return { game: null, playerCount: 0 };
     Meteor.subscribe('games.current', gameId);
     Meteor.subscribe('players.inGame', gameId);
+    if (playerId) Meteor.subscribe('players.presence', playerId);
     return {
       game: Games.findOne(gameId),
       playerCount: Players.find({ gameId }).count(),
     };
-  }, [gameId]);
+  }, [gameId, playerId]);
 
   // Fire the auto-advance once per join. Without the guard, returning to the
   // lobby mid-game bounces you straight back out again.

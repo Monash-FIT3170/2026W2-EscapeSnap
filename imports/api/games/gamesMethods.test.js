@@ -3,6 +3,7 @@ import { assert } from 'chai';
 import { Games } from './GamesCollection';
 import { Players } from '../players/PlayersCollection';
 import { Rounds } from '../rounds/RoundsCollection';
+import { advanceIfRoundSettled } from '../rounds/roundProgression';
 import './gamesMethods';
 import '../rounds/roundsMethods';
 
@@ -137,6 +138,15 @@ if (Meteor.isServer) {
         });
         await Meteor.callAsync('rounds.skip', round._id);
       }
+
+      it('leaves a lobby game on round 1', async function () {
+        const gameId = await Meteor.callAsync('games.create', {
+          groupName: 'Team Rocket',
+        });
+
+        assert.isFalse(await advanceIfRoundSettled(gameId, 1));
+        assert.equal((await Games.findOneAsync(gameId)).currentRound, 1);
+      });
 
       it('stops waiting on a player gone past the grace period, every round including the last', async function () {
         const { gameId, adaId, graceId } = await startTwoPlayerGame();
