@@ -172,14 +172,6 @@ const CreateGame = () => {
               </div>
             </div>
 
-            <div className="p-3" style={{ border: '1px solid #1c1b1b' }}>
-              <p className="text-xs tracking-wide" style={{ color: '#444' }}>
-                SPRINT_1 // PRESET PLAYER: DYLAN ·
-                STATUS WILL BE SET TO{' '}
-                <span style={{ color: '#555' }}>LOBBY</span>
-              </p>
-            </div>
-
             {error && (
               <p className="text-xs tracking-widest" style={{ color: '#8b0000' }}>
                 !! {error}
