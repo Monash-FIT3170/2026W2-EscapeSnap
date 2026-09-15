@@ -289,7 +289,8 @@ Meteor.methods({
   async 'games.advanceRound'(gameId) {
     const game = await Games.findOneAsync(gameId);
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
-    if (game.currentRound >= game.totalRounds) return;
+    if (game.status !== 'in_progress')
+      throw new Meteor.Error('invalid-state', 'Game is not in progress');
 
     await resolvePendingRounds({ gameId, roundNumber: game.currentRound });
 

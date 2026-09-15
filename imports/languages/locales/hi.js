@@ -89,6 +89,11 @@ export const hi = {
       needsHelp: 'सहायता चाहिए',
       inProgress: 'प्रगति में',
       eventLog: 'घटना_लॉग',
+      offline: 'ऑफ़लाइन',
+      forceAdvance: 'ज़बरदस्ती आगे बढ़ाएँ',
+      forceAdvanceConfirm: 'पुष्टि करें: {n} लंबित खिलाड़ी हारेंगे',
+      forceAdvancing: 'आगे बढ़ रहा है...',
+      forceAdvanceFailed: 'आगे बढ़ाना विफल - पुनः प्रयास करें',
     },
     finalRiddle: {
       loading: 'लोड हो रहा है...',

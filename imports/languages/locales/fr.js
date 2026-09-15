@@ -89,6 +89,11 @@ export const fr = {
       needsHelp: "BESOIN D'AIDE",
       inProgress: 'EN COURS',
       eventLog: 'JOURNAL_ÉVÉNEMENTS',
+      offline: 'HORS LIGNE',
+      forceAdvance: 'FORCER LE PASSAGE',
+      forceAdvanceConfirm: 'CONFIRMER : {n} EN ATTENTE PERDENT',
+      forceAdvancing: 'PASSAGE EN COURS...',
+      forceAdvanceFailed: 'ÉCHEC DU PASSAGE FORCÉ - RÉESSAYEZ',
     },
     finalRiddle: {
       loading: 'CHARGEMENT...',

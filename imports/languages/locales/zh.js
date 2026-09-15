@@ -88,6 +88,11 @@ export const zh = {
       needsHelp: '需要帮助',
       inProgress: '进行中',
       eventLog: '事件日志',
+      offline: '离线',
+      forceAdvance: '强制推进',
+      forceAdvanceConfirm: '确认：{n} 名待定玩家将弃权',
+      forceAdvancing: '推进中...',
+      forceAdvanceFailed: '强制推进失败 - 请重试',
     },
     finalRiddle: {
       loading: '加载中...',

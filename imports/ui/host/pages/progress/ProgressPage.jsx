@@ -29,6 +29,59 @@ const CrossIcon = () => (
   </svg>
 );
 
+const FORCE_CONFIRM_MS = 5000;
+
+const ForceAdvanceButton = ({ gameId, pendingCount }) => {
+  const t = useT();
+  const [armed, setArmed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    if (!armed) return;
+    const timer = setTimeout(() => setArmed(false), FORCE_CONFIRM_MS);
+    return () => clearTimeout(timer);
+  }, [armed]);
+
+  const advance = async () => {
+    setBusy(true);
+    setFailed(false);
+    try {
+      await Meteor.callAsync('games.advanceRound', gameId);
+    } catch (err) {
+      console.error('[games.advanceRound] failed:', err.reason || err.message);
+      setFailed(true);
+    } finally {
+      setBusy(false);
+      setArmed(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-3">
+      {failed && (
+        <span style={{ fontSize: 10, letterSpacing: '1px', color: '#ef4444' }}>{t('host.progress.forceAdvanceFailed')}</span>
+      )}
+      <button
+        type="button"
+        disabled={busy}
+        onClick={armed ? advance : () => setArmed(true)}
+        style={{
+          minHeight: 44, padding: '0 16px', fontSize: 10, fontWeight: 700, letterSpacing: '1px',
+          color: '#e5e2e1', background: armed ? '#8b0000' : 'transparent', border: '1px solid #8b0000',
+          cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.5 : 1,
+        }}
+      >
+        {busy
+          ? t('host.progress.forceAdvancing')
+          : armed
+            ? t('host.progress.forceAdvanceConfirm', { n: pendingCount })
+            : t('host.progress.forceAdvance')}
+      </button>
+    </div>
+  );
+};
+
 const ProgressPage = () => {
   const { gameId } = useParams();
   const t = useT();
@@ -87,6 +140,7 @@ const ProgressPage = () => {
   const totalRoundDocs = rounds.length;
   const solvedRounds = rounds.filter(r => r.status === 'correct').length;
   const teamProgress = totalRoundDocs > 0 ? Math.round((solvedRounds / totalRoundDocs) * 100) : 0;
+  const pendingThisRound = rounds.filter(r => r.roundNumber === game.currentRound && r.status === 'pending').length;
 
   return (
     <SidebarLayout gameId={gameId} activePage="progress">
@@ -170,6 +224,9 @@ const ProgressPage = () => {
                 <span style={{ fontSize: 10, color: '#aa8984' }}>{t('host.progress.incorrect')}</span>
               </div>
               <span style={{ fontSize: 10, color: '#aa8984' }}>{t('host.progress.pending')}</span>
+              {game.status === 'in_progress' && pendingThisRound > 0 && (
+                <ForceAdvanceButton gameId={gameId} pendingCount={pendingThisRound} />
+              )}
             </div>
           </div>
 
@@ -202,9 +259,12 @@ const ProgressPage = () => {
             const hasAnyWrong = playerRounds.some(r => r.status === 'wrong' || r.status === 'timeout');
             const allDone = playerRounds.filter(r => r.status !== 'pending').length === game.totalRounds;
             const allCorrect = playerRounds.every(r => r.status === 'correct');
+            const offline = !!player.disconnectedAt;
 
             let statusLabel, statusBg, statusColor;
-            if (allDone && allCorrect) {
+            if (offline) {
+              statusLabel = t('host.progress.offline'); statusBg = 'transparent'; statusColor = '#aa8984';
+            } else if (allDone && allCorrect) {
               statusLabel = t('host.progress.completed'); statusBg = '#474747'; statusColor = '#e5e2e1';
             } else if (hasAnyWrong) {
               statusLabel = t('host.progress.needsHelp'); statusBg = '#93000a'; statusColor = '#ffdad6';
@@ -214,7 +274,7 @@ const ProgressPage = () => {
 
             return (
               <div key={player._id} className="flex items-center px-6 py-4" style={{ borderTop: i > 0 ? '1px solid #353534' : 'none' }}>
-                <div style={{ width: 160, fontWeight: 700, fontSize: 12, color: '#e5e2e1' }}>
+                <div style={{ width: 160, fontWeight: 700, fontSize: 12, color: offline ? '#aa8984' : '#e5e2e1' }}>
                   {player.name.toUpperCase()}
                 </div>
 
@@ -242,7 +302,7 @@ const ProgressPage = () => {
                 })}
 
                 <div style={{ width: 120, display: 'flex', justifyContent: 'flex-end' }}>
-                  <span style={{ fontSize: 9, padding: '2px 8px', background: statusBg, color: statusColor }}>
+                  <span style={{ fontSize: 9, padding: '2px 8px', background: statusBg, color: statusColor, border: `1px solid ${offline ? '#aa8984' : statusBg}` }}>
                     {statusLabel}
                   </span>
                 </div>

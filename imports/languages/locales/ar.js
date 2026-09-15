@@ -90,6 +90,11 @@ export const ar = {
       needsHelp: 'يحتاج مساعدة',
       inProgress: 'قيد التنفيذ',
       eventLog: 'سجل_الأحداث',
+      offline: 'غير متصل',
+      forceAdvance: 'فرض التقدم',
+      forceAdvanceConfirm: 'تأكيد: سيخسر {n} من المعلّقين',
+      forceAdvancing: 'جارٍ التقدم...',
+      forceAdvanceFailed: 'فشل فرض التقدم - حاول مرة أخرى',
     },
     finalRiddle: {
       loading: 'جارٍ التحميل...',

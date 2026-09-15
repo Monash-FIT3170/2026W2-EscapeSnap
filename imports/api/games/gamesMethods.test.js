@@ -115,7 +115,7 @@ if (Meteor.isServer) {
       });
     });
 
-    describe('round progression with a disconnected player', function () {
+    describe('round progression', function () {
       async function startTwoPlayerGame() {
         const gameId = await Meteor.callAsync('games.create', {
           groupName: 'Team Rocket',
@@ -172,6 +172,23 @@ if (Meteor.isServer) {
         });
         assert.equal((await Games.findOneAsync(gameId)).currentRound, 1);
         assert.equal(graceRound.status, 'pending');
+      });
+
+      it('games.advanceRound forfeits every pending round, including the last', async function () {
+        const { gameId, adaId, graceId } = await startTwoPlayerGame();
+
+        await Meteor.callAsync('games.advanceRound', gameId);
+        assert.equal((await Games.findOneAsync(gameId)).currentRound, 2);
+
+        await Meteor.callAsync('games.advanceRound', gameId);
+        const rounds = await Rounds.find({ gameId }).fetchAsync();
+        assert.isTrue(rounds.every((round) => round.status === 'wrong'));
+        for (const playerId of [adaId, graceId]) {
+          assert.deepEqual(
+            (await Players.findOneAsync(playerId)).revealedLetters,
+            ['?', '?']
+          );
+        }
       });
     });
 

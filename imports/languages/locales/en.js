@@ -93,6 +93,11 @@ export const en = {
       needsHelp: 'NEEDS HELP',
       inProgress: 'IN PROGRESS',
       eventLog: 'EVENT_LOG',
+      offline: 'OFFLINE',
+      forceAdvance: 'FORCE ADVANCE',
+      forceAdvanceConfirm: 'CONFIRM: FORFEIT {n} PENDING',
+      forceAdvancing: 'ADVANCING...',
+      forceAdvanceFailed: 'FORCE ADVANCE FAILED - TRY AGAIN',
     },
     finalRiddle: {
       loading: 'LOADING...',
