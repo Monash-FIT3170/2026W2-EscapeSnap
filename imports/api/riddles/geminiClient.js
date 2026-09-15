@@ -1,5 +1,5 @@
 // Server-only — reads GEMINI_API_KEY from process.env; never import from imports/ui.
-import { THEME_OBJECT_POOLS } from '/imports/lib/cocoClasses';
+import { THEME_OBJECT_POOLS } from '../../lib/cocoClasses.js';
 
 // gemini-2.0-flash/2.5-flash return 404/zero-quota on free-tier keys as of writing;
 // gemini-flash-latest works. Override via GEMINI_MODEL if that changes.

@@ -66,3 +66,12 @@ GEMINI_MODEL=         # optional, defaults to gemini-3-flash-preview
 
 Get a key from https://aistudio.google.com/apikey. The app boots without `.env` — every variable is optional for startup — but photo submissions and riddle generation will fail without `GEMINI_API_KEY`. `scripts/start.mjs` loads `.env` automatically for `meteor npm run start`.
 
+
+## Automated testing
+
+Run `npm ci`, then `npm test` (or `meteor npm test` with Meteor's Node runtime).
+`npm run test:unit` runs deterministic badge and AI adapter checks;
+`npm run test:meteor` runs backend tests against a disposable database.
+
+See [the seeded test plan](docs/testing/seeded-test-plan.md) for fixtures, each
+scenario's inputs and expected results, and the remaining browser checks.

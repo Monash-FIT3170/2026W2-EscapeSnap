@@ -15,6 +15,8 @@ if (Meteor.isServer) {
     });
 
     describe('games.create', function () {
+      // Creates Team Rocket with only its required group name. Checks that the stored game is in
+      // the lobby, has a four-digit numeric join code, starts on round 1, and has no start time.
       it('creates a game in lobby status with a four digit join code', async function () {
         const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
         const game = await Games.findOneAsync(gameId);
@@ -25,6 +27,8 @@ if (Meteor.isServer) {
         assert.isNull(game.startedAt);
       });
 
+      // Omits all optional settings while supplying the required group name. Checks defaults of
+      // three rounds, four players, 30 minutes and medium difficulty.
       it('applies the documented defaults when called with no options', async function () {
         const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
         const game = await Games.findOneAsync(gameId);
@@ -35,6 +39,8 @@ if (Meteor.isServer) {
         assert.equal(game.difficulty, 'medium');
       });
 
+      // Creates a game with 45 minutes, five rounds, two player slots and hard difficulty.
+      // Checks that each supplied option is stored instead of its default.
       it('honours supplied options', async function () {
         const gameId = await Meteor.callAsync('games.create', {
           groupName: 'Team Rocket',
@@ -51,6 +57,9 @@ if (Meteor.isServer) {
         assert.equal(game.difficulty, 'hard');
       });
 
+      // Calls games.create with difficulty impossible to exercise schema rejection. The existing
+      // assertion only checks that an error is caught; it also catches assert.fail, so it does
+      // not reliably prove rejection.
       it('rejects a difficulty outside the allowed values', async function () {
         try {
           await Meteor.callAsync('games.create', { groupName: 'Team Rocket', difficulty: 'impossible' });
@@ -62,6 +71,8 @@ if (Meteor.isServer) {
     });
 
     describe('games.start', function () {
+      // Fills a one-player lobby with Ada and starts it. Checks that the game becomes
+      // in_progress and stores a Date in startedAt.
       it('moves a lobby game to in_progress and stamps startedAt', async function () {
         const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket', capacity: 1 });
         const { joinCode } = await Games.findOneAsync(gameId);
@@ -74,6 +85,8 @@ if (Meteor.isServer) {
         assert.instanceOf(game.startedAt, Date);
       });
 
+      // Attempts to start a nonexistent game ID. Checks that the method rejects it with the not-
+      // found error code.
       it('throws not-found for a game that does not exist', async function () {
         try {
           await Meteor.callAsync('games.start', 'no-such-game-id');
@@ -83,6 +96,8 @@ if (Meteor.isServer) {
         }
       });
 
+      // Starts a full one-player game, then starts it again. Checks that the second call rejects
+      // with invalid-state.
       it('refuses to start a game that has already left the lobby', async function () {
         const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket', capacity: 1 });
         const { joinCode } = await Games.findOneAsync(gameId);
@@ -97,6 +112,8 @@ if (Meteor.isServer) {
         }
       });
 
+      // Starts a three-round game containing Ada and Grace. Checks that six round documents are
+      // created and every one is pending.
       it('creates one round per player per round number', async function () {
         const gameId = await Meteor.callAsync('games.create', {
           groupName: 'Team Rocket',
@@ -116,6 +133,8 @@ if (Meteor.isServer) {
     });
 
     describe('games.startRound', function () {
+      // Passes an empty session ID to games.startRound. Checks that it is rejected with the
+      // invalid error code.
       it('rejects a missing sessionId', async function () {
         try {
           await Meteor.callAsync('games.startRound', '');
@@ -127,6 +146,8 @@ if (Meteor.isServer) {
     });
 
     describe('games.submitRiddle', function () {
+      // Submits a riddle for an unknown session and player p1. Checks that the server returns
+      // no-session because no round session was started.
       it('throws no-session when the round was never started', async function () {
         try {
           await Meteor.callAsync('games.submitRiddle', 'unknown-session', 'p1');
