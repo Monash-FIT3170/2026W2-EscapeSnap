@@ -89,6 +89,11 @@ export const id = {
       needsHelp: 'PERLU BANTUAN',
       inProgress: 'SEDANG BERLANGSUNG',
       eventLog: 'LOG_KEJADIAN',
+      offline: 'TERPUTUS',
+      forceAdvance: 'PAKSA LANJUT',
+      forceAdvanceConfirm: 'KONFIRMASI: {n} TERTUNDA GUGUR',
+      forceAdvancing: 'MELANJUTKAN...',
+      forceAdvanceFailed: 'GAGAL MEMAKSA LANJUT - COBA LAGI',
     },
     finalRiddle: {
       loading: 'MEMUAT...',

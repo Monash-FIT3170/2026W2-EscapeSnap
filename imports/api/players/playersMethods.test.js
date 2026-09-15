@@ -1,8 +1,10 @@
 import { Meteor } from 'meteor/meteor';
+import { DDP } from 'meteor/ddp-client';
 import { assert } from 'chai';
 import { Games } from '../games/GamesCollection';
 import { Players } from './PlayersCollection';
 import './playersMethods';
+import './playersPublications';
 import '../games/gamesMethods';
 import '../rounds/roundsMethods';
 
@@ -76,6 +78,72 @@ if (Meteor.isServer) {
       }
 
       assert.equal(await Players.find({ gameId }).countAsync(), 2);
+    });
+  });
+
+  // Real DDP connections back to this server, so a dropped socket goes
+  // through the same path a phone losing signal does.
+  describe('players.presence', function () {
+    this.timeout(10000);
+
+    let playerId;
+    const clients = [];
+
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const player = () => Players.findOneAsync(playerId);
+
+    async function waitFor(predicate) {
+      for (let i = 0; i < 100; i++) {
+        if (predicate(await player())) return;
+        await sleep(50);
+      }
+      assert.fail('timed out waiting for presence to update');
+    }
+
+    function connect() {
+      const client = DDP.connect(Meteor.absoluteUrl());
+      clients.push(client);
+      client.subscribe('players.presence', playerId);
+      return client;
+    }
+
+    beforeEach(async function () {
+      await Games.removeAsync({});
+      await Players.removeAsync({});
+      const gameId = await Meteor.callAsync('games.create', {
+        groupName: 'Team Rocket',
+        capacity: 2,
+      });
+      const { joinCode } = await Games.findOneAsync(gameId);
+      ({ playerId } = await Meteor.callAsync('players.join', joinCode, 'Ada'));
+    });
+
+    afterEach(function () {
+      clients.splice(0).forEach((client) => client.disconnect());
+    });
+
+    it('flags a dropped connection and clears the flag on reconnect', async function () {
+      const client = connect();
+      await waitFor((p) => p.connectionId);
+
+      client.disconnect();
+      await waitFor((p) => p.disconnectedAt);
+
+      client.reconnect();
+      await waitFor((p) => !p.disconnectedAt);
+    });
+
+    it('ignores an old connection closing after the player is back on a new one', async function () {
+      const stale = connect();
+      await waitFor((p) => p.connectionId);
+      const staleConnectionId = (await player()).connectionId;
+
+      connect();
+      await waitFor((p) => p.connectionId !== staleConnectionId);
+
+      stale.disconnect();
+      await sleep(500);
+      assert.notExists((await player()).disconnectedAt);
     });
   });
 }

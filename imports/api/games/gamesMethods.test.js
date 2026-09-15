@@ -3,6 +3,7 @@ import { assert } from 'chai';
 import { Games } from './GamesCollection';
 import { Players } from '../players/PlayersCollection';
 import { Rounds } from '../rounds/RoundsCollection';
+import { advanceIfRoundSettled } from '../rounds/roundProgression';
 import './gamesMethods';
 import '../rounds/roundsMethods';
 
@@ -112,6 +113,92 @@ if (Meteor.isServer) {
         const rounds = await Rounds.find({ gameId }).fetchAsync();
         assert.lengthOf(rounds, 6, '3 rounds x 2 players');
         assert.isTrue(rounds.every((round) => round.status === 'pending'));
+      });
+    });
+
+    describe('round progression', function () {
+      async function startTwoPlayerGame() {
+        const gameId = await Meteor.callAsync('games.create', {
+          groupName: 'Team Rocket',
+          totalRounds: 2,
+          capacity: 2,
+        });
+        const { joinCode } = await Games.findOneAsync(gameId);
+        const ada = await Meteor.callAsync('players.join', joinCode, 'Ada');
+        const grace = await Meteor.callAsync('players.join', joinCode, 'Grace');
+        await Meteor.callAsync('games.start', gameId);
+        return { gameId, adaId: ada.playerId, graceId: grace.playerId };
+      }
+
+      async function skip(gameId, playerId) {
+        const { currentRound } = await Games.findOneAsync(gameId);
+        const round = await Rounds.findOneAsync({
+          playerId,
+          roundNumber: currentRound,
+        });
+        await Meteor.callAsync('rounds.skip', round._id);
+      }
+
+      it('leaves a lobby game on round 1', async function () {
+        const gameId = await Meteor.callAsync('games.create', {
+          groupName: 'Team Rocket',
+        });
+
+        assert.isFalse(await advanceIfRoundSettled(gameId, 1));
+        assert.equal((await Games.findOneAsync(gameId)).currentRound, 1);
+      });
+
+      it('stops waiting on a player gone past the grace period, every round including the last', async function () {
+        const { gameId, adaId, graceId } = await startTwoPlayerGame();
+        await Players.updateAsync(graceId, {
+          $set: { disconnectedAt: new Date(Date.now() - 61 * 1000) },
+        });
+
+        await skip(gameId, adaId);
+        assert.equal((await Games.findOneAsync(gameId)).currentRound, 2);
+
+        await skip(gameId, adaId);
+        const graceRounds = await Rounds.find({
+          playerId: graceId,
+        }).fetchAsync();
+        assert.isTrue(graceRounds.every((round) => round.status === 'wrong'));
+        assert.deepEqual(
+          (await Players.findOneAsync(graceId)).revealedLetters,
+          ['?', '?']
+        );
+      });
+
+      it('keeps waiting on a player still inside the grace period', async function () {
+        const { gameId, adaId, graceId } = await startTwoPlayerGame();
+        await Players.updateAsync(graceId, {
+          $set: { disconnectedAt: new Date(Date.now() - 10 * 1000) },
+        });
+
+        await skip(gameId, adaId);
+
+        const graceRound = await Rounds.findOneAsync({
+          playerId: graceId,
+          roundNumber: 1,
+        });
+        assert.equal((await Games.findOneAsync(gameId)).currentRound, 1);
+        assert.equal(graceRound.status, 'pending');
+      });
+
+      it('games.advanceRound forfeits every pending round, including the last', async function () {
+        const { gameId, adaId, graceId } = await startTwoPlayerGame();
+
+        await Meteor.callAsync('games.advanceRound', gameId);
+        assert.equal((await Games.findOneAsync(gameId)).currentRound, 2);
+
+        await Meteor.callAsync('games.advanceRound', gameId);
+        const rounds = await Rounds.find({ gameId }).fetchAsync();
+        assert.isTrue(rounds.every((round) => round.status === 'wrong'));
+        for (const playerId of [adaId, graceId]) {
+          assert.deepEqual(
+            (await Players.findOneAsync(playerId)).revealedLetters,
+            ['?', '?']
+          );
+        }
       });
     });
 

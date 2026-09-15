@@ -1,13 +1,15 @@
 import { Meteor } from 'meteor/meteor';
 import { Games } from './GamesCollection';
 import { Players } from '../players/PlayersCollection';
-import { Rounds } from '../rounds/RoundsCollection';
 import { RoundSessions } from '/imports/api/rounds/RoundSessions';
 import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 import { FINAL_RIDDLE, getFallbackFinalRiddle } from '../../lib/finalRiddle';
 import { RIDDLE_BANK } from '../../lib/riddleBank';
 import { THEME_OBJECT_POOLS } from '../../lib/cocoClasses';
-import { advanceGameRound } from '../rounds/roundProgression';
+import {
+  advanceGameRound,
+  resolvePendingRounds,
+} from '../rounds/roundProgression';
 import { finalizeGameResults } from '../achievements/achievementService';
 import {
   generateFinalRiddle,
@@ -157,32 +159,6 @@ function pregenerateRiddlesOnce(gameId, params) {
   return pendingPregeneration.get(gameId);
 }
 
-// Mark every still-pending round matching `selector` as wrong.
-// The status is part of the update selector, so a round can only make the
-// pending -> wrong transition once and can never push a duplicate '?'.
-async function resolvePendingRounds(selector) {
-  const pending = await Rounds.find({
-    ...selector,
-    status: 'pending',
-  }).fetchAsync();
-  let resolved = 0;
-
-  for (const round of pending) {
-    const updated = await Rounds.updateAsync(
-      { _id: round._id, status: 'pending' },
-      { $set: { status: 'wrong', submittedAt: new Date() } }
-    );
-    if (updated === 1) {
-      await Players.updateAsync(round.playerId, {
-        $push: { revealedLetters: '?' },
-      });
-      resolved++;
-    }
-  }
-
-  return resolved;
-}
-
 Meteor.methods({
   async 'games.create'({
     groupName,
@@ -313,7 +289,8 @@ Meteor.methods({
   async 'games.advanceRound'(gameId) {
     const game = await Games.findOneAsync(gameId);
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
-    if (game.currentRound >= game.totalRounds) return;
+    if (game.status !== 'in_progress')
+      throw new Meteor.Error('invalid-state', 'Game is not in progress');
 
     await resolvePendingRounds({ gameId, roundNumber: game.currentRound });
 

@@ -89,6 +89,11 @@ export const es = {
       needsHelp: 'NECESITA AYUDA',
       inProgress: 'EN PROGRESO',
       eventLog: 'REGISTRO_DE_EVENTOS',
+      offline: 'DESCONECTADO',
+      forceAdvance: 'FORZAR AVANCE',
+      forceAdvanceConfirm: 'CONFIRMAR: {n} PENDIENTES PIERDEN',
+      forceAdvancing: 'AVANZANDO...',
+      forceAdvanceFailed: 'NO SE PUDO FORZAR EL AVANCE - INTÉNTALO DE NUEVO',
     },
     finalRiddle: {
       loading: 'CARGANDO...',
