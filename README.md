@@ -41,16 +41,18 @@ meteor run --settings settings.example.json
 | --- | --- |
 | `meteor npm run start` | Start the app (`meteor run`) |
 | `meteor npm run lint` | ESLint |
+| `meteor npm test` | Unit, frontend component, and Meteor tests |
+| `meteor npm run test:ui` | Frontend component tests in jsdom |
 | `meteor npm run format` | Prettier write |
 
 ## CI/CD
 
 The `CI` GitHub Actions workflow runs on pull requests and pushes to `main`. It
 installs dependencies, audits npm dependencies for high/critical advisories,
-lints, runs the test suite against a temporary MongoDB, and builds the Meteor
-bundle. Separate jobs run CodeQL analysis and scan Git history for exposed
-secrets. The project does not build container images, so there is no
-container-image scan.
+lints, runs unit and frontend component tests, runs the Meteor test suite
+against a temporary MongoDB, and builds the Meteor bundle. Separate jobs run
+CodeQL analysis and scan Git history for exposed secrets. The project does not
+build container images, so there is no container-image scan.
 
 After a successful CI run on `main`, the deployment workflow deploys that
 commit to staging, checks that the app's HTTPS home page responds successfully,
@@ -76,6 +78,7 @@ workflow.
 
 - **Frontend:** React, Tailwind CSS v4 (via PostCSS — see `postcss.config.mjs`)
 - **Backend / realtime:** Meteor (DDP), MongoDB
+- **Frontend tests:** Vitest, React Testing Library, and jsdom
 - **E2E (planned):** Playwright in `e2e/` (excluded from the Meteor bundle via `.meteorignore`)
 
 ## Spike learnings (short)
