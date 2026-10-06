@@ -110,14 +110,6 @@ jobs:
           rm -rf /tmp/escapesnap-build
           meteor build --directory /tmp/escapesnap-build
 
-      - name: Store Meteor build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: meteor-bundle-${{ github.sha }}
-          path: /tmp/escapesnap-build/bundle
-          if-no-files-found: error
-          retention-days: 30
-
   code-scan:
     name: Code security scan
     runs-on: ubuntu-latest

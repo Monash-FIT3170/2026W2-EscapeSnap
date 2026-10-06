@@ -47,10 +47,10 @@ meteor run --settings settings.example.json
 
 The `CI` GitHub Actions workflow runs on pull requests and pushes to `main`. It
 installs dependencies, audits npm dependencies for high/critical advisories,
-lints, runs the test suite against a temporary MongoDB, builds the Meteor
-bundle, and stores that bundle as a 30-day GitHub Actions artifact. Separate
-jobs run CodeQL analysis and scan Git history for exposed secrets. The project
-does not build container images, so there is no container-image scan.
+lints, runs the test suite against a temporary MongoDB, and builds the Meteor
+bundle. Separate jobs run CodeQL analysis and scan Git history for exposed
+secrets. The project does not build container images, so there is no
+container-image scan.
 
 After a successful CI run on `main`, the deployment workflow deploys that
 commit to staging, checks that the app's HTTPS home page responds successfully,
@@ -68,10 +68,9 @@ Configure these GitHub Environments and values before deployment:
 | `production` | Optional `GALAXY_APP_URL` (defaults to `escape-snap.sandbox.galaxycloud.app`) | `GALAXY_SESSION` or `METEOR_SESSION_FILE`, `GEMINI_API_KEY`, `MONGO_URL` |
 
 Use separate staging database and API credentials; do not point staging at
-production data. The Galaxy deploy command builds from the checked-out commit;
-the CI bundle is retained as a traceable build artifact, while Galaxy creates
-its deployment bundle during each environment's deploy. Rollbacks remain a
-manual operation outside this workflow.
+production data. Galaxy builds from the checked-out commit during each
+environment's deploy. Rollbacks remain a manual operation outside this
+workflow.
 
 ## Stack
 
