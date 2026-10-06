@@ -143,7 +143,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.x'
+
+      - name: Install Gitleaks
+        run: go install github.com/zricethezav/gitleaks/v8@v8.24.3
+
       - name: Scan for exposed secrets
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gitleaks git --verbose --redact --exit-code 1
