@@ -43,6 +43,54 @@ body {
   animation: pulse-text 1.4s ease-in-out infinite;
 }
 
+/* "AI" shimmer for a word that should stand out (the OTHER theme option):
+   a blue → violet → pink gradient slides through the letters with a soft
+   matching glow. */
+@keyframes ai-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes ai-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px rgba(139, 92, 246, 0.35));
+  }
+  50% {
+    filter: drop-shadow(0 0 7px rgba(236, 72, 153, 0.7));
+  }
+}
+
+.ai-text {
+  display: inline-block; /* so the glow filter renders on every browser */
+  background-image: linear-gradient(
+    90deg,
+    #60a5fa,
+    #a78bfa,
+    #f472b6,
+    #a78bfa,
+    #60a5fa
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation:
+    ai-shimmer 3s linear infinite,
+    ai-glow 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-text {
+    animation: none;
+  }
+}
+
 html {
   background: #0e0e0e;
   -webkit-text-size-adjust: 100%;
