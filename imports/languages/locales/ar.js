@@ -16,6 +16,7 @@ export const ar = {
     noPlayers: 'لا يوجد لاعبون في اللعبة',
     timeout: 'انتهى مؤقت الجولة',
     unknown: 'حدث خطأ ما. حاول مرة أخرى.',
+    reconnectExpired: 'انتهت مهلة إعادة الاتصال',
   },
   landing: {
     initiateProtocol: 'بدء البروتوكول',
@@ -230,6 +231,7 @@ export const ar = {
       gameCodePlaceholder: 'مثال: 8437',
       scannedViaQr: '✓ تم المسح عبر QR',
       joining: 'جارٍ الانضمام...',
+      reconnecting: 'جارٍ إعادة الاتصال بالمهمة...',
       enterGame: '← ادخل اللعبة',
       errNameRequired: 'اسم اللاعب مطلوب',
       errCodeRequired: 'رمز اللعبة مطلوب',

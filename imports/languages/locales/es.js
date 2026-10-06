@@ -15,6 +15,7 @@ export const es = {
     noPlayers: 'No hay jugadores en la partida',
     timeout: 'El tiempo de la ronda expiró',
     unknown: 'Algo salió mal. Inténtalo de nuevo.',
+    reconnectExpired: 'Tu tiempo para reconectarte ha terminado',
   },
   landing: {
     initiateProtocol: 'INICIAR PROTOCOLO',
@@ -229,6 +230,7 @@ export const es = {
       gameCodePlaceholder: 'ej. 8437',
       scannedViaQr: '✓ Escaneado por QR',
       joining: 'Entrando...',
+      reconnecting: 'RECONECTANDO A LA MISIÓN...',
       enterGame: 'Entrar →',
       errNameRequired: 'Se requiere el nombre del jugador',
       errCodeRequired: 'Se requiere el código de partida',
