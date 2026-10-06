@@ -15,6 +15,7 @@ export const fr = {
     noPlayers: 'Aucun joueur dans la partie',
     timeout: 'Le minuteur de la manche a expiré',
     unknown: "Une erreur s'est produite. Réessayez.",
+    reconnectExpired: 'Votre délai de reconnexion est écoulé',
   },
   landing: {
     initiateProtocol: 'LANCER LE PROTOCOLE',
@@ -229,6 +230,7 @@ export const fr = {
       gameCodePlaceholder: 'ex. 8437',
       scannedViaQr: '✓ Scanné via QR',
       joining: 'Connexion...',
+      reconnecting: 'RECONNEXION À LA MISSION...',
       enterGame: 'Entrer →',
       errNameRequired: 'Le nom du joueur est requis',
       errCodeRequired: 'Le code de la partie est requis',

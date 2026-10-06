@@ -15,6 +15,7 @@ export const zh = {
     noPlayers: '游戏中没有玩家',
     timeout: '回合计时已结束',
     unknown: '出错了，请重试。',
+    reconnectExpired: '重新连接的时限已过',
   },
   landing: {
     initiateProtocol: '启动协议',
@@ -228,6 +229,7 @@ export const zh = {
       gameCodePlaceholder: '例如 8437',
       scannedViaQr: '✓ 已通过二维码扫描',
       joining: '加入中...',
+      reconnecting: '正在重新连接任务...',
       enterGame: '进入游戏 →',
       errNameRequired: '请填写玩家名称',
       errCodeRequired: '请填写游戏代码',

@@ -15,6 +15,7 @@ export const id = {
     noPlayers: 'Tidak ada pemain dalam permainan',
     timeout: 'Waktu ronde telah habis',
     unknown: 'Terjadi kesalahan. Silakan coba lagi.',
+    reconnectExpired: 'Batas waktu untuk menyambung ulang telah habis',
   },
   landing: {
     initiateProtocol: 'MULAI PROTOKOL',
@@ -229,6 +230,7 @@ export const id = {
       gameCodePlaceholder: 'mis. 8437',
       scannedViaQr: '✓ Dipindai via QR',
       joining: 'Bergabung...',
+      reconnecting: 'MENYAMBUNG ULANG KE MISI...',
       enterGame: 'Masuk Permainan →',
       errNameRequired: 'Nama pemain wajib diisi',
       errCodeRequired: 'Kode permainan wajib diisi',

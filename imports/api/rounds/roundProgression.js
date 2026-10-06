@@ -1,5 +1,6 @@
 import { Games } from '../games/GamesCollection';
 import { Rounds } from './RoundsCollection';
+import { Players } from '../players/PlayersCollection';
 
 export async function advanceGameRound(
   gameId,
@@ -39,4 +40,30 @@ export async function advanceIfRoundSettled(gameId, roundNumber) {
   if (stillScanning > 0) return false;
 
   return advanceGameRound(gameId, roundNumber);
+}
+
+// Mark every still-pending round matching `selector` as wrong.
+// The status is part of the update selector, so a round can only make the
+// pending -> wrong transition once and can never push a duplicate '?'.
+export async function resolvePendingRounds(selector) {
+  const pending = await Rounds.find({
+    ...selector,
+    status: 'pending',
+  }).fetchAsync();
+  let resolved = 0;
+
+  for (const round of pending) {
+    const updated = await Rounds.updateAsync(
+      { _id: round._id, status: 'pending' },
+      { $set: { status: 'wrong', submittedAt: new Date() } }
+    );
+    if (updated === 1) {
+      await Players.updateAsync(round.playerId, {
+        $push: { revealedLetters: '?' },
+      });
+      resolved++;
+    }
+  }
+
+  return resolved;
 }

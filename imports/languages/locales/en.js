@@ -19,6 +19,7 @@ export const en = {
     noPlayers: 'No players in the game',
     timeout: 'The round timer expired',
     unknown: 'Something went wrong. Please try again.',
+    reconnectExpired: 'Your reconnect window has closed',
   },
   landing: {
     initiateProtocol: 'INITIATE PROTOCOL',
@@ -233,6 +234,7 @@ export const en = {
       gameCodePlaceholder: 'e.g. 8437',
       scannedViaQr: '✓ Scanned via QR',
       joining: 'Joining...',
+      reconnecting: 'RECONNECTING TO MISSION...',
       enterGame: 'Enter Game →',
       errNameRequired: 'Player name required',
       errCodeRequired: 'Game code required',

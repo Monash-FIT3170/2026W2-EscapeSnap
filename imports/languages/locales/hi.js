@@ -15,6 +15,7 @@ export const hi = {
     noPlayers: 'गेम में कोई खिलाड़ी नहीं है',
     timeout: 'राउंड का समय समाप्त हो गया',
     unknown: 'कुछ गलत हो गया। कृपया पुनः प्रयास करें।',
+    reconnectExpired: 'दोबारा जुड़ने का समय समाप्त हो गया है',
   },
   landing: {
     initiateProtocol: 'प्रोटोकॉल शुरू करें',
@@ -229,6 +230,7 @@ export const hi = {
       gameCodePlaceholder: 'जैसे 8437',
       scannedViaQr: '✓ QR से स्कैन किया गया',
       joining: 'जुड़ रहे हैं...',
+      reconnecting: 'मिशन से फिर से जुड़ रहे हैं...',
       enterGame: 'गेम में प्रवेश करें →',
       errNameRequired: 'खिलाड़ी का नाम आवश्यक है',
       errCodeRequired: 'गेम कोड आवश्यक है',

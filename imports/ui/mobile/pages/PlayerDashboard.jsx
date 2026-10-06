@@ -257,7 +257,8 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
     shareRounds,
     shareLoading,
   } = useTracker(() => {
-    Meteor.subscribe('player.self', playerId);
+    // player.self is held by PlayerFlow for the whole session — it doubles as
+    // presence tracking, so subscribing again here would register twice.
     const gameSubscription = Meteor.subscribe('games.current', gameId);
     const trackedGame = Games.findOne(gameId);
 
