@@ -24,4 +24,12 @@ Players.attachSchema(new SimpleSchema({
     type: String,
     allowedValues: [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''), '?'],
   },
+  connectionId: {
+    type: String,
+    optional: true,
+  },
+  disconnectedAt: {
+    type: Date,
+    optional: true,
+  },
 }));
