@@ -1,12 +1,17 @@
 name: Deploy to Meteor Galaxy
 
 on:
-  push:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
     branches:
       - main
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: read
 
 # Never cancel a deploy that is already talking to Galaxy — a half-finished
@@ -16,53 +21,60 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Ships main to Meteor Galaxy. Credentials are written to a temporary file
-  # for the length of the deploy and removed afterwards, and the production
-  # environment gate allows a reviewer to hold the release.
-  deploy:
-    name: Deploy to Meteor Galaxy
+  staging:
+    name: Deploy and smoke test staging
+    if: >-
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success') ||
+      (github.event_name == 'workflow_dispatch' &&
+       github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     timeout-minutes: 40
-
-    # Configure required reviewers / secrets on this environment in
-    # Settings > Environments > production.
     environment:
-      name: production
-      url: https://${{ vars.GALAXY_APP_URL || 'escape-snap.sandbox.galaxycloud.app' }}
+      name: staging
+      url: https://${{ vars.GALAXY_APP_URL }}
 
     env:
-      # Defaults to the sandbox domain already deployed from main, so the
-      # workflow runs without extra repository configuration.
-      GALAXY_APP_URL: ${{ vars.GALAXY_APP_URL || 'escape-snap.sandbox.galaxycloud.app' }}
-      # METEOR_SESSION_FILE is the secret name the existing deploy on main
-      # uses; accept either so this workflow drops in without a secret rename.
-      GALAXY_SESSION: ${{ secrets.GALAXY_SESSION || secrets.METEOR_SESSION_FILE }}
-      # Required at runtime by server/main.js to call the Gemini API for
-      # photo verification — must be present in the Galaxy settings env.
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      # The deployed app's MongoDB connection string — must also be present
-      # in the Galaxy settings env.
-      MONGO_URL: ${{ secrets.MONGO_URL }}
+      GALAXY_APP_URL: ${{ vars.GALAXY_APP_URL }}
+      GALAXY_SESSION: ${{ secrets.GALAXY_STAGING_SESSION || secrets.METEOR_STAGING_SESSION_FILE }}
+      GEMINI_API_KEY: ${{ secrets.STAGING_GEMINI_API_KEY }}
+      MONGO_URL: ${{ secrets.STAGING_MONGO_URL }}
 
     steps:
-      - name: Check out repository
+      - name: Check out verified commit
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
-      - name: Validate deployment configuration
+      - name: Download CI build artifact
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@v4
+        with:
+          name: meteor-bundle-${{ github.event.workflow_run.head_sha }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+          path: ${{ runner.temp }}/meteor-bundle
+
+      - name: Validate staging configuration
         shell: bash
         run: |
+          if [ -z "$GALAXY_APP_URL" ]; then
+            echo "::error::Set the GALAXY_APP_URL variable in the staging environment."
+            exit 1
+          fi
+
           if [ -z "$GALAXY_SESSION" ]; then
-            echo "::error::No deploy session found. Set the METEOR_SESSION_FILE secret to the contents of ~/.meteorsession after running 'meteor login'."
+            echo "::error::Set GALAXY_STAGING_SESSION or METEOR_STAGING_SESSION_FILE in the staging environment."
             exit 1
           fi
 
           if [ -z "$GEMINI_API_KEY" ]; then
-            echo "::error::No GEMINI_API_KEY secret set. The deployed app needs it to verify submitted photos."
+            echo "::error::Set the STAGING_GEMINI_API_KEY secret in the staging environment."
             exit 1
           fi
 
           if [ -z "$MONGO_URL" ]; then
-            echo "::error::No MONGO_URL secret set. The deployed app needs it to connect to MongoDB."
+            echo "::error::Set the STAGING_MONGO_URL secret in the staging environment."
             exit 1
           fi
 
@@ -89,7 +101,7 @@ jobs:
       - name: Install dependencies
         run: meteor npm ci
 
-      - name: Write deploy credentials
+      - name: Write staging credentials
         shell: bash
         run: |
           umask 077
@@ -99,17 +111,150 @@ jobs:
             '{"galaxy.meteor.com": {"env": {"GEMINI_API_KEY": $key, "MONGO_URL": $mongo}}}' \
             > "$RUNNER_TEMP/settings.json"
 
-      - name: Deploy to Galaxy
+      - name: Deploy to staging
         shell: bash
         env:
           METEOR_SESSION_FILE: ${{ runner.temp }}/meteor-session.json
           DEPLOY_HOSTNAME: galaxy.meteor.com
         run: |
-          # --deploy-polling-timeout stops the step hanging for the job's full
-          # 40 minutes when Galaxy is slow to report the container as ready.
           meteor deploy "$GALAXY_APP_URL" --settings "$RUNNER_TEMP/settings.json" --deploy-polling-timeout 600000
 
-      - name: Remove deploy credentials
+      - name: Remove staging credentials
         if: always()
         shell: bash
         run: rm -f "$RUNNER_TEMP/meteor-session.json" "$RUNNER_TEMP/settings.json"
+
+      - name: Run staging smoke test
+        shell: bash
+        run: |
+          curl --fail --silent --show-error --location \
+            --retry 12 --retry-delay 10 --retry-connrefused \
+            "https://$GALAXY_APP_URL/" \
+            --output "$RUNNER_TEMP/staging-response.html"
+
+          if [ ! -s "$RUNNER_TEMP/staging-response.html" ]; then
+            echo "::error::Staging returned an empty response."
+            exit 1
+          fi
+
+  production:
+    name: Deploy and smoke test production
+    needs: staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    # Configure required reviewers in Settings > Environments > production
+    # to hold the release for manual approval after staging passes.
+    environment:
+      name: production
+      url: https://${{ vars.GALAXY_APP_URL || 'escape-snap.sandbox.galaxycloud.app' }}
+
+    env:
+      GALAXY_APP_URL: ${{ vars.GALAXY_APP_URL || 'escape-snap.sandbox.galaxycloud.app' }}
+      GALAXY_SESSION: ${{ secrets.GALAXY_SESSION || secrets.METEOR_SESSION_FILE }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      MONGO_URL: ${{ secrets.MONGO_URL }}
+
+    steps:
+      - name: Check out verified commit
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Validate production configuration
+        shell: bash
+        run: |
+          if [ -z "$GALAXY_SESSION" ]; then
+            echo "::error::Set the GALAXY_SESSION or METEOR_SESSION_FILE secret in the production environment."
+            exit 1
+          fi
+
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "::error::Set the GEMINI_API_KEY secret in the production environment."
+            exit 1
+          fi
+
+          if [ -z "$MONGO_URL" ]; then
+            echo "::error::Set the MONGO_URL secret in the production environment."
+            exit 1
+          fi
+
+          echo "Deploy target: $GALAXY_APP_URL"
+
+      - name: Cache Meteor
+        uses: actions/cache@v5
+        with:
+          path: ~/.meteor
+          key: meteor-${{ runner.os }}-${{ hashFiles('.meteor/release') }}
+          restore-keys: |
+            meteor-${{ runner.os }}-
+
+      - name: Install Meteor
+        shell: bash
+        run: |
+          if [ ! -x "$HOME/.meteor/meteor" ]; then
+            curl -fsSL https://install.meteor.com/ | sh
+          fi
+
+          echo "$HOME/.meteor" >> "$GITHUB_PATH"
+          "$HOME/.meteor/meteor" --version
+
+      - name: Install dependencies
+        run: meteor npm ci
+
+      - name: Write production credentials
+        shell: bash
+        run: |
+          umask 077
+          printf '%s' "$GALAXY_SESSION" > "$RUNNER_TEMP/meteor-session.json"
+
+          jq -n --arg key "$GEMINI_API_KEY" --arg mongo "$MONGO_URL" \
+            '{"galaxy.meteor.com": {"env": {"GEMINI_API_KEY": $key, "MONGO_URL": $mongo}}}' \
+            > "$RUNNER_TEMP/settings.json"
+
+      - name: Deploy to production
+        shell: bash
+        env:
+          METEOR_SESSION_FILE: ${{ runner.temp }}/meteor-session.json
+          DEPLOY_HOSTNAME: galaxy.meteor.com
+        run: |
+          meteor deploy "$GALAXY_APP_URL" --settings "$RUNNER_TEMP/settings.json" --deploy-polling-timeout 600000
+
+      - name: Remove production credentials
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/meteor-session.json" "$RUNNER_TEMP/settings.json"
+
+      - name: Run production smoke test
+        shell: bash
+        run: |
+          curl --fail --silent --show-error --location \
+            --retry 12 --retry-delay 10 --retry-connrefused \
+            "https://$GALAXY_APP_URL/" \
+            --output "$RUNNER_TEMP/production-response.html"
+
+          if [ ! -s "$RUNNER_TEMP/production-response.html" ]; then
+            echo "::error::Production returned an empty response."
+            exit 1
+          fi
+
+  report:
+    name: Deployment report
+    if: always()
+    needs:
+      - staging
+      - production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summarize deployment results
+        env:
+          STAGING_RESULT: ${{ needs.staging.result }}
+          PRODUCTION_RESULT: ${{ needs.production.result }}
+        run: |
+          {
+            echo "## Deployment pipeline"
+            echo
+            echo "| Stage | Result |"
+            echo "| --- | --- |"
+            echo "| Staging deploy and smoke test | $STAGING_RESULT |"
+            echo "| Production deploy and smoke test | $PRODUCTION_RESULT |"
+          } >> "$GITHUB_STEP_SUMMARY"

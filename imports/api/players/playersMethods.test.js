@@ -77,5 +77,41 @@ if (Meteor.isServer) {
 
       assert.equal(await Players.find({ gameId }).countAsync(), 2);
     });
+
+    it('enforces the configured minimum and maximum room capacities', async function () {
+      for (const capacity of [1, 4]) {
+        await Players.removeAsync({});
+        const configuredGameId = await Meteor.callAsync('games.create', {
+          groupName: `Capacity ${capacity}`,
+          capacity,
+        });
+        const configuredGame = await Games.findOneAsync(configuredGameId);
+
+        for (let index = 0; index < capacity; index++) {
+          await Meteor.callAsync(
+            'players.join',
+            configuredGame.joinCode,
+            `Player ${index + 1}`
+          );
+        }
+
+        let error;
+        try {
+          await Meteor.callAsync(
+            'players.join',
+            configuredGame.joinCode,
+            'One too many'
+          );
+        } catch (caught) {
+          error = caught;
+        }
+
+        assert.equal(error?.error, 'full');
+        assert.equal(
+          await Players.find({ gameId: configuredGameId }).countAsync(),
+          capacity
+        );
+      }
+    });
   });
 }

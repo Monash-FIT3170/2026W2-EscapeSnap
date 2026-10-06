@@ -51,6 +51,34 @@ if (Meteor.isServer) {
         assert.equal(game.difficulty, 'hard');
       });
 
+      it('allows room capacities from one through four players', async function () {
+        for (const capacity of [1, 4]) {
+          const gameId = await Meteor.callAsync('games.create', {
+            groupName: `Capacity ${capacity}`,
+            capacity,
+          });
+          const game = await Games.findOneAsync(gameId);
+
+          assert.equal(game.capacity, capacity);
+        }
+      });
+
+      it('rejects room capacities outside the supported range or not whole numbers', async function () {
+        for (const capacity of [0, 5, 1.5]) {
+          let error;
+          try {
+            await Meteor.callAsync('games.create', {
+              groupName: 'Team Rocket',
+              capacity,
+            });
+          } catch (caught) {
+            error = caught;
+          }
+
+          assert.isDefined(error, `capacity ${capacity} should be rejected`);
+        }
+      });
+
       it('rejects a difficulty outside the allowed values', async function () {
         try {
           await Meteor.callAsync('games.create', { groupName: 'Team Rocket', difficulty: 'impossible' });
@@ -62,6 +90,25 @@ if (Meteor.isServer) {
     });
 
     describe('games.start', function () {
+      it('does not start until every configured player slot is filled', async function () {
+        const gameId = await Meteor.callAsync('games.create', {
+          groupName: 'Team Rocket',
+          capacity: 2,
+        });
+        const { joinCode } = await Games.findOneAsync(gameId);
+        await Meteor.callAsync('players.join', joinCode, 'Ada');
+
+        let error;
+        try {
+          await Meteor.callAsync('games.start', gameId);
+        } catch (caught) {
+          error = caught;
+        }
+
+        assert.equal(error?.error, 'lobby-not-full');
+        assert.equal((await Games.findOneAsync(gameId)).status, 'lobby');
+      });
+
       it('moves a lobby game to in_progress and stamps startedAt', async function () {
         const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket', capacity: 1 });
         const { joinCode } = await Games.findOneAsync(gameId);

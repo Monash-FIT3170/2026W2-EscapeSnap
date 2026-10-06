@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -27,71 +28,6 @@ env:
   METEOR_SETTINGS: ${{ secrets.CI_METEOR_SETTINGS || '{}' }}
 
 jobs:
-  # Rejects PRs whose branch is not feature/<name>, fix/<name> or spike/<name>
-  # in kebab-case. Keeps the branch list readable and matches the PMP.
-  branch-name:
-    name: Branch naming convention
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - name: Check branch name
-        shell: bash
-        env:
-          BRANCH_NAME: ${{ github.head_ref }}
-        run: |
-          echo "Branch: $BRANCH_NAME"
-
-          if [[ ! "$BRANCH_NAME" =~ ^(feature|fix|spike)/[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
-            echo "::error::Branch '$BRANCH_NAME' must use feature/<name>, fix/<name>, or spike/<name>, with the name written in kebab-case."
-            exit 1
-          fi
-
-  # Checks every non-merge commit in the PR against
-  # "[Role] [Task ID] <type>: <description>" so the history stays traceable
-  # back to the board. Merge commits are skipped.
-  commit-format:
-    name: Commit message format
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - name: Check out complete Git history
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Check commit messages
-        shell: bash
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          PATTERN='^\[(RTE|PM|SA)\] \[[A-Z][A-Z0-9]*-[0-9]+\] (feat|fix|docs|chore): .+$'
-          FAILED=0
-
-          while IFS= read -r SHA; do
-            PARENT_COUNT=$(git rev-list --parents -n 1 "$SHA" | awk '{print NF - 1}')
-
-            if (( PARENT_COUNT > 1 )); then
-              echo "::notice::Skipping merge commit $SHA."
-              continue
-            fi
-
-            MESSAGE=$(git log -1 --format=%s "$SHA")
-
-            if [[ ! "$MESSAGE" =~ $PATTERN ]]; then
-              echo "::error::Commit $SHA does not follow '[Role] [Task ID] <type>: <description>' — \"$MESSAGE\""
-              FAILED=1
-            else
-              echo "Valid: $MESSAGE"
-            fi
-          done < <(git rev-list "$BASE_SHA..$HEAD_SHA")
-
-          exit "$FAILED"
-
   # The actual build gate: installs dependencies, lints, runs the test suite
   # against a throwaway MongoDB, and proves the app still bundles. Runs on
   # every trigger, not just PRs, so a broken main is caught immediately.
@@ -137,6 +73,9 @@ jobs:
       - name: Install dependencies
         run: meteor npm ci
 
+      - name: Audit npm dependencies
+        run: meteor npm audit --audit-level=high
+
       - name: Run lint
         run: >-
           meteor npm run lint -- --rule 'prettier/prettier: off'
@@ -170,3 +109,49 @@ jobs:
         run: |
           rm -rf /tmp/escapesnap-build
           meteor build --directory /tmp/escapesnap-build
+
+      - name: Store Meteor build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: meteor-bundle-${{ github.sha }}
+          path: /tmp/escapesnap-build/bundle
+          if-no-files-found: error
+          retention-days: 30
+
+  code-scan:
+    name: Code security scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          build-mode: none
+
+      - name: Analyze code
+        uses: github/codeql-action/analyze@v3
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out complete Git history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Scan for exposed secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
