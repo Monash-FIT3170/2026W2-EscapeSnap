@@ -51,6 +51,10 @@ export const es = {
       modeCameraSub: 'FOTOGRAFÍA EL OBJETO',
       modeDrawing: 'DIBUJO',
       modeDrawingSub: 'DIBUJA LA RESPUESTA',
+      themeOther: 'OTRO',
+      themeOtherSub: 'TU PROPIO TEMA',
+      customThemePlaceholder: 'p. ej. HARRY POTTER',
+      errCustomThemeRequired: 'ESCRIBE UN TEMA',
     },
     lobby: {
       navTag: 'SALA DE ESPERA',

@@ -52,6 +52,10 @@ export const ar = {
       modeCameraSub: 'صوّر الشيء',
       modeDrawing: 'الرسم',
       modeDrawingSub: 'ارسم الإجابة',
+      themeOther: 'أخرى',
+      themeOtherSub: 'موضوعك الخاص',
+      customThemePlaceholder: 'مثال: هاري بوتر',
+      errCustomThemeRequired: 'أدخل موضوعًا',
     },
     lobby: {
       navTag: 'ردهة اللعبة',

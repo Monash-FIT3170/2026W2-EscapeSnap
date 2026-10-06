@@ -74,6 +74,39 @@ if (Meteor.isServer) {
         assert.equal(game.mode, 'drawing');
       });
 
+      it('stores a cleaned custom theme', async function () {
+        const gameId = await Meteor.callAsync('games.create', {
+          groupName: 'Team Rocket',
+          theme: 'custom',
+          customTheme: '  Harry   "Potter"  ',
+        });
+        const game = await Games.findOneAsync(gameId);
+
+        assert.equal(game.theme, 'custom');
+        assert.equal(game.customTheme, 'Harry Potter');
+      });
+
+      it('rejects a custom theme with no text', async function () {
+        try {
+          await Meteor.callAsync('games.create', { groupName: 'Team Rocket', theme: 'custom', customTheme: '   ' });
+          assert.fail('expected an empty custom theme to be rejected');
+        } catch (error) {
+          assert.equal(error.error, 'invalid-custom-theme');
+        }
+      });
+
+      it('ignores custom theme text when a preset theme is chosen', async function () {
+        const gameId = await Meteor.callAsync('games.create', {
+          groupName: 'Team Rocket',
+          theme: 'home',
+          customTheme: 'Harry Potter',
+        });
+        const game = await Games.findOneAsync(gameId);
+
+        assert.equal(game.theme, 'home');
+        assert.isUndefined(game.customTheme);
+      });
+
       it('rejects a mode outside the allowed values', async function () {
         try {
           await Meteor.callAsync('games.create', { groupName: 'Team Rocket', mode: 'video' });
