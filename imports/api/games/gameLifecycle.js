@@ -196,42 +196,8 @@ export async function ensureRiddlesReady(game) {
   }
 }
 
-// How long a short-handed start waits for Gemini to write a riddle of the new
-// length before using the offline bank.
-const RESIZE_RIDDLE_WAIT_MS = 8 * 1000;
-
-// Shrinks a not-yet-full team to the players it actually has. The final answer
-// was sized for a full team (totalRounds * capacity letters), so a short team
-// would never collect enough letters to read it — it gets a riddle of the
-// right length instead. Call after ensureRiddlesReady, before startGame.
-export async function shrinkTeamToPlayers(game, playerCount) {
-  if (playerCount >= game.capacity) return;
-
-  const letterCount = clampFinalAnswerLength(game.totalRounds * playerCount);
-  let finalRiddle = game.finalRiddle;
-  if (finalRiddle?.answer?.length !== letterCount) {
-    const generated = generateFinalRiddle({
-      difficulty: game.difficulty,
-      letterCount,
-    }).catch((err) => {
-      console.error(
-        `[games.start] Resized final riddle failed for game ${game._id}, using fallback:`,
-        err
-      );
-      return null;
-    });
-    finalRiddle =
-      (await Promise.race([generated, delay(RESIZE_RIDDLE_WAIT_MS)])) ||
-      getFallbackFinalRiddle(letterCount);
-  }
-
-  await Games.updateAsync(game._id, {
-    $set: { capacity: playerCount, finalRiddle },
-  });
-}
-
 // Deals the rounds and flips the game live. Callers have already checked the
-// lobby has its players and the riddles are ready.
+// lobby is full and the riddles are ready.
 export async function startGame(gameId, startedAt = new Date()) {
   await Meteor.callAsync('rounds.createForGame', gameId, startedAt);
   await Games.updateAsync(gameId, {

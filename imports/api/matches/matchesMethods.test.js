@@ -91,47 +91,19 @@ if (Meteor.isServer) {
     });
 
     describe('matches.start', function () {
-      it('refuses to start while a team has no players', async function () {
+      it('refuses to start until both lobbies are full', async function () {
         const matchId = await Meteor.callAsync('matches.createLocal', {
           teamNames: ['Red', 'Blue'],
-          capacity: 2,
+          capacity: 1,
         });
         const [red] = (await Matches.findOneAsync(matchId)).gameIds;
-        await Meteor.callAsync(
-          'players.join',
-          (await Games.findOneAsync(red)).joinCode,
-          'r0'
-        );
+        await fillLobby(red, 'r');
 
         await expectError(
           Meteor.callAsync('matches.start', matchId),
-          'team-empty'
+          'lobby-not-full'
         );
         assert.equal((await Matches.findOneAsync(matchId)).status, 'lobby');
-      });
-
-      it('starts short-handed teams with one player each, resized to fit', async function () {
-        const matchId = await Meteor.callAsync('matches.createLocal', {
-          teamNames: ['Red', 'Blue'],
-          capacity: 4,
-          totalRounds: 3,
-        });
-        const gameIds = (await Matches.findOneAsync(matchId)).gameIds;
-        for (const gameId of gameIds) {
-          const { joinCode } = await Games.findOneAsync(gameId);
-          await Meteor.callAsync('players.join', joinCode, `p-${gameId}`);
-        }
-
-        await Meteor.callAsync('matches.start', matchId);
-
-        for (const gameId of gameIds) {
-          const game = await Games.findOneAsync(gameId);
-          assert.equal(game.status, 'in_progress');
-          assert.equal(game.capacity, 1);
-          // 3 rounds x 1 player: the one player can collect every letter.
-          assert.lengthOf(game.finalRiddle.answer, 3);
-          assert.equal(await Rounds.find({ gameId }).countAsync(), 3);
-        }
       });
 
       it('starts both teams on the same clock with the same round riddles', async function () {

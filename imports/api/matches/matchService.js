@@ -8,7 +8,6 @@ import {
   ensureRiddlesReady,
   generateJoinCode,
   pregenerateRiddlesOnce,
-  shrinkTeamToPlayers,
   startGame,
 } from '../games/gameLifecycle';
 import { SEARCH_TTL_MS } from '../../lib/teamStatus';
@@ -25,8 +24,8 @@ async function assertLobbyFull(game) {
 
 // Starts every team on the same clock. The first game is the source of truth:
 // the others take its round riddles, so both teams hunt the same objects. Each
-// team keeps its own final riddle, so overhearing the rival never gives the
-// answer away.
+// team keeps its own final riddle — same length, since team size and round
+// count match — so overhearing the rival never gives the answer away.
 // `shareSettings` also copies the clock and riddle settings, for online teams
 // that were configured separately before being paired.
 async function launchTeams(gameIds, { shareSettings = false } = {}) {
@@ -127,16 +126,12 @@ export async function startLocalMatch(matchId) {
     throw new Meteor.Error('invalid-state', 'Match is not in lobby state');
   }
 
-  // Unlike solo and online games, a same-room team doesn't have to be full —
-  // one player per team is enough to play.
   const games = await Games.find({ _id: { $in: match.gameIds } }).fetchAsync();
   for (const game of games) {
     if (game.status !== 'lobby') {
       throw new Meteor.Error('invalid-state', 'Game is not in lobby state');
     }
-    if ((await Players.find({ gameId: game._id }).countAsync()) === 0) {
-      throw new Meteor.Error('team-empty', 'Every team needs a player');
-    }
+    await assertLobbyFull(game);
   }
 
   // Claiming the match first means a double-clicked START can't deal the
@@ -151,13 +146,6 @@ export async function startLocalMatch(matchId) {
 
   try {
     await Promise.all(games.map(ensureRiddlesReady));
-    await Promise.all(
-      match.gameIds.map(async (gameId) => {
-        const game = await Games.findOneAsync(gameId);
-        const playerCount = await Players.find({ gameId }).countAsync();
-        await shrinkTeamToPlayers(game, playerCount);
-      })
-    );
     const startedAt = await launchTeams(match.gameIds);
     await Matches.updateAsync(matchId, { $set: { startedAt } });
   } catch (err) {

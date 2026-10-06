@@ -105,9 +105,9 @@ const MatchLobby = () => {
     );
   }
 
-  const teamSizes = teams.map((team) => players.filter((p) => p.gameId === team._id).length);
-  const canStart = teams.length === match.gameIds.length && teamSizes.every((n) => n > 0);
-  const allFull = canStart && teams.every((team, i) => teamSizes[i] === team.capacity);
+  const allFull = teams.length === match.gameIds.length && teams.every(
+    (team) => players.filter((p) => p.gameId === team._id).length === team.capacity
+  );
   const busy = starting || match.status !== 'lobby';
 
   const handleStart = async () => {
@@ -145,28 +145,24 @@ const MatchLobby = () => {
 
         {error && <p style={{ fontSize: 11, color: '#8b0000', letterSpacing: '1px' }}>!! {error}</p>}
 
-        {canStart && !allFull && !busy && (
-          <p style={{ fontSize: 11, color: '#aa8984', letterSpacing: '1px' }}>{t('host.match.notFullHint')}</p>
-        )}
-
         <button
           onClick={handleStart}
-          disabled={busy || !canStart}
+          disabled={busy || !allFull}
           style={{
             width: '100%',
             padding: '18px',
-            background: busy ? '#3a0000' : canStart ? '#8b0000' : '#1c1b1b',
-            color: busy || !canStart ? '#555' : '#e5e2e1',
+            background: busy ? '#3a0000' : allFull ? '#8b0000' : '#1c1b1b',
+            color: busy || !allFull ? '#555' : '#e5e2e1',
             fontWeight: 700,
             fontSize: 14,
             letterSpacing: '2px',
-            cursor: busy || !canStart ? 'not-allowed' : 'pointer',
+            cursor: busy || !allFull ? 'not-allowed' : 'pointer',
             border: 'none',
           }}
         >
           {busy
             ? t('host.match.starting')
-            : canStart
+            : allFull
               ? t('host.match.startMatch')
               : t('host.match.awaitingTeams')}
         </button>

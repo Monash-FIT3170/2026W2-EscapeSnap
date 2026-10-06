@@ -22,7 +22,6 @@ export const en = {
     lobbyNotFull: 'Every player slot must be filled first',
     teamNameRequired: 'A team name is required',
     duplicateTeamName: 'The two teams need different names',
-    teamEmpty: 'Each team needs at least one player',
   },
   landing: {
     initiateProtocol: 'INITIATE PROTOCOL',
@@ -71,7 +70,7 @@ export const en = {
       onlineNote:
         'Once your lobby is full you can search for a rival team of the same size. If they were waiting first, their time limit, difficulty and theme are used.',
       localNote:
-        'Each team gets its own join code. A team can start with as few as one player. Both teams hunt the same objects; the first to crack its final code wins.',
+        'Each team gets its own join code. Both teams hunt the same objects; the first to crack its final code wins.',
     },
     lobby: {
       navTag: 'GAME LOBBY',
@@ -256,8 +255,7 @@ export const en = {
       generatingRiddles: 'GENERATING RIDDLES...',
       startMatch: 'START MATCH',
       starting: 'DEPLOYING BOTH TEAMS...',
-      awaitingTeams: 'EACH TEAM NEEDS AT LEAST ONE PLAYER...',
-      notFullHint: 'Teams don’t have to be full — empty slots are dropped when the match starts.',
+      awaitingTeams: 'WAITING FOR BOTH TEAMS TO FILL...',
       scoreboard: 'SCOREBOARD',
       timeRemaining: 'TIME REMAINING',
       progress: 'PROGRESS',
