@@ -1,0 +1,27 @@
+name: Set up Meteor
+description: Restore the Meteor cache, install Meteor if needed, and install npm dependencies.
+
+runs:
+  using: composite
+  steps:
+    - name: Cache Meteor
+      uses: actions/cache@v5
+      with:
+        path: ~/.meteor
+        key: meteor-${{ runner.os }}-${{ hashFiles('.meteor/release') }}
+        restore-keys: |
+          meteor-${{ runner.os }}-
+
+    - name: Install Meteor
+      shell: bash
+      run: |
+        if [ ! -x "$HOME/.meteor/meteor" ]; then
+          curl -fsSL https://install.meteor.com/ | sh
+        fi
+
+        echo "$HOME/.meteor" >> "$GITHUB_PATH"
+        "$HOME/.meteor/meteor" --version
+
+    - name: Install dependencies
+      shell: bash
+      run: meteor npm ci

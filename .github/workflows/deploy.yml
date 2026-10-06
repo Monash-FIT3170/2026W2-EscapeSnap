@@ -24,7 +24,8 @@ jobs:
     name: Deploy and smoke test staging
     if: >-
       (github.event_name == 'workflow_run' &&
-       github.event.workflow_run.conclusion == 'success') ||
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event != 'schedule') ||
       (github.event_name == 'workflow_dispatch' &&
        github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
@@ -70,26 +71,8 @@ jobs:
 
           echo "Deploy target: $GALAXY_APP_URL"
 
-      - name: Cache Meteor
-        uses: actions/cache@v5
-        with:
-          path: ~/.meteor
-          key: meteor-${{ runner.os }}-${{ hashFiles('.meteor/release') }}
-          restore-keys: |
-            meteor-${{ runner.os }}-
-
-      - name: Install Meteor
-        shell: bash
-        run: |
-          if [ ! -x "$HOME/.meteor/meteor" ]; then
-            curl -fsSL https://install.meteor.com/ | sh
-          fi
-
-          echo "$HOME/.meteor" >> "$GITHUB_PATH"
-          "$HOME/.meteor/meteor" --version
-
-      - name: Install dependencies
-        run: meteor npm ci
+      - name: Set up Meteor
+        uses: ./.github/actions/setup-meteor
 
       - name: Write staging credentials
         shell: bash
@@ -170,26 +153,8 @@ jobs:
 
           echo "Deploy target: $GALAXY_APP_URL"
 
-      - name: Cache Meteor
-        uses: actions/cache@v5
-        with:
-          path: ~/.meteor
-          key: meteor-${{ runner.os }}-${{ hashFiles('.meteor/release') }}
-          restore-keys: |
-            meteor-${{ runner.os }}-
-
-      - name: Install Meteor
-        shell: bash
-        run: |
-          if [ ! -x "$HOME/.meteor/meteor" ]; then
-            curl -fsSL https://install.meteor.com/ | sh
-          fi
-
-          echo "$HOME/.meteor" >> "$GITHUB_PATH"
-          "$HOME/.meteor/meteor" --version
-
-      - name: Install dependencies
-        run: meteor npm ci
+      - name: Set up Meteor
+        uses: ./.github/actions/setup-meteor
 
       - name: Write production credentials
         shell: bash

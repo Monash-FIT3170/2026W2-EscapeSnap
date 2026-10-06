@@ -28,3 +28,5 @@ e2e/playwright-report/
 preview/
 
 CLAUDE.md
+# CI test reports
+.reports/
