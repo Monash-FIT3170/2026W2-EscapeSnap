@@ -1,11 +1,14 @@
 // Server-only — reads GEMINI_API_KEY from process.env; never import from imports/ui.
 import { THEME_OBJECT_POOLS } from '/imports/lib/cocoClasses';
+import { normalizeAnswerMode } from '/imports/lib/answerModes';
+import { gemini, modelCandidates } from '/imports/api/gemini/geminiModels';
 
 // gemini-2.0-flash/2.5-flash return 404/zero-quota on free-tier keys as of writing;
-// gemini-flash-latest works. Override via GEMINI_MODEL if that changes.
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-flash-latest';
-const GEMINI_URL = (model) =>
-  `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+// gemini-flash-latest is tried first, then the shared fallback list in
+// geminiModels.js if it is busy or missing. Override via GEMINI_MODEL.
+const RIDDLE_MODELS = modelCandidates(
+  process.env.GEMINI_MODEL || 'gemini-flash-latest'
+);
 
 // Bulk generation against a large enum can exceed 15s on a cold call.
 const REQUEST_TIMEOUT_MS = 30000;
@@ -19,38 +22,20 @@ const DIFFICULTY_HINTS = {
 };
 
 async function callGeminiOnce(prompt, schema) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('GEMINI_API_KEY is not set');
+  const { data } = await gemini.generate(
+    () => ({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: schema,
+      },
+    }),
+    { models: RIDDLE_MODELS, timeoutMs: REQUEST_TIMEOUT_MS }
+  );
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-
-  try {
-    const res = await fetch(`${GEMINI_URL(GEMINI_MODEL)}?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal,
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          responseSchema: schema,
-        },
-      }),
-    });
-
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      throw new Error(`Gemini request failed: ${res.status} ${body}`);
-    }
-
-    const data = await res.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) throw new Error('Gemini returned no content');
-    return JSON.parse(text);
-  } finally {
-    clearTimeout(timeout);
-  }
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('Gemini returned no content');
+  return JSON.parse(text);
 }
 
 // Retries once on timeout — the free tier occasionally runs long on a cold request.
@@ -152,6 +137,23 @@ const THEME_SETTINGS = {
   },
 };
 
+// What the player does with the riddle's answer. Only the wording differs —
+// the answer pool is the same, so a sketch is checked against the same objects.
+const ANSWER_ACTIONS = {
+  camera: {
+    riddleDescription:
+      'A short riddle (1-2 sentences) describing a real-world object a player could photograph.',
+    playerTask: 'find and photograph the real-world object it describes',
+    checked: 'the photo',
+  },
+  drawing: {
+    riddleDescription:
+      'A short riddle (1-2 sentences) describing a real-world object a player could draw as a quick sketch.',
+    playerTask: 'draw a quick sketch of the real-world object it describes',
+    checked: 'the sketch',
+  },
+};
+
 // Generates `count` round riddles. `answer` is enum-constrained to the selected
 // theme's THEME_OBJECT_POOLS entry, so it's always a class the vision model can
 // actually detect (see imports/lib/cocoClasses.js for why theme = object pool).
@@ -159,11 +161,13 @@ export async function generateRoundRiddles({
   count,
   difficulty = 'medium',
   theme = 'classroom',
+  mode,
 }) {
   if (!count || count < 1) return [];
 
   const objectPool = THEME_OBJECT_POOLS[theme] || THEME_OBJECT_POOLS.classroom;
   const settings = THEME_SETTINGS[theme] || THEME_SETTINGS.classroom;
+  const action = ANSWER_ACTIONS[normalizeAnswerMode(mode)];
 
   const schema = {
     type: 'OBJECT',
@@ -175,8 +179,7 @@ export async function generateRoundRiddles({
           properties: {
             text: {
               type: 'STRING',
-              description:
-                'A short riddle (1-2 sentences) describing a real-world object a player could photograph.',
+              description: action.riddleDescription,
             },
             answer: {
               type: 'STRING',
@@ -198,8 +201,8 @@ export async function generateRoundRiddles({
   };
 
   const prompt = `You are writing short object-finding riddles for a mobile escape-room game played live in
-${settings.label}. Players read a riddle, then find and photograph the real-world object it describes —
-${settings.findWhere}. A vision model checks whether the photo matches, so the answer must EXACTLY be one
+${settings.label}. Players read a riddle, then ${action.playerTask} —
+${settings.findWhere}. A vision model checks whether ${action.checked} matches, so the answer must EXACTLY be one
 of this fixed list of object names:
 ${objectPool.join(', ')}.
 

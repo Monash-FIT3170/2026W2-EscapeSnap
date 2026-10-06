@@ -7,6 +7,7 @@ import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 import { FINAL_RIDDLE, getFallbackFinalRiddle } from '../../lib/finalRiddle';
 import { RIDDLE_BANK } from '../../lib/riddleBank';
 import { THEME_OBJECT_POOLS } from '../../lib/cocoClasses';
+import { DEFAULT_ANSWER_MODE } from '../../lib/answerModes';
 import { advanceGameRound } from '../rounds/roundProgression';
 import { finalizeGameResults } from '../achievements/achievementService';
 import {
@@ -87,14 +88,14 @@ async function writeRiddlesIfNotReady(gameId, finalRiddle, roundRiddles) {
 // games.start if generation hasn't finished yet.
 async function pregenerateRiddles(
   gameId,
-  { totalRounds, capacity, difficulty, theme }
+  { totalRounds, capacity, difficulty, theme, mode }
 ) {
   const needed = totalRounds * capacity;
   const finalAnswerLength = clampFinalAnswerLength(needed);
 
   const [finalRiddleResult, roundPoolResult] = await Promise.allSettled([
     generateFinalRiddle({ difficulty, letterCount: finalAnswerLength }),
-    generateRoundRiddles({ count: needed, difficulty, theme }),
+    generateRoundRiddles({ count: needed, difficulty, theme, mode }),
   ]);
 
   let finalRiddle;
@@ -191,6 +192,7 @@ Meteor.methods({
     capacity = 4,
     difficulty = 'medium',
     theme = 'classroom',
+    mode = DEFAULT_ANSWER_MODE,
   } = {}) {
     if (!groupName || !groupName.trim()) {
       throw new Meteor.Error('invalid-group-name', 'Group name is required');
@@ -207,6 +209,7 @@ Meteor.methods({
       capacity,
       difficulty,
       theme,
+      mode,
       createdAt: new Date(),
       startedAt: null,
       endedAt: null,
@@ -220,6 +223,7 @@ Meteor.methods({
       capacity,
       difficulty,
       theme,
+      mode,
     });
 
     return gameId;
@@ -248,6 +252,7 @@ Meteor.methods({
         capacity: game.capacity,
         difficulty: game.difficulty,
         theme: game.theme,
+        mode: game.mode,
       });
 
       const readyInTime = await Promise.race([
