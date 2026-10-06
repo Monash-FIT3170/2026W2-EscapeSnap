@@ -19,8 +19,35 @@ import { useT } from '../languages/LanguageProvider';
 import { errorKey } from '../languages/errors';
 import Leaderboard from './host/pages/leaderboard/Leaderboard';
 
+// The playerId from players.join, kept so a refresh or a closed tab can rejoin.
+const SESSION_KEY = 'escapesnap.playerId';
+
+function readSession() {
+  try {
+    return window.localStorage.getItem(SESSION_KEY);
+  } catch {
+    return null; // storage blocked — reconnect just isn't available
+  }
+}
+
+function writeSession(playerId) {
+  try {
+    if (playerId) window.localStorage.setItem(SESSION_KEY, playerId);
+    else window.localStorage.removeItem(SESSION_KEY);
+  } catch {
+    // Not persisting only costs the ability to reconnect.
+  }
+}
+
+// Losing the session mid-game always means the reconnect window ran out:
+// 'expired', or 'not-found' once an abandoned lobby slot has been freed.
+const RECONNECT_ERRORS = {
+  expired: 'errors.reconnectExpired',
+  'not-found': 'errors.reconnectExpired',
+};
+
 function PlayerFlow({ initialCode = '' }) {
-  const [screen, setScreen] = useState('home');
+  const [screen, setScreen] = useState(() => (readSession() ? 'resuming' : 'home'));
   const [playerName, setPlayerName] = useState('');
   const [gameCode, setGameCode] = useState('');
   const [playerId, setPlayerId] = useState(null);
@@ -33,11 +60,20 @@ function PlayerFlow({ initialCode = '' }) {
     if (!gameId) return { game: null, playerCount: 0 };
     Meteor.subscribe('games.current', gameId);
     Meteor.subscribe('players.inGame', gameId);
+    // Also what keeps the server's view of this player's connection current.
+    // It errors once the reconnect window has closed on them.
+    Meteor.subscribe('player.self', playerId, {
+      onStop(err) {
+        if (!err) return;
+        handleExitToHome();
+        setJoinError(t(errorKey(err, RECONNECT_ERRORS)));
+      },
+    });
     return {
       game: Games.findOne(gameId),
       playerCount: Players.find({ gameId }).count(),
     };
-  }, [gameId]);
+  }, [gameId, playerId]);
 
   // Fire the auto-advance once per join. Without the guard, returning to the
   // lobby mid-game bounces you straight back out again.
@@ -49,11 +85,37 @@ function PlayerFlow({ initialCode = '' }) {
     }
   }, [game?.status, screen]);
 
+  useEffect(() => {
+    const savedPlayerId = readSession();
+    if (!savedPlayerId) return;
+    Meteor.callAsync('players.rejoin', savedPlayerId)
+      .then((session) => {
+        setPlayerName(session.playerName);
+        setGameCode(session.gameCode);
+        setPlayerId(session.playerId);
+        setGameId(session.gameId);
+        // Straight back to where they were, minus the tutorial already seen.
+        const inGame = session.status === 'in_progress';
+        autoAdvancedRef.current = inGame;
+        setScreen(inGame ? 'dashboard' : 'lobby');
+      })
+      .catch((err) => {
+        writeSession(null);
+        // A finished game has nothing to rejoin — just land on the join form.
+        if (err.error !== 'invalid-state') {
+          setJoinError(t(errorKey(err, RECONNECT_ERRORS)));
+        }
+        setScreen('home');
+      });
+    // Mount only: a saved session is resumed once, when the page loads.
+  }, []);
+
   const handleJoin = async (name, code) => {
     setJoinLoading(true);
     setJoinError('');
     try {
       const { playerId: pid, gameId: gid } = await Meteor.callAsync('players.join', code, name);
+      writeSession(pid);
       setPlayerName(name);
       setGameCode(code);
       setPlayerId(pid);
@@ -70,6 +132,7 @@ function PlayerFlow({ initialCode = '' }) {
   };
 
   const handleExitToHome = () => {
+    writeSession(null);
     setPlayerName('');
     setGameCode('');
     setPlayerId(null);
@@ -78,6 +141,18 @@ function PlayerFlow({ initialCode = '' }) {
     setScreen('home');
   };
 
+  if (screen === 'resuming') {
+    return (
+      <div className="flex min-h-[100dvh] items-center justify-center bg-[#0e0e0e] px-5">
+        <p
+          role="status"
+          className="pulse-text font-mono text-xs uppercase tracking-[0.25em] text-[#aa8984]"
+        >
+          {t('mobile.home.reconnecting')}
+        </p>
+      </div>
+    );
+  }
   if (screen === 'home') {
     return (
       <PlayerHome
