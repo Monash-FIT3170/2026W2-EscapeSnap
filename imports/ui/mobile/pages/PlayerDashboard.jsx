@@ -17,6 +17,9 @@ import {
   remainingGameMs,
 } from '/imports/lib/gameClock';
 import { useT } from '../../../languages/LanguageProvider';
+import { useMatch } from '/imports/ui/shared/hooks/useMatch';
+import { isVersusGame, teamPhase } from '/imports/lib/teamStatus';
+import { MobileFinalRiddle } from '../components/gameplay/MobileFinalRiddle';
 
 // How long the armed skip button waits for the confirming tap before it
 // disarms itself again.
@@ -142,6 +145,40 @@ function TeamWaitScreen({ ready, total, isFinalRound, holding }) {
   );
 }
 
+// One line under the header in a versus match: who the rival is and how far
+// along they are.
+function RivalStrip({ rival, phase }) {
+  const t = useT();
+  const label =
+    phase === 'escaped'
+      ? t('mobile.versus.rivalEscaped')
+      : phase === 'failed'
+        ? t('mobile.versus.rivalFailed')
+        : phase === 'final'
+          ? t('mobile.versus.rivalFinal')
+          : t('mobile.versus.rivalRound', {
+              n: rival.currentRound ?? 1,
+              total: rival.totalRounds,
+            });
+  return (
+    <div className="flex flex-shrink-0 items-center gap-3 border-b border-[#353534] bg-[#131313] px-4 py-2">
+      <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#8b0000]">
+        {t('mobile.versus.vs')}
+      </span>
+      <span className="min-w-0 flex-1 truncate font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-[#e5e2e1]">
+        {rival.groupName}
+      </span>
+      <span
+        className={`font-mono text-[10px] uppercase tracking-[0.15em] ${
+          phase === 'final' || phase === 'escaped' ? 'text-[#fcd34d]' : 'text-[#aa8984]'
+        }`}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
 function ResultScreen({
   revealedLetter,
   answerCorrect,
@@ -155,6 +192,7 @@ function ResultScreen({
   onArmSkip,
   onSkip,
   onRetry,
+  finalRiddleSlot,
 }) {
   const t = useT();
   return (
@@ -201,7 +239,9 @@ function ResultScreen({
           </p>
         </div>
 
-        {settled ? (
+        {settled && finalRiddleSlot ? (
+          finalRiddleSlot
+        ) : settled ? (
           <TeamWaitScreen
             ready={teamReady}
             total={teamTotal}
@@ -295,6 +335,24 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
           !roundsSubscription?.ready()),
     };
   }, [playerId, gameId]);
+
+  const versus = isVersusGame(game);
+  const {
+    match,
+    teams: matchTeams,
+    rounds: matchRounds,
+  } = useMatch(versus ? game?.matchId : null);
+  const rival = matchTeams.find((team) => team._id !== gameId) ?? null;
+  const rivalPhase = rival ? teamPhase(rival, matchRounds) : null;
+
+  let versusLine = null;
+  if (match?.status === 'finished' && rival) {
+    const team = rival.groupName;
+    if (!match.winnerGameId) versusLine = t('mobile.versus.draw');
+    else if (match.winnerGameId === gameId)
+      versusLine = t('mobile.versus.wonMatch', { team });
+    else versusLine = t('mobile.versus.rivalEscapedFirst', { team });
+  }
 
   const totalRounds = game?.totalRounds ?? 1;
   // 'correct', 'wrong' (skipped) and 'timeout' all mean the same thing here:
@@ -472,6 +530,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   if (game?.status === 'won') {
     return (
       <PlayerWinScreen
+        versusLine={versusLine}
         playerId={playerId}
         snapshot={shareSnapshot}
         loading={shareLoading}
@@ -481,6 +540,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   if (game?.status === 'lost') {
     return (
       <PlayerLoseScreen
+        versusLine={versusLine}
         playerId={playerId}
         snapshot={shareSnapshot}
         loading={shareLoading}
@@ -511,6 +571,8 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
           </button>
         </div>
       </header>
+
+      {rival && <RivalStrip rival={rival} phase={rivalPhase} />}
 
       {!showResult && activeTab === 'scanner' && (
         <div className="flex flex-shrink-0 items-start gap-3 border-b border-[#353534] bg-[#1c1b1b] px-4 py-3">
@@ -585,6 +647,19 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
             onArmSkip={() => setSkipArmed(true)}
             onSkip={handleSkip}
             onRetry={handleRetry}
+            finalRiddleSlot={
+              versus &&
+              isFinalRound &&
+              !holding &&
+              teamTotal > 0 &&
+              teamReady >= teamTotal ? (
+                <MobileFinalRiddle
+                  gameId={gameId}
+                  attemptsUsed={game?.finalRiddleAttempts ?? 0}
+                  rivalName={rival?.groupName}
+                />
+              ) : null
+            }
           />
         ) : (
           <>

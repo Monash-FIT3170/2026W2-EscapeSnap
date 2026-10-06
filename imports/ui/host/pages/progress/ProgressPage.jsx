@@ -8,6 +8,25 @@ import { Players } from '../../../../api/players/PlayersCollection';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
 import { remainingGameMs } from '/imports/lib/gameClock';
 import { useT } from '../../../../languages/LanguageProvider';
+import { useMatch } from '/imports/ui/shared/hooks/useMatch';
+import TeamScoreCard from '../../components/match/TeamScoreCard';
+
+// Online versus: the rival team's live standing, above our own manifest.
+const RivalPanel = ({ gameId, matchId }) => {
+  const t = useT();
+  const { match, teams, players, rounds } = useMatch(matchId);
+  const rival = teams.find((team) => team._id !== gameId);
+  if (!match || !rival) return null;
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-3">
+        <div style={{ width: 4, height: 16, background: '#8b0000' }} />
+        <span style={{ fontWeight: 700, fontSize: 14, letterSpacing: '1.4px', color: '#e5e2e1' }}>{t('host.match.rival')}</span>
+      </div>
+      <TeamScoreCard team={rival} players={players} rounds={rounds} compact />
+    </div>
+  );
+};
 
 const MOCK_EVENTS = [
   { time: '14:22:10', message: 'DYLAN HAS COMPLETED THE PUZZLE', highlight: true },
@@ -152,6 +171,8 @@ const ProgressPage = () => {
             <div style={{ width: 96, height: 96, background: 'rgba(255,255,255,0.8)' }} />
           </div>
         </div>
+
+        {game.matchId && <RivalPanel gameId={gameId} matchId={game.matchId} />}
 
         {/* Operative Manifest */}
         <div style={{ background: '#1c1b1b' }}>

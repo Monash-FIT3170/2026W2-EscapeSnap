@@ -14,6 +14,10 @@ const CODE_TO_KEY = {
   full: 'errors.full',
   'no-players': 'errors.noPlayers',
   timeout: 'errors.timeout',
+  'lobby-not-full': 'errors.lobbyNotFull',
+  'invalid-group-name': 'errors.teamNameRequired',
+  'duplicate-team-name': 'errors.duplicateTeamName',
+  'team-empty': 'errors.teamEmpty',
 };
 
 // `overrides` lets a call site give a code a more specific meaning — 'not-found'

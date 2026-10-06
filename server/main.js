@@ -6,6 +6,8 @@ import '../imports/api/players/playersPublications';
 import '../imports/api/rounds/roundsMethods';
 import '../imports/api/rounds/roundsPublications';
 import '../imports/api/achievements/achievementsPublications';
+import '../imports/api/matches/matchesMethods';
+import '../imports/api/matches/matchesPublications';
 import '/imports/api/rounds/RoundSessions';
 import '../imports/api/submissions/submissionsPublications';
 import { Games } from '../imports/api/games/GamesCollection';
@@ -47,6 +49,8 @@ Meteor.startup(async () => {
   console.log('[EscapeSnap] server ready');
   await Games.createIndexAsync({ joinCode: 1 });
   await Games.createIndexAsync({ status: 1 });
+  await Games.createIndexAsync({ matchId: 1 });
+  await Games.createIndexAsync({ mode: 1, status: 1, matchmakingSince: 1 });
   await Rounds.createIndexAsync({ gameId: 1, roundNumber: 1 });
   await Rounds.createIndexAsync({ playerId: 1, roundNumber: 1 });
   await GameResults.createIndexAsync({ gameId: 1, playerId: 1 }, { unique: true });

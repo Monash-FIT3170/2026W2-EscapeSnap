@@ -49,6 +49,22 @@ Games.attachSchema(
       allowedValues: THEMES,
       defaultValue: 'classroom',
     },
+    // 'solo' is the classic single-team game. 'local' and 'online' are one
+    // team's side of a team-vs-team match — same room, or randomly paired.
+    mode: {
+      type: String,
+      allowedValues: ['solo', 'local', 'online'],
+      defaultValue: 'solo',
+    },
+    matchId: {
+      type: String,
+      optional: true,
+    },
+    // Set while an online team sits in the matchmaking queue.
+    matchmakingSince: {
+      type: Date,
+      optional: true,
+    },
     createdAt: {
       type: Date,
     },

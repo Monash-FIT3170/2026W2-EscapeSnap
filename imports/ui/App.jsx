@@ -18,6 +18,8 @@ import { gameBudgetMs } from '../lib/gameClock';
 import { useT } from '../languages/LanguageProvider';
 import { errorKey } from '../languages/errors';
 import Leaderboard from './host/pages/leaderboard/Leaderboard';
+import MatchLobby from './host/pages/match/MatchLobby';
+import MatchScoreboard from './host/pages/match/MatchScoreboard';
 
 function PlayerFlow({ initialCode = '' }) {
   const [screen, setScreen] = useState('home');
@@ -132,6 +134,8 @@ export function App() {
       <Route path="/game/:gameId/progress" element={<ProgressPage />} />
       <Route path="/game/:gameId/final-riddle" element={<FinalRiddlePage />} />
       <Route path="/game/:gameId/summary" element={<SummaryPage />} />
+      <Route path="/match/:matchId/lobby" element={<MatchLobby />} />
+      <Route path="/match/:matchId/progress" element={<MatchScoreboard />} />
       <Route path="/leaderboard" element={<Leaderboard />} />
     </Routes>
   );

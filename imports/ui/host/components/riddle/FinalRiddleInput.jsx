@@ -2,11 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useT } from '../../../../languages/LanguageProvider';
 
-const FinalRiddleInput = ({ gameId, onCorrect = () => {}, onFailed = () => {} }) => {
+const MAX_ATTEMPTS = 3;
+
+// `attemptsUsed` is the server's count, so attempts made on another device
+// (a teammate's phone in a versus match) still count down here.
+const FinalRiddleInput = ({ gameId, attemptsUsed = 0, onCorrect = () => {}, onFailed = () => {} }) => {
   const t = useT();
   const [guess, setGuess] = useState('');
   const [result, setResult] = useState(null);
-  const [attemptsLeft, setAttemptsLeft] = useState(3);
+  const [attemptsLeft, setAttemptsLeft] = useState(MAX_ATTEMPTS - attemptsUsed);
+
+  useEffect(() => {
+    setAttemptsLeft((local) => Math.min(local, MAX_ATTEMPTS - attemptsUsed));
+  }, [attemptsUsed]);
   const [networkError, setNetworkError] = useState(false);
 
   useEffect(() => {
@@ -37,9 +45,11 @@ const FinalRiddleInput = ({ gameId, onCorrect = () => {}, onFailed = () => {} })
       setResult(isCorrect ? 'correct' : 'incorrect');
       setGuess('');
 
-      if (isCorrect) {
+      // In a match a correct answer can still lose, if a rival team escaped first.
+      const outcome = response?.outcome ?? (isCorrect ? 'won' : remaining === 0 ? 'lost' : null);
+      if (outcome === 'won') {
         onCorrect();
-      } else if (remaining === 0) {
+      } else if (outcome === 'lost') {
         onFailed();
       }
     });

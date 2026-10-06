@@ -11,6 +11,12 @@ const DIFFICULTY_OPTIONS = [
   { value: 'hard', labelKey: 'difficulty.hard', subKey: 'difficulty.hardSub' },
 ];
 
+const MODE_OPTIONS = [
+  { value: 'solo', labelKey: 'host.createGame.modeSolo', subKey: 'host.createGame.modeSoloSub' },
+  { value: 'local', labelKey: 'host.createGame.modeLocal', subKey: 'host.createGame.modeLocalSub' },
+  { value: 'online', labelKey: 'host.createGame.modeOnline', subKey: 'host.createGame.modeOnlineSub' },
+];
+
 const THEME_OPTIONS = [
   { value: 'classroom', label: 'CLASSROOM', sub: 'LECTURE HALL ITEMS' },
   { value: 'home', label: 'HOME', sub: 'DOMESTIC ITEMS' },
@@ -22,22 +28,35 @@ const CreateGame = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const [mode, setMode] = useState('solo');
   const [groupName, setGroupName] = useState('');
+  const [rivalName, setRivalName] = useState('');
   const [timer, setTimer] = useState(30);
   const [capacity, setCapacity] = useState(4);
   const [difficulty, setDifficulty] = useState('medium');
   const [theme, setTheme] = useState('classroom');
 
+  const isLocal = mode === 'local';
+
   const handleCreateGame = async () => {
-    if (!groupName.trim()) {
-      setError(t('host.createGame.errGroupNameRequired'));
+    if (!groupName.trim() || (isLocal && !rivalName.trim())) {
+      setError(t(isLocal ? 'host.createGame.errTeamNamesRequired' : 'host.createGame.errGroupNameRequired'));
       return;
     }
     setLoading(true);
     setError(null);
+    const settings = { timerMinutes: timer, capacity, difficulty, theme };
     try {
-      const gameId = await Meteor.callAsync('games.create', { groupName: groupName.trim(), timerMinutes: timer, capacity, difficulty, theme });
-      navigate(`/game/${gameId}/lobby`);
+      if (isLocal) {
+        const matchId = await Meteor.callAsync('matches.createLocal', {
+          ...settings,
+          teamNames: [groupName.trim(), rivalName.trim()],
+        });
+        navigate(`/match/${matchId}/lobby`);
+      } else {
+        const gameId = await Meteor.callAsync('games.create', { ...settings, groupName: groupName.trim(), mode });
+        navigate(`/game/${gameId}/lobby`);
+      }
     } catch (err) {
       setError(t(errorKey(err)));
       setLoading(false);
@@ -71,18 +90,63 @@ const CreateGame = () => {
 
             <div className="p-4" style={{ border: '1px solid #1c1b1b' }}>
               <label className="block text-xs tracking-widest mb-3" style={{ color: '#aa8984' }}>
-                {t('host.createGame.groupName')}
+                {t('host.createGame.gameMode')}
               </label>
-              <input
-                type="text"
-                placeholder={t('host.createGame.groupNamePlaceholder')}
-                value={groupName}
-                onChange={e => setGroupName(e.target.value)}
-                maxLength={40}
-                autoComplete="off"
-                className="w-full bg-transparent px-3 py-3 text-sm tracking-wide focus:outline-none"
-                style={{ border: '1px solid #1c1b1b', color: '#e5e2e1' }}
-              />
+              <div className="grid grid-cols-3 gap-2">
+                {MODE_OPTIONS.map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setMode(opt.value)}
+                    className="p-3 text-left transition-colors cursor-pointer"
+                    style={{
+                      border: mode === opt.value ? '1px solid #8b0000' : '1px solid #1c1b1b',
+                      background: mode === opt.value ? '#1c0000' : 'transparent',
+                    }}
+                  >
+                    <div className="text-xs font-bold" style={{ color: '#e5e2e1' }}>
+                      {t(opt.labelKey)}
+                    </div>
+                    <div className="text-xs mt-1 leading-tight" style={{ color: mode === opt.value ? '#aa8984' : '#555' }}>
+                      {t(opt.subKey)}
+                    </div>
+                  </button>
+                ))}
+              </div>
+              {mode !== 'solo' && (
+                <p className="text-xs mt-3 leading-relaxed" style={{ color: '#555' }}>
+                  {t(isLocal ? 'host.createGame.localNote' : 'host.createGame.onlineNote')}
+                </p>
+              )}
+            </div>
+
+            <div className="p-4 space-y-4" style={{ border: '1px solid #1c1b1b' }}>
+              {[
+                {
+                  labelKey: isLocal ? 'host.createGame.team1Name' : mode === 'online' ? 'host.createGame.teamName' : 'host.createGame.groupName',
+                  placeholderKey: isLocal ? 'host.createGame.team1Placeholder' : 'host.createGame.groupNamePlaceholder',
+                  value: groupName,
+                  onChange: setGroupName,
+                },
+                ...(isLocal
+                  ? [{ labelKey: 'host.createGame.team2Name', placeholderKey: 'host.createGame.team2Placeholder', value: rivalName, onChange: setRivalName }]
+                  : []),
+              ].map(field => (
+                <div key={field.labelKey}>
+                  <label className="block text-xs tracking-widest mb-3" style={{ color: '#aa8984' }}>
+                    {t(field.labelKey)}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={t(field.placeholderKey)}
+                    value={field.value}
+                    onChange={e => field.onChange(e.target.value)}
+                    maxLength={40}
+                    autoComplete="off"
+                    className="w-full bg-transparent px-3 py-3 text-sm tracking-wide focus:outline-none"
+                    style={{ border: '1px solid #1c1b1b', color: '#e5e2e1' }}
+                  />
+                </div>
+              ))}
             </div>
 
             <div className="p-4" style={{ border: '1px solid #1c1b1b' }}>
@@ -106,7 +170,7 @@ const CreateGame = () => {
 
             <div className="p-4" style={{ border: '1px solid #1c1b1b' }}>
               <label className="block text-xs tracking-widest mb-3" style={{ color: '#aa8984' }}>
-                {t('host.createGame.lobbyCapacity')}
+                {t(mode === 'solo' ? 'host.createGame.lobbyCapacity' : 'host.createGame.playersPerTeam')}
               </label>
               <div className="flex items-center gap-4">
                 <input
