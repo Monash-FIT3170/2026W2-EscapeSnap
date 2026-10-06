@@ -1,0 +1,25 @@
+version: 2
+
+updates:
+  # All npm updates arrive as one grouped weekly PR so CI runs once and the
+  # team reviews them together instead of merging a stream of small PRs.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      npm-dependencies:
+        patterns:
+          - '*'
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      github-actions:
+        patterns:
+          - '*'

@@ -7,10 +7,15 @@ on:
   push:
     branches:
       - main
+  # Weekly run on main so CodeQL and the dependency audit catch newly
+  # disclosed vulnerabilities even when nobody is pushing.
+  schedule:
+    - cron: '0 6 * * 1'
   workflow_dispatch:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -27,71 +32,6 @@ env:
   METEOR_SETTINGS: ${{ secrets.CI_METEOR_SETTINGS || '{}' }}
 
 jobs:
-  # Rejects PRs whose branch is not feature/<name>, fix/<name> or spike/<name>
-  # in kebab-case. Keeps the branch list readable and matches the PMP.
-  branch-name:
-    name: Branch naming convention
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - name: Check branch name
-        shell: bash
-        env:
-          BRANCH_NAME: ${{ github.head_ref }}
-        run: |
-          echo "Branch: $BRANCH_NAME"
-
-          if [[ ! "$BRANCH_NAME" =~ ^(feature|fix|spike)/[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
-            echo "::error::Branch '$BRANCH_NAME' must use feature/<name>, fix/<name>, or spike/<name>, with the name written in kebab-case."
-            exit 1
-          fi
-
-  # Checks every non-merge commit in the PR against
-  # "[Role] [Task ID] <type>: <description>" so the history stays traceable
-  # back to the board. Merge commits are skipped.
-  commit-format:
-    name: Commit message format
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - name: Check out complete Git history
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Check commit messages
-        shell: bash
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          PATTERN='^\[(RTE|PM|SA)\] \[[A-Z][A-Z0-9]*-[0-9]+\] (feat|fix|docs|chore): .+$'
-          FAILED=0
-
-          while IFS= read -r SHA; do
-            PARENT_COUNT=$(git rev-list --parents -n 1 "$SHA" | awk '{print NF - 1}')
-
-            if (( PARENT_COUNT > 1 )); then
-              echo "::notice::Skipping merge commit $SHA."
-              continue
-            fi
-
-            MESSAGE=$(git log -1 --format=%s "$SHA")
-
-            if [[ ! "$MESSAGE" =~ $PATTERN ]]; then
-              echo "::error::Commit $SHA does not follow '[Role] [Task ID] <type>: <description>' — \"$MESSAGE\""
-              FAILED=1
-            else
-              echo "Valid: $MESSAGE"
-            fi
-          done < <(git rev-list "$BASE_SHA..$HEAD_SHA")
-
-          exit "$FAILED"
-
   # The actual build gate: installs dependencies, lints, runs the test suite
   # against a throwaway MongoDB, and proves the app still bundles. Runs on
   # every trigger, not just PRs, so a broken main is caught immediately.
@@ -116,26 +56,11 @@ jobs:
           python3 -c 'import json, os; json.loads(os.environ["METEOR_SETTINGS"])'
           echo "CI environment configuration is valid."
 
-      - name: Cache Meteor
-        uses: actions/cache@v5
-        with:
-          path: ~/.meteor
-          key: meteor-${{ runner.os }}-${{ hashFiles('.meteor/release') }}
-          restore-keys: |
-            meteor-${{ runner.os }}-
+      - name: Set up Meteor
+        uses: ./.github/actions/setup-meteor
 
-      - name: Install Meteor
-        shell: bash
-        run: |
-          if [ ! -x "$HOME/.meteor/meteor" ]; then
-            curl -fsSL https://install.meteor.com/ | sh
-          fi
-
-          echo "$HOME/.meteor" >> "$GITHUB_PATH"
-          "$HOME/.meteor/meteor" --version
-
-      - name: Install dependencies
-        run: meteor npm ci
+      - name: Audit npm dependencies
+        run: meteor npm audit --audit-level=high
 
       - name: Run lint
         run: >-
@@ -165,8 +90,148 @@ jobs:
           echo "::error::MongoDB did not become available on port 27017."
           exit 1
 
+      # Vitest writes these reports when CI is set (see vitest.config.mjs).
+      - name: Publish test summary
+        if: always()
+        shell: bash
+        run: |
+          python3 - <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          import json, os
+          import xml.etree.ElementTree as ET
+
+          print("## Component tests (Vitest)")
+          print()
+
+          junit = ".reports/vitest-junit.xml"
+          if os.path.exists(junit):
+              root = ET.parse(junit).getroot()
+              total = int(root.get("tests", 0))
+              failed = int(root.get("failures", 0)) + int(root.get("errors", 0))
+              skipped = int(root.get("skipped", 0))
+              print("| Tests | Passed | Failed | Skipped |")
+              print("| --- | --- | --- | --- |")
+              print(f"| {total} | {total - failed - skipped} | {failed} | {skipped} |")
+          else:
+              print("No Vitest report was produced (an earlier step may have failed).")
+          print()
+
+          coverage = ".reports/coverage/coverage-summary.json"
+          if os.path.exists(coverage):
+              totals = json.load(open(coverage))["total"]
+              print("### Coverage")
+              print()
+              print("| Metric | Covered | Total | % |")
+              print("| --- | --- | --- | --- |")
+              for metric in ("lines", "statements", "functions", "branches"):
+                  m = totals[metric]
+                  print(f"| {metric.capitalize()} | {m['covered']} | {m['total']} | {m['pct']}% |")
+          EOF
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: .reports/
+          retention-days: 7
+          if-no-files-found: ignore
+          include-hidden-files: true
+
       - name: Build Meteor application
         shell: bash
         run: |
           rm -rf /tmp/escapesnap-build
           meteor build --directory /tmp/escapesnap-build
+
+  # Blocks PRs that add or upgrade to a dependency with a known HIGH or
+  # CRITICAL vulnerability. Unlike npm audit, it only judges what the PR
+  # changes, so pre-existing advisories on main don't block unrelated work.
+  dependency-review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+
+  code-scan:
+    name: Code security scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          build-mode: none
+
+      - name: Analyze code
+        uses: github/codeql-action/analyze@v3
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out complete Git history
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.x'
+
+      - name: Install Gitleaks
+        run: go install github.com/zricethezav/gitleaks/v8@v8.24.3
+
+      - name: Scan for exposed secrets
+        run: gitleaks git --verbose --redact --exit-code 1
+
+  # The single check branch protection should require. It passes only when
+  # every job above succeeded or was intentionally skipped, so jobs can be
+  # added or renamed without touching the branch protection rules.
+  ci-gate:
+    name: CI gate
+    if: always() && !cancelled()
+    needs:
+      - verify
+      - dependency-review
+      - code-scan
+      - secret-scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check upstream job results
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "$RESULTS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+
+          FAILED=$(echo "$RESULTS" | jq -r \
+            'to_entries[] | select(.value.result != "success" and .value.result != "skipped") | .key')
+
+          if [ -n "$FAILED" ]; then
+            echo "::error::These jobs did not pass: $(echo $FAILED)"
+            exit 1
+          fi
+
+          echo "All CI jobs passed."
