@@ -59,6 +59,29 @@ if (Meteor.isServer) {
           assert.ok(error, 'an error was thrown');
         }
       });
+
+      it('defaults the answer mode to camera', async function () {
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
+        const game = await Games.findOneAsync(gameId);
+
+        assert.equal(game.mode, 'camera');
+      });
+
+      it('stores drawing mode when requested', async function () {
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket', mode: 'drawing' });
+        const game = await Games.findOneAsync(gameId);
+
+        assert.equal(game.mode, 'drawing');
+      });
+
+      it('rejects a mode outside the allowed values', async function () {
+        try {
+          await Meteor.callAsync('games.create', { groupName: 'Team Rocket', mode: 'video' });
+          assert.fail('expected the schema to reject an unknown mode');
+        } catch (error) {
+          assert.notEqual(error.message, 'expected the schema to reject an unknown mode');
+        }
+      });
     });
 
     describe('games.start', function () {

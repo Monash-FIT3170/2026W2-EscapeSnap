@@ -7,7 +7,7 @@
     "start:windows": "powershell -ExecutionPolicy Bypass -File ./scripts/start-windows.ps1",
     "lint": "eslint . --ext .js,.jsx",
     "test": "npm run test:unit && npm run test:meteor",
-    "test:unit": "node --experimental-default-type=module --test imports/api/achievements/calculateGameResults.test.js",
+    "test:unit": "node --experimental-default-type=module --test imports/api/achievements/calculateGameResults.test.js imports/lib/answerModes.test.js imports/api/submissions/classifyPrompt.test.js imports/api/gemini/geminiModels.test.js",
     "test:meteor": "cross-env TEST_CLIENT=0 meteor test --once --driver-package meteortesting:mocha",
     "format": "prettier --write '**/*.{js,jsx,css,md}'"
   },
