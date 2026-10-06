@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { Players } from './PlayersCollection';
 import { Games } from '../games/GamesCollection';
+import { findReconnectablePlayer } from './presence';
 
 Meteor.methods({
   async 'players.join'(joinCode, playerName) {
@@ -18,5 +19,22 @@ Meteor.methods({
       revealedLetters: [],
     });
     return { playerId, gameId: game._id };
+  },
+
+  async 'players.rejoin'(playerId) {
+    const player = await findReconnectablePlayer(playerId);
+    const game = await Games.findOneAsync({
+      _id: player.gameId,
+      status: { $in: ['lobby', 'in_progress'] },
+    });
+    if (!game) throw new Meteor.Error('invalid-state', 'Game is over');
+
+    return {
+      playerId: player._id,
+      gameId: game._id,
+      playerName: player.name,
+      gameCode: game.joinCode,
+      status: game.status,
+    };
   },
 });
