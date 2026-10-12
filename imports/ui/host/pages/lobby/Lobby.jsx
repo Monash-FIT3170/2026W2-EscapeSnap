@@ -6,6 +6,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Games } from '../../../../api/games/GamesCollection';
 import { Players } from '../../../../api/players/PlayersCollection';
 import { useT } from '../../../../languages/LanguageProvider';
+import { useGameUiTheme } from '../../../shared/components/theme/UiThemeProvider';
 import { LanguagePicker } from '../../../../languages/LanguagePicker';
 import { ThemePicker } from '../../../shared/components/theme/ThemePicker';
 import { errorKey } from '../../../../languages/errors';
@@ -65,6 +66,7 @@ const EmptySlot = () => {
 
 const Lobby = () => {
   const { gameId } = useParams();
+  useGameUiTheme(gameId);
   const navigate = useNavigate();
   const t = useT();
   const [starting, setStarting] = useState(false);

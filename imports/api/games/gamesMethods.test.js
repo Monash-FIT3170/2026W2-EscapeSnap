@@ -61,6 +61,51 @@ if (Meteor.isServer) {
       });
     });
 
+    describe('games.setUiTheme', function () {
+      it('starts a game in the default UI theme', async function () {
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
+        const game = await Games.findOneAsync(gameId);
+
+        assert.equal(game.uiTheme, 'dossier');
+      });
+
+      it('starts a game in the UI theme passed to games.create', async function () {
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket', uiTheme: 'daylight' });
+        const game = await Games.findOneAsync(gameId);
+
+        assert.equal(game.uiTheme, 'daylight');
+      });
+
+      it('saves the chosen UI theme on the game', async function () {
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
+
+        await Meteor.callAsync('games.setUiTheme', gameId, 'terminal');
+        const game = await Games.findOneAsync(gameId);
+
+        assert.equal(game.uiTheme, 'terminal');
+      });
+
+      it('rejects a UI theme outside the allowed values', async function () {
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
+
+        try {
+          await Meteor.callAsync('games.setUiTheme', gameId, 'neon');
+          assert.fail('expected games.setUiTheme to throw');
+        } catch (error) {
+          assert.equal(error.error, 'invalid-ui-theme');
+        }
+      });
+
+      it('throws not-found for a game that does not exist', async function () {
+        try {
+          await Meteor.callAsync('games.setUiTheme', 'no-such-game-id', 'terminal');
+          assert.fail('expected games.setUiTheme to throw');
+        } catch (error) {
+          assert.equal(error.error, 'not-found');
+        }
+      });
+    });
+
     describe('games.start', function () {
       it('moves a lobby game to in_progress and stamps startedAt', async function () {
         const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket', capacity: 1 });

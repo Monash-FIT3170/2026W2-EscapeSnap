@@ -2,6 +2,7 @@ import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
 import 'meteor/aldeed:collection2/static';
 import { THEMES } from '/imports/lib/cocoClasses';
+import { UI_THEMES, DEFAULT_UI_THEME } from '/imports/lib/uiThemes';
 
 export const Games = new Mongo.Collection('games');
 
@@ -48,6 +49,12 @@ Games.attachSchema(
       type: String,
       allowedValues: THEMES,
       defaultValue: 'classroom',
+    },
+    // Skin shown on every screen in this game, host and players alike.
+    uiTheme: {
+      type: String,
+      allowedValues: UI_THEMES,
+      defaultValue: DEFAULT_UI_THEME,
     },
     createdAt: {
       type: Date,

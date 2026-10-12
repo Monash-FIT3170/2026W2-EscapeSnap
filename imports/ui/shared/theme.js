@@ -21,15 +21,3 @@ export const COLORS = {
   correct: token('correct'),
   incorrect: token('incorrect'),
 };
-
-// Player-selectable skins. Each key has a matching [data-ui-theme] block in
-// client/main.css; the display name is the locale key common.themes.<key>.
-// Named "UI theme" throughout because a game's `theme` is its riddle setting.
-export const UI_THEMES = [
-  'dossier',
-  'terminal',
-  'blueprint',
-  'daylight',
-  'contrast',
-];
-export const DEFAULT_UI_THEME = 'dossier';

@@ -5,6 +5,7 @@ import GameNotFound from '/imports/ui/shared/components/GameNotFound.jsx';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
 import PhotoGallery from '/imports/ui/host/components/summary/PhotoGallery.jsx';
 import { useT } from '../../../../languages/LanguageProvider';
+import { useGameUiTheme } from '../../../shared/components/theme/UiThemeProvider';
 
 const BG = 'rgb(var(--es-ground))';
 const PANEL = 'rgb(var(--es-panel))';
@@ -104,6 +105,7 @@ const Shell = ({ gameId, children }) => {
 
 const SummaryPage = () => {
   const { gameId } = useParams();
+  useGameUiTheme(gameId);
   const navigate = useNavigate();
   const t = useT();
   const { loading, gameFound, ended, outcome, team, players, photos } = useGameSummary(gameId);

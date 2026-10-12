@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import { useT } from '../../../../languages/LanguageProvider';
 import { LanguagePicker } from '../../../../languages/LanguagePicker';
 import { ThemePicker } from '../../../shared/components/theme/ThemePicker';
+import { useUiTheme } from '../../../shared/components/theme/UiThemeProvider';
 import { errorKey } from '../../../../languages/errors';
 
 const DIFFICULTY_OPTIONS = [
@@ -28,6 +29,8 @@ const CreateGame = () => {
   const [capacity, setCapacity] = useState(4);
   const [difficulty, setDifficulty] = useState('medium');
   const [theme, setTheme] = useState('classroom');
+  // The new game starts in whatever skin the host is looking at now.
+  const { uiTheme } = useUiTheme();
 
   const handleCreateGame = async () => {
     if (!groupName.trim()) {
@@ -37,7 +40,7 @@ const CreateGame = () => {
     setLoading(true);
     setError(null);
     try {
-      const gameId = await Meteor.callAsync('games.create', { groupName: groupName.trim(), timerMinutes: timer, capacity, difficulty, theme });
+      const gameId = await Meteor.callAsync('games.create', { groupName: groupName.trim(), timerMinutes: timer, capacity, difficulty, theme, uiTheme });
       navigate(`/game/${gameId}/lobby`);
     } catch (err) {
       setError(t(errorKey(err)));

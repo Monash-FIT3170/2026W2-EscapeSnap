@@ -8,6 +8,7 @@ import { Players } from '../../../../api/players/PlayersCollection';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
 import { remainingGameMs } from '/imports/lib/gameClock';
 import { useT } from '../../../../languages/LanguageProvider';
+import { useGameUiTheme } from '../../../shared/components/theme/UiThemeProvider';
 
 const MOCK_EVENTS = [
   { time: '14:22:10', message: 'DYLAN HAS COMPLETED THE PUZZLE', highlight: true },
@@ -31,6 +32,7 @@ const CrossIcon = () => (
 
 const ProgressPage = () => {
   const { gameId } = useParams();
+  useGameUiTheme(gameId);
   const t = useT();
   const [timeLeft, setTimeLeft] = useState(null);
 

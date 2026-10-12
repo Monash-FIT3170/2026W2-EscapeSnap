@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useT } from '../../../../languages/LanguageProvider';
 import { useUiTheme } from './UiThemeProvider';
-import { UI_THEMES } from '../../theme';
+import { UI_THEMES } from '/imports/lib/uiThemes';
 
 // Header button that drops a list of skins beneath it. Each row carries its own
 // data-ui-theme, so its swatch renders in that skin's colours whichever one is

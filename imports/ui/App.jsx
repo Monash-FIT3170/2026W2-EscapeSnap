@@ -8,6 +8,7 @@ import { PlayerHome } from './mobile/pages/PlayerHome';
 import { PlayerLobby } from './mobile/pages/lobby/PlayerLobby';
 import { PlayerDashboard } from './mobile/pages/PlayerDashboard';
 import { HelpTutorial } from './mobile/components/gameplay/HelpTutorial';
+import { useGameUiTheme } from './shared/components/theme/UiThemeProvider';
 import CreateGame from './host/pages/create-game/CreateGame';
 import Lobby from './host/pages/lobby/Lobby';
 import ProgressPage from './host/pages/progress/ProgressPage';
@@ -28,6 +29,7 @@ function PlayerFlow({ initialCode = '' }) {
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinError, setJoinError] = useState('');
   const t = useT();
+  useGameUiTheme(gameId);
 
   const { game, playerCount } = useTracker(() => {
     if (!gameId) return { game: null, playerCount: 0 };

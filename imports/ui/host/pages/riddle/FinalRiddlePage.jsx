@@ -8,11 +8,13 @@ import LoseScreen from '/imports/ui/host/pages/game-completion/LoseScreen.jsx';
 import FinalRiddleInput from '/imports/ui/host/components/riddle/FinalRiddleInput.jsx';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
 import { useT } from '../../../../languages/LanguageProvider';
+import { useGameUiTheme } from '../../../shared/components/theme/UiThemeProvider';
 
 const BG = 'rgb(var(--es-ground))';
 
 const FinalRiddlePage = () => {
   const { gameId } = useParams();
+  useGameUiTheme(gameId);
   const navigate = useNavigate();
   const t = useT();
   const [hasWon, setHasWon] = useState(false);
