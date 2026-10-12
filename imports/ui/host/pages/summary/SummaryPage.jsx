@@ -94,7 +94,7 @@ const Shell = ({ gameId, children }) => {
   return (
     <SidebarLayout gameId={gameId} activePage="summary">
       <header className="flex items-center justify-between px-6 py-4" style={{ background: BG, borderBottom: `2px solid ${PANEL}` }}>
-        <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: TEXT }}>ESCAPESNAP</span>
+        <span className="font-display text-lg font-black tracking-wide text-brand">ESCAPESNAP</span>
         <span style={{ fontSize: 10, letterSpacing: '1px', color: MUTED }}>{t('host.summary.missionDebrief')}</span>
       </header>
       {children}

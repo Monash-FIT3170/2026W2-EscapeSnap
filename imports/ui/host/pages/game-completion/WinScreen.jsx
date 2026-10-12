@@ -8,7 +8,7 @@ const WinScreen = ({ gameId, onPlayAgain, onViewSummary, onViewLeaderboard }) =>
     <div className="min-h-screen flex flex-col" style={{ background: 'rgb(var(--es-ground))', color: 'rgb(var(--es-ink))' }}>
 
       <header className="px-8 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgb(var(--es-panel))' }}>
-        <span className="font-bold text-xl tracking-widest uppercase" style={{ color: 'rgb(var(--es-ink))' }}>
+        <span className="font-display text-xl font-black tracking-wide text-brand">
           ESCAPESNAP
         </span>
         <span className="text-xs tracking-widest uppercase" style={{ color: 'rgb(var(--es-muted))' }}>

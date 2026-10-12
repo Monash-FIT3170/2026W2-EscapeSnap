@@ -94,7 +94,7 @@ const ProgressPage = () => {
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4" style={{ background: 'rgb(var(--es-ground))', borderBottom: '2px solid rgb(var(--es-panel))' }}>
         <div className="flex items-center gap-4">
-          <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: 'rgb(var(--es-ink))' }}>ESCAPESNAP</span>
+          <span className="font-display text-lg font-black tracking-wide text-brand">ESCAPESNAP</span>
           <div style={{ width: 1, height: 16, background: 'rgb(var(--es-line))', opacity: 0.3 }} />
         </div>
       </header>

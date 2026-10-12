@@ -130,7 +130,7 @@ const Lobby = () => {
         className="flex items-center justify-between px-8 py-4"
         style={{ borderBottom: '1px solid rgb(var(--es-panel))' }}
       >
-        <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: 'rgb(var(--es-ink))' }}>
+        <span className="font-display text-lg font-black tracking-wide text-brand">
           ESCAPESNAP
         </span>
         <div className="flex items-center gap-4">

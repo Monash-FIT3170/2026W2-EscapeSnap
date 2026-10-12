@@ -58,7 +58,7 @@ const FinalRiddlePage = () => {
 
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4" style={{ background: BG, borderBottom: '2px solid rgb(var(--es-panel))' }}>
-        <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: 'rgb(var(--es-ink))' }}>ESCAPESNAP</span>
+        <span className="font-display text-lg font-black tracking-wide text-brand">ESCAPESNAP</span>
       </header>
 
       {/* Body */}
