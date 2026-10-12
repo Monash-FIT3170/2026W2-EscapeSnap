@@ -8,7 +8,7 @@ const RevealedLetters = ({ letters }) => {
       
         <div key={index}  className="hover-3d">
         {/* content */}
-        <div className="w-28 h-28 flex items-center justify-center border-b-2 border-red-600 bg-gray-600 text-white font-bold text-2xl uppercase tracking-widest">
+        <div className="w-28 h-28 flex items-center justify-center border-b-2 border-brand bg-line text-ink font-bold text-2xl uppercase tracking-widest">
           {letter} 
         </div>
         {/* 8 empty divs needed for the 3D effect */}

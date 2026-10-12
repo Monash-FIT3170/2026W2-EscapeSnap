@@ -2,28 +2,32 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useT } from '../../../../languages/LanguageProvider';
 import { LanguagePicker } from '../../../../languages/LanguagePicker';
+import { ThemePicker } from '../../../shared/components/theme/ThemePicker';
 
 function Landing() {
   const t = useT();
 
   return (
-    <div className="min-h-screen text-gray-100 flex flex-col" style={{ background: '#0e0e0e' }}>
-      <header className="px-8 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #1c1b1b' }}>
-        <span className="font-bold text-xl tracking-widest uppercase" style={{ color: '#e5e2e1' }}>
+    <div className="min-h-screen text-ink flex flex-col" style={{ background: 'rgb(var(--es-ground))' }}>
+      <header className="px-8 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgb(var(--es-panel))' }}>
+        <span className="font-bold text-xl tracking-widest uppercase" style={{ color: 'rgb(var(--es-ink))' }}>
           ESCAPESNAP
         </span>
-        <LanguagePicker />
+        <div className="flex items-center gap-3">
+          <ThemePicker />
+          <LanguagePicker />
+        </div>
       </header>
 
       <main className="flex-1 flex items-center justify-center px-8 py-12">
         <div className="w-full max-w-2xl text-center">
-          <p className="text-xs tracking-widest mb-3" style={{ color: '#8b0000' }}>
+          <p className="text-xs tracking-widest mb-3" style={{ color: 'rgb(var(--es-brand))' }}>
             {t('landing.initiateProtocol')}
           </p>
-          <h1 className="text-6xl font-bold tracking-widest uppercase mb-6" style={{ color: '#e5e2e1' }}>
+          <h1 className="text-6xl font-bold tracking-widest uppercase mb-6" style={{ color: 'rgb(var(--es-ink))' }}>
             ESCAPESNAP
           </h1>
-          <p className="text-sm tracking-wide mb-12 max-w-md mx-auto leading-relaxed" style={{ color: '#aa8984' }}>
+          <p className="text-sm tracking-wide mb-12 max-w-md mx-auto leading-relaxed" style={{ color: 'rgb(var(--es-muted))' }}>
             {t('landing.tagline')}
           </p>
 
@@ -31,31 +35,31 @@ function Landing() {
             <Link
               to="/player"
               className="block w-full py-4 text-center text-sm tracking-widest uppercase transition-colors cursor-pointer"
-              style={{ border: '1px solid #1c1b1b', color: '#e5e2e1', background: 'transparent' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = '#8b0000'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = '#1c1b1b'}
+              style={{ border: '1px solid rgb(var(--es-panel))', color: 'rgb(var(--es-ink))', background: 'transparent' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = 'rgb(var(--es-brand))'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'rgb(var(--es-panel))'}
             >
               {t('landing.joinAsPlayer')}
             </Link>
             <Link
               to="/host"
               className="block w-full py-4 text-center text-sm tracking-widest uppercase transition-colors cursor-pointer"
-              style={{ background: '#8b0000', color: '#e5e2e1' }}
-              onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
-              onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
+              style={{ background: 'rgb(var(--es-brand))', color: 'rgb(var(--es-on-brand))' }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgb(var(--es-brand-bright))'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgb(var(--es-brand))'}
             >
               {t('landing.hostAGame')}
             </Link>
           </div>
 
-          <p className="text-xs tracking-widest mt-8" style={{ color: '#444' }}>
+          <p className="text-xs tracking-widest mt-8" style={{ color: 'rgb(var(--es-dim))' }}>
             {t('landing.footerTag')}
           </p>
         </div>
       </main>
 
-      <footer className="px-8 py-4 text-center" style={{ borderTop: '1px solid #1c1b1b' }}>
-        <p className="text-xs tracking-widest" style={{ color: '#444' }}>
+      <footer className="px-8 py-4 text-center" style={{ borderTop: '1px solid rgb(var(--es-panel))' }}>
+        <p className="text-xs tracking-widest" style={{ color: 'rgb(var(--es-dim))' }}>
           ESCAPESNAP
         </p>
       </footer>
