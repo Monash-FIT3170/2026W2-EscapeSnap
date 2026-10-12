@@ -9,6 +9,9 @@
     "test": "npm run test:unit && npm run test:meteor",
     "test:unit": "node --experimental-default-type=module --test imports/api/achievements/calculateGameResults.test.js",
     "test:meteor": "cross-env TEST_CLIENT=0 meteor test --once --driver-package meteortesting:mocha",
+    "test:e2e": "playwright test -c e2e/playwright.config.js",
+    "test:e2e:ui": "playwright test -c e2e/playwright.config.js --ui",
+    "test:e2e:report": "playwright show-report e2e/playwright-report",
     "format": "prettier --write '**/*.{js,jsx,css,md}'"
   },
   "dependencies": {
@@ -29,6 +32,7 @@
   "devDependencies": {
     "@babel/eslint-parser": "^7.28.6",
     "@eslint/js": "^9.39.4",
+    "@playwright/test": "^1.64.0",
     "chai": "^4.5.0",
     "cross-env": "^10.1.0",
     "eslint": "^9.39.4",

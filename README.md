@@ -42,12 +42,28 @@ meteor run --settings settings.example.json
 | `meteor npm run start` | Start the app (`meteor run`) |
 | `meteor npm run lint` | ESLint |
 | `meteor npm run format` | Prettier write |
+| `meteor npm test` | Unit + Meteor server tests |
+| `meteor npm run test:e2e` | Playwright end-to-end tests (starts the app itself) |
+| `meteor npm run test:e2e:ui` | Same, in Playwright's visual runner |
+| `meteor npm run test:e2e:report` | Open the HTML report from the last E2E run |
+
+## End-to-end tests (Playwright)
+
+Tests live in `e2e/` (excluded from the Meteor bundle via `.meteorignore`):
+
+- `e2e/playwright.config.js` starts `meteor run` on port 3000, or reuses it if you already have the app running.
+- `e2e/helpers/game.js` holds shared steps (host creates a game, player joins on a phone-sized browser).
+- `e2e/tests/*.spec.js` hold the scenarios: landing page, creating a game, joining, and starting a game.
+
+First-time setup: `meteor npx playwright install chromium`.
+
+The tests run with `GEMINI_API_KEY` blank, so riddles come from the built-in bank and no AI calls are made. Photo submission isn't covered here because it needs a camera and Gemini. If you reuse a dev server that has a key set, starting a game may wait on Gemini. To record a new test, run `meteor npx playwright codegen http://localhost:3000`.
 
 ## Stack
 
 - **Frontend:** React, Tailwind CSS v4 (via PostCSS — see `postcss.config.mjs`)
 - **Backend / realtime:** Meteor (DDP), MongoDB
-- **E2E (planned):** Playwright in `e2e/` (excluded from the Meteor bundle via `.meteorignore`)
+- **E2E:** Playwright in `e2e/` (excluded from the Meteor bundle via `.meteorignore`)
 
 ## Spike learnings (short)
 
