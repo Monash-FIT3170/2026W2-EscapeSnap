@@ -20,6 +20,7 @@ import { errorKey } from '../languages/errors';
 import Leaderboard from './host/pages/leaderboard/Leaderboard';
 import MatchLobby from './host/pages/match/MatchLobby';
 import MatchScoreboard from './host/pages/match/MatchScoreboard';
+import AdminDashboard from './host/pages/admin/AdminDashboard';
 
 // What players.join handed this phone, kept so a refresh or a closed tab can
 // pick the game back up.
@@ -299,6 +300,7 @@ export function App() {
       <Route path="/match/:matchId/lobby" element={<MatchLobby />} />
       <Route path="/match/:matchId/progress" element={<MatchScoreboard />} />
       <Route path="/leaderboard" element={<Leaderboard />} />
+      <Route path="/admin" element={<AdminDashboard />} />
     </Routes>
   );
 }

@@ -10,12 +10,15 @@ import '../imports/api/matches/matchesMethods';
 import '../imports/api/matches/matchesPublications';
 import '/imports/api/rounds/RoundSessions';
 import '../imports/api/submissions/submissionsPublications';
+import '../imports/api/admin/adminPublications';
+import '../imports/api/admin/adminMethods';
 import { Games } from '../imports/api/games/GamesCollection';
 import { Rounds } from '../imports/api/rounds/RoundsCollection';
 import { Submissions, photoExpiryFrom } from '../imports/api/submissions/SubmissionsCollection';
 import { GameResults } from '../imports/api/achievements/GameResultsCollection';
 import { Players } from '../imports/api/players/PlayersCollection';
 import { startPresenceTracking } from '../imports/api/players/presence';
+import { startGameExpiry } from '../imports/api/games/gameExpiry';
 
 const MAX_UPLOAD_CHARS = 10 * 1024 * 1024; // ~7.5MB of image data
 // Mirrors the `photoUrl` max in SubmissionsCollection — kept here so an
@@ -71,6 +74,7 @@ Meteor.startup(async () => {
   await Submissions.createIndexAsync({ gameId: 1, roundId: 1 });
 
   await startPresenceTracking();
+  await startGameExpiry();
 });
 
 Meteor.methods({

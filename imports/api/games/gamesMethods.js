@@ -14,6 +14,8 @@ import {
   startGame,
 } from './gameLifecycle';
 import { claimMatchVictory, settleMatchIfOver } from '../matches/matchService';
+import { expireGame } from './gameExpiry';
+import { remainingGameMs } from '../../lib/gameClock';
 
 const ROUND_DURATION_MS = 60 * 1000;
 const MAX_FINAL_ATTEMPTS = 3;
@@ -164,6 +166,17 @@ Meteor.methods({
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
     if (game.status !== 'in_progress')
       throw new Meteor.Error('invalid-state', 'Game is not in progress');
+
+    // An answer after the clock ran out loses, even a correct one.
+    if (remainingGameMs(game) === 0) {
+      await expireGame(game);
+      return {
+        isCorrect: false,
+        attemptsLeft: 0,
+        outcome: 'lost',
+        rivalWonFirst: false,
+      };
+    }
 
     const attempts = (game.finalRiddleAttempts ?? 0) + 1;
 
