@@ -3,6 +3,14 @@ export const hi = {
     loading: 'लोड हो रहा है...',
     language: 'भाषा',
     exit: 'बाहर निकलें',
+    theme: 'थीम',
+    themes: {
+      dossier: 'डोज़ियर',
+      terminal: 'टर्मिनल',
+      blueprint: 'ब्लूप्रिंट',
+      daylight: 'डेलाइट',
+      contrast: 'हाई कॉन्ट्रास्ट',
+    },
   },
   errors: {
     notFound: 'गेम नहीं मिला',
