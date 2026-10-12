@@ -21,8 +21,72 @@ import Leaderboard from './host/pages/leaderboard/Leaderboard';
 import MatchLobby from './host/pages/match/MatchLobby';
 import MatchScoreboard from './host/pages/match/MatchScoreboard';
 
+// What players.join handed this phone, kept so a refresh or a closed tab can
+// pick the game back up.
+const SESSION_KEY = 'escapesnap.session';
+
+function readSession() {
+  try {
+    const session = JSON.parse(window.localStorage.getItem(SESSION_KEY));
+    return session?.playerId && session?.sessionToken ? session : null;
+  } catch {
+    return null; // storage blocked or garbled — reconnect just isn't available
+  }
+}
+
+// sessionStorage survives a refresh but not closing the tab. A refresh drops
+// the player straight back into their game; opening the app fresh shows the
+// join menu, with the old game offered as a choice rather than forced on them.
+const ACTIVE_TAB_KEY = 'escapesnap.activePlayer';
+
+function markTabActive(playerId) {
+  try {
+    if (playerId) window.sessionStorage.setItem(ACTIVE_TAB_KEY, playerId);
+    else window.sessionStorage.removeItem(ACTIVE_TAB_KEY);
+  } catch {
+    // Without it a refresh shows the rejoin offer instead — still recoverable.
+  }
+}
+
+function isTabActive(playerId) {
+  try {
+    return window.sessionStorage.getItem(ACTIVE_TAB_KEY) === playerId;
+  } catch {
+    return false;
+  }
+}
+
+function writeSession(session) {
+  try {
+    if (session) window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    else window.localStorage.removeItem(SESSION_KEY);
+  } catch {
+    // Not persisting only costs the ability to reconnect.
+  }
+  markTabActive(session?.playerId);
+}
+
+// A QR code for a different game means the player is moving on — the saved
+// session must not drag them back into the old one.
+function resumableSession(initialCode) {
+  const session = readSession();
+  if (session && initialCode && session.gameCode !== initialCode) {
+    writeSession(null);
+    return null;
+  }
+  return session;
+}
+
+const SESSION_ERRORS = { 'not-found': 'errors.sessionEnded' };
+
 function PlayerFlow({ initialCode = '' }) {
-  const [screen, setScreen] = useState('home');
+  const [session, setSession] = useState(() => resumableSession(initialCode));
+  const [autoResume] = useState(
+    () => !!session && isTabActive(session.playerId)
+  );
+  const [screen, setScreen] = useState(autoResume ? 'resuming' : 'home');
+  // The still-running game this phone belongs to, offered on the join menu.
+  const [rejoinOffer, setRejoinOffer] = useState(null);
   const [playerName, setPlayerName] = useState('');
   const [gameCode, setGameCode] = useState('');
   const [playerId, setPlayerId] = useState(null);
@@ -31,15 +95,27 @@ function PlayerFlow({ initialCode = '' }) {
   const [joinError, setJoinError] = useState('');
   const t = useT();
 
+  const sessionToken = session?.sessionToken;
   const { game, playerCount } = useTracker(() => {
     if (!gameId) return { game: null, playerCount: 0 };
     Meteor.subscribe('games.current', gameId);
     Meteor.subscribe('players.inGame', gameId);
+    // Held for the whole session: it is how the server knows this player is
+    // still here. It errors if the player was dropped from the game.
+    if (playerId && sessionToken) {
+      Meteor.subscribe('player.self', playerId, sessionToken, {
+        onStop(err) {
+          if (!err) return;
+          resetToHome();
+          setJoinError(t(errorKey(err, SESSION_ERRORS)));
+        },
+      });
+    }
     return {
       game: Games.findOne(gameId),
       playerCount: Players.find({ gameId }).count(),
     };
-  }, [gameId]);
+  }, [gameId, playerId, sessionToken]);
 
   // Fire the auto-advance once per join. Without the guard, returning to the
   // lobby mid-game bounces you straight back out again.
@@ -51,11 +127,66 @@ function PlayerFlow({ initialCode = '' }) {
     }
   }, [game?.status, screen]);
 
+  const enterRejoinedGame = (rejoined) => {
+    markTabActive(rejoined.playerId);
+    setRejoinOffer(null);
+    setJoinError('');
+    setPlayerName(rejoined.playerName);
+    setGameCode(rejoined.gameCode);
+    setPlayerId(rejoined.playerId);
+    setGameId(rejoined.gameId);
+    // Straight back to where they were, minus the tutorial already seen.
+    const inGame = rejoined.status === 'in_progress';
+    autoAdvancedRef.current = inGame;
+    setScreen(inGame ? 'dashboard' : 'lobby');
+  };
+
+  // Mount only: a saved session is checked once, when the page loads.
+  useEffect(() => {
+    if (!session) return;
+    Meteor.callAsync('players.rejoin', session.playerId, session.sessionToken)
+      .then((rejoined) => {
+        if (autoResume) enterRejoinedGame(rejoined);
+        else setRejoinOffer(rejoined);
+      })
+      .catch((err) => {
+        writeSession(null);
+        setSession(null);
+        // A finished game has nothing to rejoin — just land on the join form.
+        // Only a player who expected to be put back needs telling why not.
+        if (autoResume && err.error !== 'invalid-state') {
+          setJoinError(t(errorKey(err, SESSION_ERRORS)));
+        }
+        setScreen('home');
+      });
+  }, []);
+
+  // Gives up the saved game for good, so the team isn't left waiting.
+  const leaveSavedGame = () => {
+    if (session) {
+      Meteor.callAsync('players.leave', session.playerId, session.sessionToken).catch(
+        (err) => console.error('[players.leave] failed:', err.error || err.message)
+      );
+    }
+    writeSession(null);
+    setSession(null);
+    setRejoinOffer(null);
+  };
+
   const handleJoin = async (name, code) => {
     setJoinLoading(true);
     setJoinError('');
     try {
-      const { playerId: pid, gameId: gid } = await Meteor.callAsync('players.join', code, name);
+      // Joining somewhere new means walking out of the old game.
+      if (rejoinOffer) leaveSavedGame();
+      const {
+        playerId: pid,
+        gameId: gid,
+        sessionToken: token,
+      } = await Meteor.callAsync('players.join', code, name);
+      const joined = { playerId: pid, sessionToken: token, gameCode: code };
+      writeSession(joined);
+      setSession(joined);
       setPlayerName(name);
       setGameCode(code);
       setPlayerId(pid);
@@ -71,7 +202,9 @@ function PlayerFlow({ initialCode = '' }) {
     }
   };
 
-  const handleExitToHome = () => {
+  const resetToHome = () => {
+    writeSession(null);
+    setSession(null);
     setPlayerName('');
     setGameCode('');
     setPlayerId(null);
@@ -80,10 +213,39 @@ function PlayerFlow({ initialCode = '' }) {
     setScreen('home');
   };
 
+  // Walking out of the lobby gives the slot straight back to the team.
+  const handleExitToHome = () => {
+    if (playerId && sessionToken) {
+      Meteor.callAsync('players.leave', playerId, sessionToken).catch((err) =>
+        console.error('[players.leave] failed:', err.error || err.message)
+      );
+    }
+    resetToHome();
+  };
+
+  if (screen === 'resuming') {
+    return (
+      <div className="flex min-h-[100dvh] items-center justify-center bg-[#0e0e0e] px-5">
+        <p
+          role="status"
+          className="pulse-text font-mono text-xs uppercase tracking-[0.25em] text-[#aa8984]"
+        >
+          {t('mobile.home.reconnecting')}
+        </p>
+      </div>
+    );
+  }
   if (screen === 'home') {
     return (
       <PlayerHome
         onStart={handleJoin}
+        rejoin={
+          rejoinOffer && {
+            ...rejoinOffer,
+            onRejoin: () => enterRejoinedGame(rejoinOffer),
+            onLeave: leaveSavedGame,
+          }
+        }
         loading={joinLoading}
         serverError={joinError}
         initialCode={initialCode}

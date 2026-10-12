@@ -14,6 +14,8 @@ import { Games } from '../imports/api/games/GamesCollection';
 import { Rounds } from '../imports/api/rounds/RoundsCollection';
 import { Submissions, photoExpiryFrom } from '../imports/api/submissions/SubmissionsCollection';
 import { GameResults } from '../imports/api/achievements/GameResultsCollection';
+import { Players } from '../imports/api/players/PlayersCollection';
+import { startPresenceTracking } from '../imports/api/players/presence';
 
 const MAX_UPLOAD_CHARS = 10 * 1024 * 1024; // ~7.5MB of image data
 // Mirrors the `photoUrl` max in SubmissionsCollection — kept here so an
@@ -54,6 +56,8 @@ Meteor.startup(async () => {
   await Rounds.createIndexAsync({ gameId: 1, roundNumber: 1 });
   await Rounds.createIndexAsync({ playerId: 1, roundNumber: 1 });
   await GameResults.createIndexAsync({ gameId: 1, playerId: 1 }, { unique: true });
+  await Players.createIndexAsync({ disconnectedAt: 1 }, { sparse: true });
+  await Rounds.createIndexAsync({ coveredBy: 1, roundNumber: 1 }, { sparse: true });
 
   // TTL index: Mongo drops each submission once its own expiresAt passes,
   // which photoExpiryFrom sets to createdAt + PHOTO_TTL_MS (6 hours). The
@@ -65,6 +69,8 @@ Meteor.startup(async () => {
     { expireAfterSeconds: 0 }
   );
   await Submissions.createIndexAsync({ gameId: 1, roundId: 1 });
+
+  await startPresenceTracking();
 });
 
 Meteor.methods({

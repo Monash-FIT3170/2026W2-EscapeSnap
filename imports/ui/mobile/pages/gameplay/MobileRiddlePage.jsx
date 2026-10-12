@@ -135,7 +135,7 @@ const MobileRiddlePage = ({
             await submitRiddle(base64);
           } else {
             setUploading(false);
-            if (result.outcome === 'fail' && onCorrect) onCorrect('?', false);
+            if (result.outcome === 'fail' && onCorrect) onCorrect('?', false, roundId);
           }
         } catch (err) {
           console.error('[submissions.classify] failed:', err.error || err.reason || err.message);
@@ -153,7 +153,7 @@ const MobileRiddlePage = ({
     if (isExpired || !roundId) return;
     try {
       const letter = await Meteor.callAsync('rounds.submit', roundId, true);
-      if (onCorrect) onCorrect(letter, true);
+      if (onCorrect) onCorrect(letter, true, roundId);
     } catch (err) {
       console.error('[rounds.submit] failed:', err.error || err.reason || err.message);
       setValidationState('error');
