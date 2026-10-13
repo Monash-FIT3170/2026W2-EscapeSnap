@@ -51,6 +51,10 @@ export const fr = {
       modeCameraSub: "PHOTOGRAPHIEZ L'OBJET",
       modeDrawing: 'DESSIN',
       modeDrawingSub: 'DESSINEZ LA RÉPONSE',
+      themeOther: 'AUTRE',
+      themeOtherSub: 'VOTRE PROPRE THÈME',
+      customThemePlaceholder: 'ex. HARRY POTTER',
+      errCustomThemeRequired: 'SAISISSEZ UN THÈME',
     },
     lobby: {
       navTag: 'SALON DE JEU',

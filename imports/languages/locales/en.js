@@ -55,6 +55,10 @@ export const en = {
       modeCameraSub: 'SNAP THE OBJECT',
       modeDrawing: 'DRAWING',
       modeDrawingSub: 'SKETCH THE ANSWER',
+      themeOther: 'OTHER',
+      themeOtherSub: 'YOUR OWN THEME',
+      customThemePlaceholder: 'e.g. HARRY POTTER',
+      errCustomThemeRequired: 'ENTER A THEME',
     },
     lobby: {
       navTag: 'GAME LOBBY',

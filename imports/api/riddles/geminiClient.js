@@ -1,6 +1,8 @@
 // Server-only — reads GEMINI_API_KEY from process.env; never import from imports/ui.
-import { THEME_OBJECT_POOLS } from '/imports/lib/cocoClasses';
-import { normalizeAnswerMode } from '/imports/lib/answerModes';
+import {
+  buildRoundRiddleRequest,
+  DIFFICULTY_HINTS,
+} from '/imports/api/riddles/roundRiddlePrompt';
 import { gemini, modelCandidates } from '/imports/api/gemini/geminiModels';
 
 // gemini-2.0-flash/2.5-flash return 404/zero-quota on free-tier keys as of writing;
@@ -13,13 +15,6 @@ const RIDDLE_MODELS = modelCandidates(
 // Bulk generation against a large enum can exceed 15s on a cold call.
 const REQUEST_TIMEOUT_MS = 30000;
 const MAX_ATTEMPTS = 2;
-
-const DIFFICULTY_HINTS = {
-  easy: 'Keep the wording simple and the clue very obvious.',
-  medium:
-    'Use a moderate level of wordplay — not too obvious, not too obscure.',
-  hard: 'Use clever misdirection and less literal phrasing.',
-};
 
 async function callGeminiOnce(prompt, schema) {
   const { data } = await gemini.generate(
@@ -124,95 +119,25 @@ Be original — don't reuse a riddle you may have generated before.`;
   );
 }
 
-const THEME_SETTINGS = {
-  classroom: {
-    label: 'a university classroom',
-    findWhere:
-      'something a student would realistically have on them or nearby in that room (in their bag, on the desk, or in the room itself)',
-  },
-  home: {
-    label: "a player's home",
-    findWhere:
-      'something realistically found around a home (kitchen, living room, or bedroom)',
-  },
-};
-
-// What the player does with the riddle's answer. Only the wording differs —
-// the answer pool is the same, so a sketch is checked against the same objects.
-const ANSWER_ACTIONS = {
-  camera: {
-    riddleDescription:
-      'A short riddle (1-2 sentences) describing a real-world object a player could photograph.',
-    playerTask: 'find and photograph the real-world object it describes',
-    checked: 'the photo',
-  },
-  drawing: {
-    riddleDescription:
-      'A short riddle (1-2 sentences) describing a real-world object a player could draw as a quick sketch.',
-    playerTask: 'draw a quick sketch of the real-world object it describes',
-    checked: 'the sketch',
-  },
-};
-
-// Generates `count` round riddles. `answer` is enum-constrained to the selected
-// theme's THEME_OBJECT_POOLS entry, so it's always a class the vision model can
-// actually detect (see imports/lib/cocoClasses.js for why theme = object pool).
+// Generates `count` round riddles. The prompt, answer schema and answer check
+// come from roundRiddlePrompt.js (preset themes enum-constrain the answer to
+// the theme's object pool; see imports/lib/cocoClasses.js).
 export async function generateRoundRiddles({
   count,
   difficulty = 'medium',
   theme = 'classroom',
+  customTheme,
   mode,
 }) {
   if (!count || count < 1) return [];
 
-  const objectPool = THEME_OBJECT_POOLS[theme] || THEME_OBJECT_POOLS.classroom;
-  const settings = THEME_SETTINGS[theme] || THEME_SETTINGS.classroom;
-  const action = ANSWER_ACTIONS[normalizeAnswerMode(mode)];
-
-  const schema = {
-    type: 'OBJECT',
-    properties: {
-      riddles: {
-        type: 'ARRAY',
-        items: {
-          type: 'OBJECT',
-          properties: {
-            text: {
-              type: 'STRING',
-              description: action.riddleDescription,
-            },
-            answer: {
-              type: 'STRING',
-              enum: objectPool,
-              description:
-                'The object the riddle describes. Must be exactly one of the allowed values.',
-            },
-            hint: {
-              type: 'STRING',
-              description:
-                'A short, very easy hint (a few words) that makes the object obvious, without literally naming it.',
-            },
-          },
-          required: ['text', 'answer', 'hint'],
-        },
-      },
-    },
-    required: ['riddles'],
-  };
-
-  const prompt = `You are writing short object-finding riddles for a mobile escape-room game played live in
-${settings.label}. Players read a riddle, then ${action.playerTask} —
-${settings.findWhere}. A vision model checks whether ${action.checked} matches, so the answer must EXACTLY be one
-of this fixed list of object names:
-${objectPool.join(', ')}.
-
-Write exactly ${count} riddles. Each riddle:
-- Is 1-2 sentences, playful, and describes the object without naming it outright.
-- Has an "answer" copied verbatim from the allowed list above (e.g. "cell phone", not "phone").
-- Has a "hint": a short, very easy clue (a few words) that makes the object obvious, without literally
-  naming it (e.g. for "laptop": "Something you open to browse the internet or write an essay").
-- ${DIFFICULTY_HINTS[difficulty] || DIFFICULTY_HINTS.medium}
-Vary the objects used across the set — don't repeat the same answer more than a couple of times.`;
+  const { prompt, schema, isValidAnswer } = buildRoundRiddleRequest({
+    count,
+    difficulty,
+    theme,
+    customTheme,
+    mode,
+  });
 
   const result = await callGemini(prompt, schema);
   const riddles = Array.isArray(result?.riddles) ? result.riddles : [];
@@ -223,9 +148,9 @@ Vary the objects used across the set — don't repeat the same answer more than 
         r &&
         typeof r.text === 'string' &&
         typeof r.hint === 'string' &&
-        objectPool.includes(r.answer)
+        isValidAnswer(r.answer)
     )
-    .map((r) => ({ text: r.text, answer: r.answer, hint: r.hint }));
+    .map((r) => ({ text: r.text, answer: r.answer.trim(), hint: r.hint }));
 
   if (valid.length === 0) {
     throw new Error(

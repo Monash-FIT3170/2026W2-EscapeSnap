@@ -50,6 +50,10 @@ export const zh = {
       modeCameraSub: '拍下物品',
       modeDrawing: '绘画',
       modeDrawingSub: '画出答案',
+      themeOther: '其他',
+      themeOtherSub: '自定义主题',
+      customThemePlaceholder: '例如：哈利·波特',
+      errCustomThemeRequired: '请输入主题',
     },
     lobby: {
       navTag: '游戏房间',

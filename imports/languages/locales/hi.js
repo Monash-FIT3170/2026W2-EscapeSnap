@@ -51,6 +51,10 @@ export const hi = {
       modeCameraSub: 'वस्तु की फ़ोटो लें',
       modeDrawing: 'ड्रॉइंग',
       modeDrawingSub: 'उत्तर का चित्र बनाएँ',
+      themeOther: 'अन्य',
+      themeOtherSub: 'आपकी अपनी थीम',
+      customThemePlaceholder: 'जैसे हैरी पॉटर',
+      errCustomThemeRequired: 'थीम दर्ज करें',
     },
     lobby: {
       navTag: 'गेम लॉबी',

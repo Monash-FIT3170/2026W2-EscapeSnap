@@ -51,6 +51,10 @@ export const id = {
       modeCameraSub: 'FOTO OBJEKNYA',
       modeDrawing: 'GAMBAR',
       modeDrawingSub: 'GAMBAR JAWABANNYA',
+      themeOther: 'LAINNYA',
+      themeOtherSub: 'TEMA SENDIRI',
+      customThemePlaceholder: 'mis. HARRY POTTER',
+      errCustomThemeRequired: 'MASUKKAN TEMA',
     },
     lobby: {
       navTag: 'LOBI PERMAINAN',
