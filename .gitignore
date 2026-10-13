@@ -30,3 +30,5 @@ preview/
 CLAUDE.md
 # Local design docs / plans
 docs/
+# CI test reports
+.reports/
