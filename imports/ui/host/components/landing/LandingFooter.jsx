@@ -1,35 +1,28 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useT } from '../../../../languages/LanguageProvider';
-import { DIM, INK, LINE, MUTED } from './theme';
+import { goToKeypad } from './JoinKeypad';
+import { Brand } from './LandingNav';
 
 export default function LandingFooter() {
   const t = useT();
 
   return (
-    <footer
-      className="px-6 md:px-12 py-4 flex flex-wrap items-center justify-between gap-4"
-      style={{ borderTop: `1px solid ${LINE}` }}
-    >
-      <p
-        className="font-mono text-xs uppercase"
-        style={{ letterSpacing: '2px', color: DIM }}
-      >
-        ESCAPESNAP · {t('landing.footerTag')}
+    <footer className="lp-foot">
+      <div className="lp-wrap lp-foot-row">
+        <Brand />
+        <nav aria-label={t('landing.footer.label')}>
+          <Link to="/host">{t('landing.host')}</Link>
+          <a href="#lp-join" onClick={goToKeypad}>
+            {t('landing.join')}
+          </a>
+          <Link to="/leaderboard">{t('landing.leaderboard')}</Link>
+        </nav>
+        <small>© 2026 EscapeSnap</small>
+      </div>
+      <p className="lp-whisper" aria-hidden="true">
+        {t('landing.footer.whisper')}
       </p>
-      <Link
-        to="/leaderboard"
-        className="font-mono text-xs uppercase px-3 py-3 transition-colors"
-        style={{ color: MUTED, letterSpacing: '2px' }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.color = INK;
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.color = MUTED;
-        }}
-      >
-        {t('landing.leaderboard')}
-      </Link>
     </footer>
   );
 }

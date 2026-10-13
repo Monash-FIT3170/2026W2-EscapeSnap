@@ -9,7 +9,14 @@ import { Flag } from './Flags';
 //
 // `compact` shrinks it for tight mobile headers. `align` decides which side the
 // names extend toward — 'right' (default) suits a top-right header placement.
-export function LanguagePicker({ className = '', compact = false, align = 'right' }) {
+// `chipClassName` swaps the flag circle for a text chip showing the language
+// code (EN, ES...), styled by the caller; the menu underneath is unchanged.
+export function LanguagePicker({
+  className = '',
+  compact = false,
+  align = 'right',
+  chipClassName,
+}) {
   const { locale, setLocale, t } = useLanguage();
   const [open, setOpen] = useState(false);
   // Code of the circle currently flashing after being picked.
@@ -17,11 +24,19 @@ export function LanguagePicker({ className = '', compact = false, align = 'right
   const rootRef = useRef(null);
   const flashTimer = useRef(null);
 
-  const size = compact ? 40 : 52;
+  const chip = Boolean(chipClassName);
+  const size = chip ? 44 : compact ? 40 : 52;
   // Each circle clears the one above it by `gap`, so borders never intersect.
-  const gap = compact ? 6 : 8;
+  const gap = compact || chip ? 6 : 8;
   const step = size + gap;
-  const flagSize = compact ? 20 : 26;
+  const flagSize = chip ? 22 : compact ? 20 : 26;
+  const triggerProps = {
+    type: 'button',
+    onClick: () => setOpen((v) => !v),
+    'aria-haspopup': 'menu',
+    'aria-expanded': open,
+    'aria-label': `${t('common.language')}: ${LOCALES[locale].label}`,
+  };
 
   const others = LOCALE_CODES.filter((code) => code !== locale);
 
@@ -62,7 +77,8 @@ export function LanguagePicker({ className = '', compact = false, align = 'right
       ref={rootRef}
       data-expanded={open}
       className={`relative ${className}`}
-      style={{ width: size, height: size }}
+      // A chip sizes itself; the circle trigger needs the box.
+      style={chip ? undefined : { width: size, height: size }}
     >
       {/* Dims the page while choosing, so the flags and their names read
           clearly over whatever screen the picker happens to sit on. Sits below
@@ -80,22 +96,24 @@ export function LanguagePicker({ className = '', compact = false, align = 'right
       />
 
       {/* Current language — always visible, doubles as the toggle */}
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        aria-label={`${t('common.language')}: ${LOCALES[locale].label}`}
-        className="group absolute inset-0 z-50 flex items-center justify-center overflow-hidden rounded-full border border-slate-700 bg-slate-950 shadow-lg shadow-black/50 transition-colors duration-200 will-change-transform hover:border-red-500 focus:border-red-500 focus:outline-none"
-      >
-        <span
-          aria-hidden="true"
-          className="absolute inset-0 -translate-x-full bg-red-600 transition-transform duration-300 ease-out group-hover:translate-x-0 group-focus:translate-x-0"
-        />
-        <span className="relative flex items-center justify-center">
-          <Flag code={locale} size={flagSize} />
-        </span>
-      </button>
+      {chip ? (
+        <button {...triggerProps} className={`relative z-50 ${chipClassName}`}>
+          {locale.toUpperCase()}
+        </button>
+      ) : (
+        <button
+          {...triggerProps}
+          className="group absolute inset-0 z-50 flex items-center justify-center overflow-hidden rounded-full border border-slate-700 bg-slate-950 shadow-lg shadow-black/50 transition-colors duration-200 will-change-transform hover:border-red-500 focus:border-red-500 focus:outline-none"
+        >
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 -translate-x-full bg-red-600 transition-transform duration-300 ease-out group-hover:translate-x-0 group-focus:translate-x-0"
+          />
+          <span className="relative flex items-center justify-center">
+            <Flag code={locale} size={flagSize} />
+          </span>
+        </button>
+      )}
 
       {/* The rest, fanning out underneath */}
       <div role="menu" aria-label={t('common.language')}>
@@ -106,13 +124,16 @@ export function LanguagePicker({ className = '', compact = false, align = 'right
             style={{
               width: size,
               height: size,
+              // Centred under a chip, whose width varies with the code.
+              ...(chip && { left: '50%', marginLeft: -size / 2 }),
               transform: `translateY(${open ? (index + 1) * step : 0}px)`,
               opacity: open ? 1 : 0,
               pointerEvents: open ? 'auto' : 'none',
               zIndex: 40 - index,
-              transition: `transform 300ms cubic-bezier(0.4, 0, 0.2, 1),
-                           opacity ${open ? '300ms' : '350ms'}`,
-              transitionDelay: `${open ? index * 30 : 0}ms`,
+              // The delay lives inside the shorthand: React warns when a
+              // shorthand and its longhand are both set and re-rendered.
+              transition: `transform 300ms cubic-bezier(0.4, 0, 0.2, 1) ${open ? index * 30 : 0}ms,
+                           opacity ${open ? '300ms' : '350ms'} ${open ? index * 30 : 0}ms`,
               backfaceVisibility: 'hidden',
               WebkitFontSmoothing: 'antialiased',
             }}
