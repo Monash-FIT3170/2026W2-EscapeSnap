@@ -46,6 +46,7 @@ meteor run --settings settings.example.json
 | `meteor npm run format` | Prettier write |
 | `meteor npm run test:e2e` | Playwright end-to-end tests (starts the app itself) |
 | `meteor npm run test:e2e:ui` | Same, in Playwright's visual runner |
+| `meteor npm run test:e2e:demo` | Presentation mode: slowed down, windows tiled (add `-- -g "escapes"` for one full game) |
 | `meteor npm run test:e2e:report` | Open the HTML report from the last E2E run |
 
 ## End-to-end tests (Playwright)

@@ -2,6 +2,7 @@
 // calling Meteor methods directly, so the flows stay covered end to end.
 import { devices, expect } from '@playwright/test';
 import { FINAL_RIDDLE_BANK } from '../../imports/lib/finalRiddle';
+import { DEMO, PLAYER_VIEWPORT, demoPause, placeWindow } from './demo';
 
 // Unique per run so a test never picks up a player or game left behind by an
 // earlier run against the same dev database.
@@ -12,6 +13,7 @@ export function uniqueName(prefix) {
 // Fills in the host's create-game form and waits for the lobby.
 // Returns the new game's id and its 4-digit join code.
 export async function createGame(page, { groupName, capacity = 2 } = {}) {
+  await placeWindow(page, 0);
   await page.goto('/host');
   await page
     .getByPlaceholder('e.g. FIT3170 BEST TEAM')
@@ -37,8 +39,11 @@ export async function openPlayerPage(browser) {
     ...devices['Pixel 7'],
     locale: 'en-US',
     permissions: ['camera'],
+    ...(DEMO && { viewport: PLAYER_VIEWPORT }),
   });
   const page = await context.newPage();
+  // The host's context is the first one, so this is the player's join order.
+  await placeWindow(page, browser.contexts().length - 1);
   return { context, page };
 }
 
@@ -119,6 +124,7 @@ async function expectRoundSettled(page, roundNumber) {
 export async function openFinalRiddle(hostPage) {
   await hostPage.getByRole('button', { name: 'FINAL RIDDLE' }).click();
   await expect(hostPage.getByText('MISSION CRITICAL')).toBeVisible();
+  await demoPause(hostPage);
 }
 
 // The answer never reaches the browser, so look the riddle on screen up in
@@ -135,4 +141,5 @@ export async function finalAnswerFor(hostPage) {
 export async function submitFinalAnswer(hostPage, guess) {
   await hostPage.getByPlaceholder('ENTER TERMINAL OVERRIDE...').fill(guess);
   await hostPage.getByRole('button', { name: 'SUBMIT ANSWER' }).click();
+  await demoPause(hostPage, 1500);
 }

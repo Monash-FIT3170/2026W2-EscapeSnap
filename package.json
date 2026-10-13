@@ -12,6 +12,7 @@
     "test:meteor": "cross-env TEST_CLIENT=0 meteor test --once --driver-package meteortesting:mocha",
     "test:e2e": "playwright test -c e2e/playwright.config.js",
     "test:e2e:ui": "playwright test -c e2e/playwright.config.js --ui",
+    "test:e2e:demo": "cross-env E2E_DEMO=1 playwright test -c e2e/playwright.config.js",
     "test:e2e:report": "playwright show-report e2e/playwright-report",
     "format": "prettier --write '**/*.{js,jsx,css,md}'"
   },

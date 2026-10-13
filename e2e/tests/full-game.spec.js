@@ -2,6 +2,7 @@
 // Chrome's fake webcam and the server's photo check is faked to "correct"
 // (see playwright.config.js), so no real camera or Gemini call is needed.
 import { test, expect } from '@playwright/test';
+import { demoPause } from '../helpers/demo';
 import {
   finalAnswerFor,
   openFinalRiddle,
@@ -16,7 +17,7 @@ const TOTAL_ROUNDS = 3;
 
 test.describe('Full game', () => {
   // Three rounds per player, each with a short on-screen result pause.
-  test.setTimeout(120_000);
+  test.slow();
 
   test('team photographs every object and escapes', async ({
     page: hostPage,
@@ -45,6 +46,7 @@ test.describe('Full game', () => {
     for (const { page } of players) {
       await expect(page.getByText('Your team cracked the code.')).toBeVisible();
     }
+    await demoPause(hostPage, 5000);
 
     await Promise.all(players.map(({ context }) => context.close()));
   });
@@ -81,6 +83,7 @@ test.describe('Full game', () => {
         page.getByText('Your team ran out of attempts.')
       ).toBeVisible();
     }
+    await demoPause(hostPage, 5000);
 
     await Promise.all(players.map(({ context }) => context.close()));
   });

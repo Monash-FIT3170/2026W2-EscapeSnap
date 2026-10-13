@@ -1,6 +1,7 @@
 // Playwright end-to-end config. Lives in e2e/ (ignored by .meteorignore) so
 // Meteor never bundles it. Run from the repo root with `meteor npm run test:e2e`.
 import { defineConfig, devices } from '@playwright/test';
+import { DEMO, DEMO_SLOW_MO, HOST_VIEWPORT } from './helpers/demo';
 
 const PORT = Number(process.env.E2E_PORT || 3000);
 const BASE_URL = `http://localhost:${PORT}`;
@@ -11,7 +12,8 @@ export default defineConfig({
 
   // Meteor's first build is slow, and every multiplayer test waits on DDP
   // round-trips between several browser contexts.
-  timeout: 60_000,
+  // Presentation mode is deliberately slow, so give it far more headroom.
+  timeout: DEMO ? 10 * 60_000 : 60_000,
   expect: { timeout: 10_000 },
 
   // Tests share one Meteor server and database. Each test creates its own
@@ -41,7 +43,9 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
+        ...(DEMO && { headless: false, viewport: HOST_VIEWPORT }),
         launchOptions: {
+          slowMo: DEMO ? DEMO_SLOW_MO : 0,
           // Chrome's built-in fake webcam (a moving test pattern), with the
           // permission prompt auto-accepted, so the player camera screen works.
           args: [
