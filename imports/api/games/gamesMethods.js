@@ -7,6 +7,8 @@ import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 import { FINAL_RIDDLE, getFallbackFinalRiddle } from '../../lib/finalRiddle';
 import { RIDDLE_BANK } from '../../lib/riddleBank';
 import { THEME_OBJECT_POOLS } from '../../lib/cocoClasses';
+import { DEFAULT_ANSWER_MODE } from '../../lib/answerModes';
+import { CUSTOM_THEME, normalizeCustomTheme } from '../../lib/customTheme';
 import { advanceGameRound } from '../rounds/roundProgression';
 import { finalizeGameResults } from '../achievements/achievementService';
 import {
@@ -87,14 +89,20 @@ async function writeRiddlesIfNotReady(gameId, finalRiddle, roundRiddles) {
 // games.start if generation hasn't finished yet.
 async function pregenerateRiddles(
   gameId,
-  { totalRounds, capacity, difficulty, theme }
+  { totalRounds, capacity, difficulty, theme, customTheme, mode }
 ) {
   const needed = totalRounds * capacity;
   const finalAnswerLength = clampFinalAnswerLength(needed);
 
   const [finalRiddleResult, roundPoolResult] = await Promise.allSettled([
     generateFinalRiddle({ difficulty, letterCount: finalAnswerLength }),
-    generateRoundRiddles({ count: needed, difficulty, theme }),
+    generateRoundRiddles({
+      count: needed,
+      difficulty,
+      theme,
+      customTheme,
+      mode,
+    }),
   ]);
 
   let finalRiddle;
@@ -191,9 +199,20 @@ Meteor.methods({
     capacity = 4,
     difficulty = 'medium',
     theme = 'classroom',
+    mode = DEFAULT_ANSWER_MODE,
+    customTheme,
   } = {}) {
     if (!groupName || !groupName.trim()) {
       throw new Meteor.Error('invalid-group-name', 'Group name is required');
+    }
+    // Only kept for the custom theme; a preset theme ignores any stray text.
+    const cleanCustomTheme =
+      theme === CUSTOM_THEME ? normalizeCustomTheme(customTheme) : '';
+    if (theme === CUSTOM_THEME && !cleanCustomTheme) {
+      throw new Meteor.Error(
+        'invalid-custom-theme',
+        'Custom theme text is required'
+      );
     }
     const joinCode = generateJoinCode();
 
@@ -207,6 +226,8 @@ Meteor.methods({
       capacity,
       difficulty,
       theme,
+      ...(cleanCustomTheme && { customTheme: cleanCustomTheme }),
+      mode,
       createdAt: new Date(),
       startedAt: null,
       endedAt: null,
@@ -220,6 +241,8 @@ Meteor.methods({
       capacity,
       difficulty,
       theme,
+      customTheme: cleanCustomTheme,
+      mode,
     });
 
     return gameId;
@@ -248,6 +271,8 @@ Meteor.methods({
         capacity: game.capacity,
         difficulty: game.difficulty,
         theme: game.theme,
+        customTheme: game.customTheme,
+        mode: game.mode,
       });
 
       const readyInTime = await Promise.race([
