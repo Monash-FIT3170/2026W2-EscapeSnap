@@ -57,6 +57,7 @@ Games.attachSchema(
       type: String,
       allowedValues: UI_THEMES,
       defaultValue: DEFAULT_UI_THEME,
+    },
     // The host's own theme text; only set when theme === 'custom'.
     customTheme: {
       type: String,
