@@ -39,7 +39,17 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          // Chrome's built-in fake webcam (a moving test pattern), with the
+          // permission prompt auto-accepted, so the player camera screen works.
+          args: [
+            '--use-fake-device-for-media-stream',
+            '--use-fake-ui-for-media-stream',
+          ],
+        },
+      },
     },
   ],
 
@@ -47,9 +57,9 @@ export default defineConfig({
     command: `meteor run --port ${PORT}`,
     cwd: '..',
     url: BASE_URL,
-    // Locally, reuse `meteor npm start` if it's already running; in CI always
-    // start a fresh server.
-    reuseExistingServer: !process.env.CI,
+    // Always start a fresh server: a dev server started with `meteor npm start`
+    // wouldn't have the test env below. Stop it before running the tests.
+    reuseExistingServer: false,
     // First Meteor build can take several minutes on a cold cache.
     timeout: 5 * 60_000,
     stdout: 'ignore',
@@ -58,6 +68,9 @@ export default defineConfig({
       // Without a key the app falls back to its built-in riddle bank, so the
       // tests are fast, free and don't depend on Gemini being up.
       GEMINI_API_KEY: '',
+      // Every photo is marked correct without calling Gemini (see
+      // server/main.js). Has no effect on production builds.
+      E2E_FAKE_CLASSIFY: 'pass',
     },
   },
 });

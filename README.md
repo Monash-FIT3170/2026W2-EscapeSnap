@@ -52,13 +52,19 @@ meteor run --settings settings.example.json
 
 Tests live in `e2e/` (excluded from the Meteor bundle via `.meteorignore`):
 
-- `e2e/playwright.config.js` starts `meteor run` on port 3000, or reuses it if you already have the app running.
-- `e2e/helpers/game.js` holds shared steps (host creates a game, player joins on a phone-sized browser).
-- `e2e/tests/*.spec.js` hold the scenarios: landing page, creating a game, joining, and starting a game.
+- `e2e/playwright.config.js` starts its own `meteor run` on port 3000 with test settings, so stop `meteor npm start` first (or set `E2E_PORT`).
+- `e2e/helpers/game.js` holds shared steps (create a game, join on a phone-sized browser, take a photo, skip a round, answer the final riddle).
+- `e2e/tests/*.spec.js` hold the scenarios: landing page, creating a game, joining, starting a game, and two full games (photograph everything and escape; skip everything and fail the final riddle).
 
 First-time setup: `meteor npx playwright install chromium`.
 
-The tests run with `GEMINI_API_KEY` blank, so riddles come from the built-in bank and no AI calls are made. Photo submission isn't covered here because it needs a camera and Gemini. If you reuse a dev server that has a key set, starting a game may wait on Gemini. To record a new test, run `meteor npx playwright codegen http://localhost:3000`.
+What the tests fake, so a whole game can be played without a person:
+
+- **Camera:** Chrome's built-in fake webcam (a moving test pattern).
+- **Photo check:** the app is started with `E2E_FAKE_CLASSIFY=pass`, so `server/main.js` marks every photo correct instead of calling Gemini. This is ignored in production builds.
+- **Riddles:** `GEMINI_API_KEY` is blank, so riddles come from the built-in bank. The full-game test reads the final riddle off the host screen and looks its answer up in that bank.
+
+To record a new test, run `meteor npx playwright codegen http://localhost:3000`.
 
 ## CI/CD
 

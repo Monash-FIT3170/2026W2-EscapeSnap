@@ -39,6 +39,14 @@ const CLASSIFY_MODELS = modelCandidates(
 // over that so a slow-but-working call isn't killed mid-flight.
 const GEMINI_TIMEOUT_MS = 20_000;
 
+// Playwright starts the app with E2E_FAKE_CLASSIFY=pass|fail so the E2E tests
+// can play a whole game: the test browser's fake camera shows a test pattern
+// Gemini could never match. Ignored in production builds, so a stray env var
+// can't switch off real photo checks on the deployed app.
+const E2E_FAKE_CLASSIFY = Meteor.isProduction
+  ? null
+  : process.env.E2E_FAKE_CLASSIFY;
+
 // Meteor's DDP (WebSocket) endpoint accepts connections from any origin by
 // default - there's no traditional CORS surface here (no REST endpoints),
 // but the same "only our frontend may talk to the backend" concern applies
@@ -116,6 +124,13 @@ Meteor.methods({
 });
 
 async function classifyWithGemini(imageBase64, targetObject, answerMode) {
+  if (E2E_FAKE_CLASSIFY === 'pass' || E2E_FAKE_CLASSIFY === 'fail') {
+    return {
+      outcome: E2E_FAKE_CLASSIFY,
+      explanation: `E2E fake classification for "${targetObject}".`,
+    };
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     console.error('[Gemini] GEMINI_API_KEY is not set');
