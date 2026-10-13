@@ -6,7 +6,12 @@ import { LanguagePicker } from '../../../languages/LanguagePicker';
 const FIELD_CLASS =
   'w-full border border-[#353534] bg-[#0e0e0e] px-4 py-3.5 font-mono text-base text-[#e5e2e1] placeholder:text-[#555] focus:border-[#8b0000] focus:outline-none transition-colors';
 
-export function PlayerHome({ onStart, loading = false, serverError = '', initialCode = '' }) {
+export function PlayerHome({
+  onStart,
+  loading = false,
+  serverError = '',
+  initialCode = '',
+}) {
   const [name, setName] = useState('');
   const [code, setCode] = useState(initialCode);
   const [error, setError] = useState('');
@@ -15,10 +20,16 @@ export function PlayerHome({ onStart, loading = false, serverError = '', initial
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (!name.trim()) { setError(t('mobile.home.errNameRequired')); return; }
-    if (!code.trim()) { setError(t('mobile.home.errCodeRequired')); return; }
+    if (!name.trim()) {
+      setError('mobile.home.errNameRequired');
+      return;
+    }
+    if (!code.trim()) {
+      setError('mobile.home.errCodeRequired');
+      return;
+    }
     if (!/^\d{4}$/.test(code)) {
-      setError(t('mobile.home.errCodeInvalid'));
+      setError('mobile.home.errCodeInvalid');
       return;
     }
     setError('');
@@ -31,7 +42,6 @@ export function PlayerHome({ onStart, loading = false, serverError = '', initial
     // submit button under it.
     <div className="min-h-[100dvh] bg-[#0e0e0e] text-[#e5e2e1] flex items-center justify-center px-5 py-8">
       <div className="relative w-full max-w-sm">
-
         <div className="mb-8 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-[#8b0000] animate-pulse" />
@@ -43,7 +53,9 @@ export function PlayerHome({ onStart, loading = false, serverError = '', initial
         </div>
 
         <h1 className="text-center font-display text-5xl font-black leading-tight tracking-wide text-[#8b0000]">
-          ESCAPE<br />SNAP
+          ESCAPE
+          <br />
+          SNAP
         </h1>
 
         <div className="mt-5 flex items-center gap-3">
@@ -55,9 +67,11 @@ export function PlayerHome({ onStart, loading = false, serverError = '', initial
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
-
           <div className="flex flex-col gap-2">
-            <label htmlFor="player-name" className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#aa8984]">
+            <label
+              htmlFor="player-name"
+              className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#aa8984]"
+            >
               {t('mobile.home.playerName')}
             </label>
             <input
@@ -65,7 +79,7 @@ export function PlayerHome({ onStart, loading = false, serverError = '', initial
               type="text"
               placeholder={t('mobile.home.playerNamePlaceholder')}
               value={name}
-              onChange={e => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
               maxLength={24}
               autoComplete="off"
               className={FIELD_CLASS}
@@ -74,7 +88,10 @@ export function PlayerHome({ onStart, loading = false, serverError = '', initial
 
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between gap-3">
-              <label htmlFor="game-code" className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#aa8984]">
+              <label
+                htmlFor="game-code"
+                className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#aa8984]"
+              >
                 {t('mobile.home.gameCode')}
               </label>
               {scannedViaQr && (
@@ -90,7 +107,9 @@ export function PlayerHome({ onStart, loading = false, serverError = '', initial
               pattern="[0-9]{4}"
               placeholder={t('mobile.home.gameCodePlaceholder')}
               value={code}
-              onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
+              onChange={(e) =>
+                setCode(e.target.value.replace(/\D/g, '').slice(0, 4))
+              }
               maxLength={4}
               autoComplete="one-time-code"
               className={`${FIELD_CLASS} tracking-[0.4em]`}
@@ -98,8 +117,11 @@ export function PlayerHome({ onStart, loading = false, serverError = '', initial
           </div>
 
           {(error || serverError) && (
-            <p role="alert" className="font-mono text-xs leading-5 text-[#ef4444]">
-              ⚠ {error || serverError}
+            <p
+              role="alert"
+              className="font-mono text-xs leading-5 text-[#ef4444]"
+            >
+              ⚠ {t(error || serverError)}
             </p>
           )}
 
@@ -110,7 +132,6 @@ export function PlayerHome({ onStart, loading = false, serverError = '', initial
           >
             {loading ? t('mobile.home.joining') : t('mobile.home.enterGame')}
           </button>
-
         </form>
       </div>
     </div>

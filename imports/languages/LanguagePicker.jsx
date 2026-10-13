@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from './LanguageProvider';
-import { LOCALES, LOCALE_CODES } from './index';
+import { LOCALE_CODES } from './index';
 import { Flag } from './Flags';
 
 // A fluid circular menu: the trigger is a circle showing the language currently
@@ -9,7 +9,11 @@ import { Flag } from './Flags';
 //
 // `compact` shrinks it for tight mobile headers. `align` decides which side the
 // names extend toward — 'right' (default) suits a top-right header placement.
-export function LanguagePicker({ className = '', compact = false, align = 'right' }) {
+export function LanguagePicker({
+  className = '',
+  compact = false,
+  align = 'right',
+}) {
   const { locale, setLocale, t } = useLanguage();
   const [open, setOpen] = useState(false);
   // Code of the circle currently flashing after being picked.
@@ -25,11 +29,11 @@ export function LanguagePicker({ className = '', compact = false, align = 'right
 
   const others = LOCALE_CODES.filter((code) => code !== locale);
 
-
   useEffect(() => {
     if (!open) return undefined;
     function onPointerDown(e) {
-      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
+      if (rootRef.current && !rootRef.current.contains(e.target))
+        setOpen(false);
     }
     function onKeyDown(e) {
       if (e.key === 'Escape') setOpen(false);
@@ -55,7 +59,8 @@ export function LanguagePicker({ className = '', compact = false, align = 'right
     }, 220);
   }
 
-  const labelSide = align === 'right' ? 'right-full mr-3' : 'left-full ml-3';
+  const labelsOnLeft = (align === 'right') !== (locale === 'ar');
+  const labelSide = labelsOnLeft ? 'right-full mr-3' : 'left-full ml-3';
 
   return (
     <div
@@ -85,7 +90,7 @@ export function LanguagePicker({ className = '', compact = false, align = 'right
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`${t('common.language')}: ${LOCALES[locale].label}`}
+        aria-label={`${t('common.language')}: ${t(`extra.${locale}`)}`}
         className="group absolute inset-0 z-50 flex items-center justify-center overflow-hidden rounded-full border border-slate-700 bg-slate-950 shadow-lg shadow-black/50 transition-colors duration-200 will-change-transform hover:border-red-500 focus:border-red-500 focus:outline-none"
       >
         <span
@@ -122,7 +127,7 @@ export function LanguagePicker({ className = '', compact = false, align = 'right
               role="menuitem"
               tabIndex={open ? 0 : -1}
               onClick={() => choose(code)}
-              aria-label={LOCALES[code].label}
+              aria-label={t(`extra.${code}`)}
               className={`relative flex h-full w-full items-center justify-center overflow-hidden rounded-full border bg-slate-950 shadow-lg shadow-black/50 transition-colors duration-200 will-change-transform focus:outline-none ${
                 flashing === code
                   ? 'border-red-300'
@@ -167,7 +172,7 @@ export function LanguagePicker({ className = '', compact = false, align = 'right
                     : '-translate-x-full bg-red-600 group-hover:translate-x-0 group-focus-within:translate-x-0'
                 }`}
               />
-              <span className="relative">{LOCALES[code].label}</span>
+              <span className="relative">{t(`extra.${code}`)}</span>
             </span>
           </div>
         ))}

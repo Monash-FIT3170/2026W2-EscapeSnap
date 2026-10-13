@@ -1,12 +1,29 @@
+import { createTranslation } from '../../../../languages/translate.js';
+
 export const SHARE_FORMATS = {
-  portrait: { label: 'POST', ratio: '4 / 5', width: 1080, height: 1350 },
-  story: { label: 'STORY', ratio: '9 / 16', width: 1080, height: 1920 },
-  square: { label: 'SQUARE', ratio: '1 / 1', width: 1080, height: 1080 },
+  portrait: {
+    labelKey: 'extra.portrait',
+    ratio: '4 / 5',
+    width: 1080,
+    height: 1350,
+  },
+  story: {
+    labelKey: 'extra.story',
+    ratio: '9 / 16',
+    width: 1080,
+    height: 1920,
+  },
+  square: {
+    labelKey: 'extra.square',
+    ratio: '1 / 1',
+    width: 1080,
+    height: 1080,
+  },
 };
 
 export const SHARE_THEMES = {
   dossier: {
-    label: 'DOSSIER',
+    labelKey: 'extra.dossier',
     background: '#0e0e0e',
     panel: '#181717',
     inner: '#080808',
@@ -17,7 +34,7 @@ export const SHARE_THEMES = {
     grid: 'rgba(181, 15, 25, 0.09)',
   },
   signal: {
-    label: 'SIGNAL',
+    labelKey: 'extra.signal',
     background: '#160305',
     panel: '#27070b',
     inner: '#0b0102',
@@ -28,7 +45,7 @@ export const SHARE_THEMES = {
     grid: 'rgba(255, 51, 68, 0.15)',
   },
   stealth: {
-    label: 'STEALTH',
+    labelKey: 'extra.stealth',
     background: '#070a0d',
     panel: '#11161b',
     inner: '#040608',
@@ -48,8 +65,8 @@ export const DEFAULT_SHARE_SECTIONS = {
   squad: false,
 };
 
-export function formatScore(value) {
-  return new Intl.NumberFormat('en-AU').format(value ?? 0);
+export function formatScore(value, locale = 'en') {
+  return new Intl.NumberFormat(locale).format(value ?? 0);
 }
 
 export function formatMissionTime(seconds) {
@@ -63,31 +80,39 @@ export function formatMissionTime(seconds) {
   )}`;
 }
 
-export function buildShareText(snapshot, sections) {
-  const lines = ['ESCAPESNAP // AFTER-ACTION REPORT'];
-
-  if (sections.result) {
+export function buildShareText(
+  snapshot,
+  sections,
+  t = createTranslation('en'),
+  locale = 'en'
+) {
+  const lines = [`ESCAPESNAP // ${t('mobile.share.afterActionReport')}`];
+  if (sections.result)
     lines.push(
-      snapshot.outcome === 'won'
-        ? `${snapshot.operativeName} escaped the mission.`
-        : `${snapshot.operativeName} survived the debrief.`
+      t(snapshot.outcome === 'won' ? 'extra.shareWon' : 'extra.shareLost', {
+        name: snapshot.operativeName,
+      })
     );
-  }
-  if (sections.score) lines.push(`Score: ${formatScore(snapshot.score)}`);
-  if (sections.stats) {
+  if (sections.score)
     lines.push(
-      `Solved: ${snapshot.correct}/${snapshot.totalRounds} · Accuracy: ${snapshot.accuracy}% · Time: ${formatMissionTime(snapshot.timeUsedSeconds)}`
+      `${t('mobile.share.missionScoreLabel')}: ${formatScore(snapshot.score, locale)}`
     );
-  }
-  if (sections.fragments) {
-    lines.push(`Key fragments: ${snapshot.recoveredLetters.join(' ')}`);
-  }
-  if (sections.squad) {
+  if (sections.stats)
     lines.push(
-      `Squad standing: #${snapshot.squadRank} of ${snapshot.squadSize}`
+      `${t('mobile.share.statObjectives')}: ${snapshot.correct}/${snapshot.totalRounds} · ${t('mobile.share.statAccuracy')}: ${snapshot.accuracy}% · ${t('mobile.share.statTime')}: ${formatMissionTime(snapshot.timeUsedSeconds)}`
     );
-  }
-  lines.push('#EscapeSnap #MissionDebrief');
+  if (sections.fragments)
+    lines.push(
+      `${t('mobile.share.keyFragmentsRecovered')}: ${snapshot.recoveredLetters.join(' ')}`
+    );
+  if (sections.squad)
+    lines.push(
+      t('mobile.share.squadStanding', {
+        rank: snapshot.squadRank,
+        size: snapshot.squadSize,
+      })
+    );
+  lines.push('#EscapeSnap');
   return lines.join('\n');
 }
 
@@ -97,11 +122,11 @@ function roundedRect(context, x, y, width, height, radius) {
   context.roundRect(x, y, width, height, safeRadius);
 }
 
-function drawLabel(context, text, x, y, color, align = 'left') {
+function drawLabel(context, text, x, y, color, align = 'left', maxWidth = 800) {
   context.fillStyle = color;
   context.font = '700 24px Arial, sans-serif';
   context.textAlign = align;
-  context.fillText(text, x, y);
+  context.fillText(text, x, y, maxWidth);
 }
 
 function drawGrid(context, width, height, color) {
@@ -149,7 +174,7 @@ function drawStat(context, theme, label, value, x, y, width) {
   context.fill();
   context.fillStyle = theme.accent;
   context.fillRect(x, y, 5, 130);
-  drawLabel(context, label, x + 28, y + 38, theme.muted);
+  drawLabel(context, label, x + 28, y + 38, theme.muted, 'left', width - 48);
   context.fillStyle = theme.text;
   context.font = '800 44px Arial, sans-serif';
   context.textAlign = 'left';
@@ -170,6 +195,8 @@ export async function renderShareCard({
   sections,
   themeKey = 'dossier',
   formatKey = 'portrait',
+  t = createTranslation('en'),
+  locale = 'en',
 }) {
   const theme = SHARE_THEMES[themeKey] ?? SHARE_THEMES.dossier;
   const format = SHARE_FORMATS[formatKey] ?? SHARE_FORMATS.portrait;
@@ -178,6 +205,8 @@ export async function renderShareCard({
   canvas.height = format.height;
   const context = canvas.getContext('2d');
   const { width, height } = canvas;
+  canvas.lang = locale;
+  context.direction = locale === 'ar' ? 'rtl' : 'ltr';
   const compact = height <= 1080;
   const padding = 72;
   const contentWidth = width - padding * 2;
@@ -195,18 +224,21 @@ export async function renderShareCard({
   context.fillText('ESCAPESNAP', padding + 34, 98);
   drawLabel(
     context,
-    'AFTER-ACTION REPORT',
+    t('mobile.share.afterActionReport'),
     width - padding,
     96,
     theme.muted,
-    'right'
+    'right',
+    contentWidth / 2
   );
 
   let y = 162;
   if (sections.result) {
     drawLabel(
       context,
-      snapshot.outcome === 'won' ? 'MISSION COMPLETE' : 'MISSION ENDED',
+      snapshot.outcome === 'won'
+        ? t('mobile.share.missionComplete')
+        : t('mobile.share.missionEnded'),
       padding,
       y,
       theme.accent
@@ -215,13 +247,21 @@ export async function renderShareCard({
     context.font = `900 ${compact ? 78 : 94}px Arial, sans-serif`;
     context.textAlign = 'left';
     context.fillText(
-      snapshot.outcome === 'won' ? 'ESCAPED' : 'NO ESCAPE',
+      snapshot.outcome === 'won'
+        ? t('mobile.share.escaped')
+        : t('mobile.share.noEscape'),
       padding,
-      y + 92
+      y + 92,
+      contentWidth
     );
     context.fillStyle = theme.muted;
     context.font = '600 28px Arial, sans-serif';
-    context.fillText(snapshot.operativeName.toUpperCase(), padding, y + 140);
+    context.fillText(
+      snapshot.operativeName.toUpperCase(),
+      padding,
+      y + 140,
+      contentWidth
+    );
     y += compact ? 185 : 205;
   }
 
@@ -232,18 +272,24 @@ export async function renderShareCard({
     context.strokeStyle = theme.accent;
     context.lineWidth = 2;
     context.stroke();
-    drawLabel(context, 'MISSION SCORE', padding + 34, y + 43, theme.muted);
+    drawLabel(
+      context,
+      t('mobile.share.missionScoreLabel'),
+      padding + 34,
+      y + 43,
+      theme.muted
+    );
     context.fillStyle = theme.text;
     context.font = `900 ${compact ? 68 : 78}px Arial, sans-serif`;
     context.textAlign = 'left';
     context.fillText(
-      formatScore(snapshot.score),
+      formatScore(snapshot.score, locale),
       padding + 34,
       y + (compact ? 121 : 136)
     );
     drawLabel(
       context,
-      `${snapshot.difficulty} // ${snapshot.missionRef}`,
+      `${t(`difficulty.${snapshot.difficulty.toLowerCase()}`)} // ${snapshot.missionRef}`,
       width - padding - 34,
       y + (compact ? 112 : 126),
       theme.dim,
@@ -258,7 +304,7 @@ export async function renderShareCard({
     drawStat(
       context,
       theme,
-      'OBJECTIVES',
+      t('mobile.share.statObjectives'),
       `${snapshot.correct}/${snapshot.totalRounds}`,
       padding,
       y,
@@ -267,7 +313,7 @@ export async function renderShareCard({
     drawStat(
       context,
       theme,
-      'ACCURACY',
+      t('mobile.share.statAccuracy'),
       `${snapshot.accuracy}%`,
       padding + statWidth + gap,
       y,
@@ -276,7 +322,7 @@ export async function renderShareCard({
     drawStat(
       context,
       theme,
-      'MISSION TIME',
+      t('mobile.share.statTime'),
       formatMissionTime(snapshot.timeUsedSeconds),
       padding + (statWidth + gap) * 2,
       y,
@@ -291,7 +337,7 @@ export async function renderShareCard({
     context.fill();
     drawLabel(
       context,
-      'KEY FRAGMENTS RECOVERED',
+      t('mobile.share.keyFragmentsRecovered'),
       padding + 28,
       y + 40,
       theme.muted
@@ -324,7 +370,10 @@ export async function renderShareCard({
     context.fill();
     drawLabel(
       context,
-      `SQUAD STANDING // #${snapshot.squadRank} OF ${snapshot.squadSize}`,
+      t('mobile.share.squadStanding', {
+        rank: snapshot.squadRank,
+        size: snapshot.squadSize,
+      }),
       padding + 28,
       y + 40,
       theme.muted
@@ -338,7 +387,11 @@ export async function renderShareCard({
       context.fillStyle = theme.text;
       context.fillText(entry.name.toUpperCase(), padding + 100, rowY);
       context.textAlign = 'right';
-      context.fillText(formatScore(entry.score), width - padding - 28, rowY);
+      context.fillText(
+        formatScore(entry.score, locale),
+        width - padding - 28,
+        rowY
+      );
     });
     y += boardHeight + 24;
   }
@@ -348,10 +401,12 @@ export async function renderShareCard({
   context.fillRect(padding, footerY, contentWidth, 2);
   drawLabel(
     context,
-    'REAL-WORLD RIDDLES. ONE WAY OUT.',
+    t('mobile.share.tagline'),
     padding,
     footerY + 46,
-    theme.muted
+    theme.muted,
+    'left',
+    contentWidth - 230
   );
   drawLabel(
     context,

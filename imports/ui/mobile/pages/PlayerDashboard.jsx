@@ -16,6 +16,7 @@ import {
   gameBudgetMs,
   remainingGameMs,
 } from '/imports/lib/gameClock';
+import { TranslatedRiddle } from '../../../languages/TranslatedRiddle';
 import { useT } from '../../../languages/LanguageProvider';
 
 // How long the armed skip button waits for the confirming tap before it
@@ -66,7 +67,9 @@ function LettersScreen({ revealedLetters, totalRounds }) {
               <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.15em] text-[#aa8984]">
                 {t('mobile.dashboard.roundLabel', { n: i + 1 })}
               </p>
-              <p className={`font-display text-4xl font-black ${hasLetter ? 'text-[#e5e2e1]' : 'text-[#555]'}`}>
+              <p
+                className={`font-display text-4xl font-black ${hasLetter ? 'text-[#e5e2e1]' : 'text-[#555]'}`}
+              >
                 {letter ?? '?'}
               </p>
             </div>
@@ -310,7 +313,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   // player's own tally — one entry is pushed per settled round, in order.
   const bankedLetter = revealedLetters[shownRound - 1];
   const displayLetter = settled
-    ? (holding ? bankedLetter : (revealedLetter ?? bankedLetter)) ?? '?'
+    ? ((holding ? bankedLetter : (revealedLetter ?? bankedLetter)) ?? '?')
     : revealedLetter;
   const displayCorrect = settled
     ? holding
@@ -323,11 +326,11 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
       buildEndgameShareSnapshot({
         game,
         playerId,
-        playerName,
+        playerName: playerName || t('host.summary.operative'),
         players: sharePlayers,
         rounds: shareRounds,
       }),
-    [game, playerId, playerName, sharePlayers, shareRounds]
+    [game, playerId, playerName, sharePlayers, shareRounds, t]
   );
 
   // Fresh round, fresh screen — the previous round's result must not leak into
@@ -518,7 +521,11 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
             {t('mobile.dashboard.roundBadge', { n: currentRound })}
           </span>
           <p className="min-w-0 font-mono text-xs leading-5 text-[#e5e2e1]">
-            {round?.riddleText ?? t('mobile.dashboard.loadingRiddle')}
+            <TranslatedRiddle
+              kind="round"
+              id={round?._id}
+              source={round?.riddleText}
+            />
           </p>
         </div>
       )}
@@ -526,7 +533,15 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
       {!showResult && activeTab === 'scanner' && round?._id && (
         <div className="flex-shrink-0 border-b border-[#353534] px-4 py-2">
           {hint ? (
-            <p className="font-mono text-xs leading-5 text-[#aa8984]">💡 {hint}</p>
+            <p className="font-mono text-xs leading-5 text-[#aa8984]">
+              💡{' '}
+              <TranslatedRiddle
+                kind="round"
+                id={round?._id}
+                field="hint"
+                source={hint}
+              />
+            </p>
           ) : (
             <button
               type="button"
@@ -570,7 +585,6 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
       <div
         className={`flex min-h-0 flex-1 flex-col ${showResult ? '' : 'pb-[calc(4rem+env(safe-area-inset-bottom))]'}`}
       >
-
         {showResult ? (
           <ResultScreen
             revealedLetter={displayLetter}

@@ -15,7 +15,6 @@ import FinalRiddlePage from './host/pages/riddle/FinalRiddlePage';
 import SummaryPage from './host/pages/summary/SummaryPage';
 import LandingPage from './host/pages/landing/Landing';
 import { gameBudgetMs } from '../lib/gameClock';
-import { useT } from '../languages/LanguageProvider';
 import { errorKey } from '../languages/errors';
 import Leaderboard from './host/pages/leaderboard/Leaderboard';
 
@@ -27,7 +26,6 @@ function PlayerFlow({ initialCode = '' }) {
   const [gameId, setGameId] = useState(null);
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinError, setJoinError] = useState('');
-  const t = useT();
 
   const { game, playerCount } = useTracker(() => {
     if (!gameId) return { game: null, playerCount: 0 };
@@ -43,7 +41,11 @@ function PlayerFlow({ initialCode = '' }) {
   // lobby mid-game bounces you straight back out again.
   const autoAdvancedRef = useRef(false);
   useEffect(() => {
-    if (game?.status === 'in_progress' && screen === 'lobby' && !autoAdvancedRef.current) {
+    if (
+      game?.status === 'in_progress' &&
+      screen === 'lobby' &&
+      !autoAdvancedRef.current
+    ) {
       autoAdvancedRef.current = true;
       setScreen('tutorial');
     }
@@ -53,7 +55,11 @@ function PlayerFlow({ initialCode = '' }) {
     setJoinLoading(true);
     setJoinError('');
     try {
-      const { playerId: pid, gameId: gid } = await Meteor.callAsync('players.join', code, name);
+      const { playerId: pid, gameId: gid } = await Meteor.callAsync(
+        'players.join',
+        code,
+        name
+      );
       setPlayerName(name);
       setGameCode(code);
       setPlayerId(pid);
@@ -63,7 +69,9 @@ function PlayerFlow({ initialCode = '' }) {
     } catch (err) {
       // 'not-found' from players.join specifically means the code was wrong
       // or the game already started.
-      setJoinError(t(errorKey(err, { 'not-found': 'errors.gameNotFoundOrStarted' })));
+      setJoinError(
+        errorKey(err, { 'not-found': 'errors.gameNotFoundOrStarted' })
+      );
     } finally {
       setJoinLoading(false);
     }
@@ -95,9 +103,15 @@ function PlayerFlow({ initialCode = '' }) {
         gameCode={gameCode}
         playerCount={playerCount}
         inSession={game?.status === 'in_progress'}
-        gameStartedAt={game?.startedAt ? new Date(game.startedAt).getTime() : null}
+        gameStartedAt={
+          game?.startedAt ? new Date(game.startedAt).getTime() : null
+        }
         roundDuration={game ? Math.round(gameBudgetMs(game) / 1000) : 30 * 60}
-        onExit={game?.status === 'in_progress' ? () => setScreen('dashboard') : handleExitToHome}
+        onExit={
+          game?.status === 'in_progress'
+            ? () => setScreen('dashboard')
+            : handleExitToHome
+        }
       />
     );
   }

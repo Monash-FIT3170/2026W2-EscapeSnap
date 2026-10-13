@@ -1,3 +1,4 @@
+import '../imports/api/translations/translationMethods';
 import { Meteor } from 'meteor/meteor';
 import '../imports/api/games/gamesMethods';
 import '../imports/api/games/gamesPublications';
@@ -10,7 +11,10 @@ import '/imports/api/rounds/RoundSessions';
 import '../imports/api/submissions/submissionsPublications';
 import { Games } from '../imports/api/games/GamesCollection';
 import { Rounds } from '../imports/api/rounds/RoundsCollection';
-import { Submissions, photoExpiryFrom } from '../imports/api/submissions/SubmissionsCollection';
+import {
+  Submissions,
+  photoExpiryFrom,
+} from '../imports/api/submissions/SubmissionsCollection';
 import { GameResults } from '../imports/api/achievements/GameResultsCollection';
 
 const MAX_UPLOAD_CHARS = 10 * 1024 * 1024; // ~7.5MB of image data
@@ -38,7 +42,9 @@ Meteor.onConnection((connection) => {
 
   const allowedOrigin = Meteor.absoluteUrl().replace(/\/$/, '');
   if (origin !== allowedOrigin) {
-    console.warn(`[CORS] Rejected DDP connection from unauthorized origin: ${origin}`);
+    console.warn(
+      `[CORS] Rejected DDP connection from unauthorized origin: ${origin}`
+    );
     connection.close();
   }
 });
@@ -49,7 +55,10 @@ Meteor.startup(async () => {
   await Games.createIndexAsync({ status: 1 });
   await Rounds.createIndexAsync({ gameId: 1, roundNumber: 1 });
   await Rounds.createIndexAsync({ playerId: 1, roundNumber: 1 });
-  await GameResults.createIndexAsync({ gameId: 1, playerId: 1 }, { unique: true });
+  await GameResults.createIndexAsync(
+    { gameId: 1, playerId: 1 },
+    { unique: true }
+  );
 
   // TTL index: Mongo drops each submission once its own expiresAt passes,
   // which photoExpiryFrom sets to createdAt + PHOTO_TTL_MS (6 hours). The

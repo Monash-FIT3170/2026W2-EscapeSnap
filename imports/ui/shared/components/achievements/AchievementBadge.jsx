@@ -1,9 +1,8 @@
+import { useLanguage } from '../../../../languages/LanguageProvider';
+import { formatLocalizedDuration } from '../../../../languages/translate';
 // React must remain in scope for Meteor's classic JSX transform.
 import React, { useId } from 'react';
-import {
-  formatBadgeMetric,
-  getBadgeDefinition,
-} from '/imports/api/achievements/badgeDefinitions';
+import { getBadgeDefinition } from '/imports/api/achievements/badgeDefinitions';
 
 const SHAPE_STYLES = Object.freeze({
   circle: { borderRadius: '50%' },
@@ -21,16 +20,30 @@ const SHAPE_STYLES = Object.freeze({
 
 export function AchievementBadge({ badge, size = 24 }) {
   const tooltipId = useId();
+  const { t, locale } = useLanguage();
   const definition = getBadgeDefinition(badge.id);
   if (!definition) return null;
 
-  const metric = formatBadgeMetric(badge);
+  const metricKeys = {
+    'completed-count': 'badgeCompleted',
+    'correct-count': 'badgeCorrect',
+    percent: 'badgeAccuracy',
+    duration: 'badgeDuration',
+    elapsed: 'badgeElapsed',
+    remaining: 'badgeRemaining',
+  };
+  const metric = Number.isFinite(badge.metricValue)
+    ? t(`extra.${metricKeys[definition.metricType]}`, {
+        n: badge.metricValue,
+        time: formatLocalizedDuration(badge.metricValue, locale),
+      })
+    : null;
   const shapeStyle = SHAPE_STYLES[definition.shape] ?? SHAPE_STYLES.circle;
 
   return (
     <button
       type="button"
-      aria-label={`${definition.name}: ${definition.description}`}
+      aria-label={`${t(`extra.${badge.id}Name`)}: ${t(`extra.${badge.id}Description`)}`}
       aria-describedby={tooltipId}
       className="group relative inline-flex flex-shrink-0 items-center justify-center border-0 bg-transparent p-0 focus:outline-none"
       style={{ width: size, height: size, cursor: 'help' }}
@@ -67,13 +80,13 @@ export function AchievementBadge({ badge, size = 24 }) {
             letterSpacing: '1px',
           }}
         >
-          {definition.name}
+          {t(`extra.${badge.id}Name`)}
         </span>
         <span
           className="mt-1 block"
           style={{ color: '#c9b8b5', fontSize: 11, lineHeight: 1.5 }}
         >
-          {definition.description}
+          {t(`extra.${badge.id}Description`)}
         </span>
         {metric && (
           <span

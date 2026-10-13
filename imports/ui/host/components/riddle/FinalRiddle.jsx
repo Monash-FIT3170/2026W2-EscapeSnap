@@ -1,7 +1,8 @@
 import React from 'react';
+import { TranslatedRiddle } from '../../../../languages/TranslatedRiddle';
 import { useT } from '../../../../languages/LanguageProvider';
 
-const FinalRiddle = ({ finalRiddle }) => {
+const FinalRiddle = ({ finalRiddle, gameId }) => {
   const t = useT();
   return (
     <div className="mb-8">
@@ -10,14 +11,19 @@ const FinalRiddle = ({ finalRiddle }) => {
         style={{
           fontSize: '4.5rem',
           letterSpacing: '0.0em',
-          lineHeight: 1
+          lineHeight: 1,
         }}
       >
-        {t('host.finalRiddle.theFinal')} <span style={{ color: '#991b1b' }}>{t('host.finalRiddle.riddle')}</span>
+        {t('host.summary.finalRiddle')}
       </h1>
-      <div className="border-l-4 border-red-600 p-8" style={{ backgroundColor: '#1a1a1a' }}>
+      <div
+        className="border-l-4 border-red-600 p-8"
+        style={{ backgroundColor: '#1a1a1a' }}
+      >
         <p className="text-white font-bold text-xl leading-relaxed tracking-wide">
-          &ldquo;{finalRiddle}&rdquo;
+          &ldquo;
+          <TranslatedRiddle kind="final" id={gameId} source={finalRiddle} />
+          &rdquo;
         </p>
       </div>
     </div>

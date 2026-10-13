@@ -61,8 +61,10 @@ const MobileRiddlePage = ({
 
   async function startCamera() {
     if (!navigator.mediaDevices?.getUserMedia) {
-      console.error('[camera] navigator.mediaDevices is unavailable - likely an insecure (non-HTTPS) context');
-      setCameraError(t('mobile.riddle.errCameraSecure'));
+      console.error(
+        '[camera] navigator.mediaDevices is unavailable - likely an insecure (non-HTTPS) context'
+      );
+      setCameraError('mobile.riddle.errCameraSecure');
       return;
     }
     try {
@@ -76,11 +78,12 @@ const MobileRiddlePage = ({
       }
     } catch (err) {
       console.error('[camera] getUserMedia failed:', err.name, err.message);
-      const message = err.name === 'NotAllowedError'
-        ? t('mobile.riddle.errCameraPermission')
-        : err.name === 'NotFoundError'
-          ? t('mobile.riddle.errCameraNotFound')
-          : t('mobile.riddle.errCameraUnavailable');
+      const message =
+        err.name === 'NotAllowedError'
+          ? 'mobile.riddle.errCameraPermission'
+          : err.name === 'NotFoundError'
+            ? 'mobile.riddle.errCameraNotFound'
+            : 'mobile.riddle.errCameraUnavailable';
       setCameraError(message);
     }
   }
@@ -115,7 +118,7 @@ const MobileRiddlePage = ({
         if (!blob) {
           setUploading(false);
           setValidationState('error');
-          setExplanation(t('mobile.riddle.errProcessPhoto'));
+          setExplanation('mobile.riddle.errProcessPhoto');
           return;
         }
 
@@ -129,7 +132,11 @@ const MobileRiddlePage = ({
             roundId
           );
           setValidationState(result.outcome);
-          setExplanation(result.explanation || null);
+          setExplanation(
+            result.outcome === 'error'
+              ? 'extra.verifyFailed'
+              : 'extra.photoMismatch'
+          );
 
           if (result.outcome === 'pass') {
             await submitRiddle(base64);
@@ -138,10 +145,13 @@ const MobileRiddlePage = ({
             if (result.outcome === 'fail' && onCorrect) onCorrect('?', false);
           }
         } catch (err) {
-          console.error('[submissions.classify] failed:', err.error || err.reason || err.message);
+          console.error(
+            '[submissions.classify] failed:',
+            err.error || err.reason || err.message
+          );
           setUploading(false);
           setValidationState('error');
-          setExplanation(t('mobile.riddle.errConnection'));
+          setExplanation('mobile.riddle.errConnection');
         }
       },
       'image/jpeg',
@@ -155,9 +165,12 @@ const MobileRiddlePage = ({
       const letter = await Meteor.callAsync('rounds.submit', roundId, true);
       if (onCorrect) onCorrect(letter, true);
     } catch (err) {
-      console.error('[rounds.submit] failed:', err.error || err.reason || err.message);
+      console.error(
+        '[rounds.submit] failed:',
+        err.error || err.reason || err.message
+      );
       setValidationState('error');
-      setExplanation(t('mobile.riddle.errSubmissionNotSaved'));
+      setExplanation('mobile.riddle.errSubmissionNotSaved');
     } finally {
       setUploading(false);
     }
@@ -181,7 +194,7 @@ const MobileRiddlePage = ({
         {cameraError ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <p className="px-8 text-center font-mono text-xs uppercase tracking-widest text-[#aa8984]">
-              {cameraError}
+              {t(cameraError)}
             </p>
           </div>
         ) : (
@@ -206,14 +219,18 @@ const MobileRiddlePage = ({
           <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-1 bg-[#0e0e0e]/90 px-6 py-4">
             <span
               className={`font-mono text-xs uppercase tracking-widest ${
-                validationState === 'error' ? 'text-[#aa8984]' : 'text-[#ef4444]'
+                validationState === 'error'
+                  ? 'text-[#aa8984]'
+                  : 'text-[#ef4444]'
               }`}
             >
-              {validationState === 'error' ? t('mobile.riddle.couldntVerify') : t('mobile.riddle.notAMatch')}
+              {validationState === 'error'
+                ? t('mobile.riddle.couldntVerify')
+                : t('mobile.riddle.notAMatch')}
             </span>
             {explanation && (
               <span className="text-center font-mono text-[11px] leading-5 text-[#aa8984]">
-                {explanation}
+                {t(explanation)}
               </span>
             )}
           </div>

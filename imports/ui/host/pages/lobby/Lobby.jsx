@@ -19,7 +19,8 @@ const PlayerCard = ({ player }) => {
       <div
         className="flex items-center justify-center flex-shrink-0"
         style={{
-          width: 64, height: 64,
+          width: 64,
+          height: 64,
           background: '#1c1b1b',
           border: '1px solid #2a2a2a',
           fontSize: 20,
@@ -31,7 +32,14 @@ const PlayerCard = ({ player }) => {
         {initials}
       </div>
       <div>
-        <p style={{ fontWeight: 700, fontSize: 16, letterSpacing: '1.5px', color: '#e5e2e1' }}>
+        <p
+          style={{
+            fontWeight: 700,
+            fontSize: 16,
+            letterSpacing: '1.5px',
+            color: '#e5e2e1',
+          }}
+        >
           {player.name?.toUpperCase()}
         </p>
         <div className="flex gap-1 mt-2">
@@ -46,19 +54,19 @@ const PlayerCard = ({ player }) => {
 const EmptySlot = () => {
   const t = useT();
   return (
-  <div
-    className="flex items-center justify-center"
-    style={{
-      background: '#0a0a0a',
-      border: '1px dashed #1c1b1b',
-      minHeight: 88,
-      color: '#2a2a2a',
-      fontSize: 11,
-      letterSpacing: '1.5px',
-    }}
-  >
-    {t('host.lobby.awaitingOperative')}
-  </div>
+    <div
+      className="flex items-center justify-center"
+      style={{
+        background: '#0a0a0a',
+        border: '1px dashed #1c1b1b',
+        minHeight: 88,
+        color: '#2a2a2a',
+        fontSize: 11,
+        letterSpacing: '1.5px',
+      }}
+    >
+      {t('host.lobby.awaitingOperative')}
+    </div>
   );
 };
 
@@ -91,23 +99,33 @@ const Lobby = () => {
     try {
       await Meteor.callAsync('games.start', gameId);
     } catch (err) {
-      setError(t(errorKey(err)));
+      setError(errorKey(err));
       setStarting(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0e0e0e' }}>
-        <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>{t('host.lobby.loading')}</p>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: '#0e0e0e' }}
+      >
+        <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>
+          {t('host.lobby.loading')}
+        </p>
       </div>
     );
   }
 
   if (!game) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0e0e0e' }}>
-        <p style={{ fontSize: 10, letterSpacing: '1px', color: '#8b0000' }}>{t('host.lobby.gameNotFound')}</p>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: '#0e0e0e' }}
+      >
+        <p style={{ fontSize: 10, letterSpacing: '1px', color: '#8b0000' }}>
+          {t('host.lobby.gameNotFound')}
+        </p>
       </div>
     );
   }
@@ -122,18 +140,29 @@ const Lobby = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#0e0e0e', color: '#e5e2e1' }}>
-
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ background: '#0e0e0e', color: '#e5e2e1' }}
+    >
       {/* Navbar */}
       <header
         className="flex items-center justify-between px-8 py-4"
         style={{ borderBottom: '1px solid #1c1b1b' }}
       >
-        <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: '#e5e2e1' }}>
+        <span
+          style={{
+            fontWeight: 700,
+            fontSize: 18,
+            letterSpacing: '1.8px',
+            color: '#e5e2e1',
+          }}
+        >
           ESCAPESNAP
         </span>
         <div className="flex items-center gap-4">
-          <span style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>
+          <span
+            style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}
+          >
             {t('host.lobby.navTag')}
           </span>
           <LanguagePicker />
@@ -141,18 +170,35 @@ const Lobby = () => {
       </header>
 
       <main className="flex-1 flex">
-
         {/* Left sidebar */}
         <div
           className="flex flex-col gap-6 p-8"
-          style={{ width: 300, minWidth: 300, borderRight: '1px solid #1c1b1b' }}
+          style={{
+            width: 300,
+            minWidth: 300,
+            borderRight: '1px solid #1c1b1b',
+          }}
         >
           {/* Join code */}
           <div>
-            <p style={{ fontSize: 9, letterSpacing: '1.5px', color: '#aa8984', marginBottom: 4 }}>
+            <p
+              style={{
+                fontSize: 9,
+                letterSpacing: '1.5px',
+                color: '#aa8984',
+                marginBottom: 4,
+              }}
+            >
               {t('host.lobby.accessAuthorization')}
             </p>
-            <p style={{ fontSize: 9, letterSpacing: '1px', color: '#555', marginBottom: 8 }}>
+            <p
+              style={{
+                fontSize: 9,
+                letterSpacing: '1px',
+                color: '#555',
+                marginBottom: 8,
+              }}
+            >
               {t('host.lobby.gameCode')}
             </p>
             <p
@@ -169,7 +215,14 @@ const Lobby = () => {
             >
               {game.joinCode || '----'}
             </p>
-            <p style={{ fontSize: 9, color: '#555', marginTop: 10, lineHeight: 1.5 }}>
+            <p
+              style={{
+                fontSize: 9,
+                color: '#555',
+                marginTop: 10,
+                lineHeight: 1.5,
+              }}
+            >
               {t('host.lobby.shareHint')}
             </p>
           </div>
@@ -179,42 +232,105 @@ const Lobby = () => {
             className="flex flex-col items-center p-4"
             style={{ background: '#1c1b1b', border: '1px solid #2a2a2a' }}
           >
-            <p style={{ fontSize: 9, letterSpacing: '1.5px', color: '#aa8984', marginBottom: 12, alignSelf: 'flex-start' }}>
+            <p
+              style={{
+                fontSize: 9,
+                letterSpacing: '1.5px',
+                color: '#aa8984',
+                marginBottom: 12,
+                alignSelf: 'flex-start',
+              }}
+            >
               {t('host.lobby.scanToDeploy')}
             </p>
             <div style={{ background: '#e5e2e1', padding: 10, lineHeight: 0 }}>
-              <QRCodeSVG value={joinUrl} size={140} bgColor="#e5e2e1" fgColor="#0e0e0e" level="M" />
+              <QRCodeSVG
+                value={joinUrl}
+                size={140}
+                bgColor="#e5e2e1"
+                fgColor="#0e0e0e"
+                level="M"
+              />
             </div>
-            <p style={{ fontSize: 9, color: '#555', marginTop: 10, textAlign: 'center', lineHeight: 1.5, wordBreak: 'break-all' }}>
+            <p
+              style={{
+                fontSize: 9,
+                color: '#555',
+                marginTop: 10,
+                textAlign: 'center',
+                lineHeight: 1.5,
+                wordBreak: 'break-all',
+              }}
+            >
               {joinUrl}
             </p>
-            <p style={{ fontSize: 9, color: '#555', marginTop: 4, textAlign: 'center', lineHeight: 1.5 }}>
+            <p
+              style={{
+                fontSize: 9,
+                color: '#555',
+                marginTop: 4,
+                textAlign: 'center',
+                lineHeight: 1.5,
+              }}
+            >
               {t('host.lobby.distributeHint')}
             </p>
           </div>
 
           {/* Difficulty */}
           <div>
-            <p style={{ fontSize: 9, letterSpacing: '1.5px', color: '#aa8984', marginBottom: 8 }}>
+            <p
+              style={{
+                fontSize: 9,
+                letterSpacing: '1.5px',
+                color: '#aa8984',
+                marginBottom: 8,
+              }}
+            >
               {t('host.lobby.gameDifficulty')}
             </p>
-            {['easy', 'medium', 'hard'].map(d => (
+            {['easy', 'medium', 'hard'].map((d) => (
               <div
                 key={d}
                 className="flex items-center justify-between px-4 py-3 mb-2"
-                style={{ border: game.difficulty === d ? '1px solid #8b0000' : '1px solid #1c1b1b' }}
+                style={{
+                  border:
+                    game.difficulty === d
+                      ? '1px solid #8b0000'
+                      : '1px solid #1c1b1b',
+                }}
               >
-                <span style={{ fontSize: 11, letterSpacing: '1px', color: game.difficulty === d ? '#e5e2e1' : '#555' }}>
+                <span
+                  style={{
+                    fontSize: 11,
+                    letterSpacing: '1px',
+                    color: game.difficulty === d ? '#e5e2e1' : '#555',
+                  }}
+                >
                   {`${t(`difficulty.${d}`)}: ${t(`difficulty.${d}Sub`)}`}
                 </span>
-                <div style={{
-                  width: 16, height: 16, borderRadius: '50%',
-                  border: `2px solid ${game.difficulty === d ? '#8b0000' : '#333'}`,
-                  background: game.difficulty === d ? '#8b0000' : 'transparent',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
+                <div
+                  style={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    border: `2px solid ${game.difficulty === d ? '#8b0000' : '#333'}`,
+                    background:
+                      game.difficulty === d ? '#8b0000' : 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
                   {game.difficulty === d && (
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#e5e2e1' }} />
+                    <div
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        background: '#e5e2e1',
+                      }}
+                    />
                   )}
                 </div>
               </div>
@@ -224,19 +340,45 @@ const Lobby = () => {
 
         {/* Right panel */}
         <div className="flex-1 flex flex-col p-8 gap-6">
-
           {/* Header row */}
           <div className="flex items-center justify-between">
             <div>
-              <p style={{ fontSize: 10, letterSpacing: '1.5px', color: '#8b0000', marginBottom: 4 }}>
+              <p
+                style={{
+                  fontSize: 10,
+                  letterSpacing: '1.5px',
+                  color: '#8b0000',
+                  marginBottom: 4,
+                }}
+              >
                 {game.groupName?.toUpperCase()}
               </p>
-              <h1 style={{ fontWeight: 700, fontSize: 28, letterSpacing: '2px', color: '#e5e2e1' }}>
+              <h1
+                style={{
+                  fontWeight: 700,
+                  fontSize: 28,
+                  letterSpacing: '2px',
+                  color: '#e5e2e1',
+                }}
+              >
                 {t('host.lobby.title')}
               </h1>
               <div className="flex items-center gap-2 mt-1">
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#8b0000' }} />
-                <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>
+                <div
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: '#8b0000',
+                  }}
+                />
+                <p
+                  style={{
+                    fontSize: 10,
+                    letterSpacing: '1px',
+                    color: '#aa8984',
+                  }}
+                >
                   {t('host.lobby.awaitingStart')}
                 </p>
               </div>
@@ -249,22 +391,46 @@ const Lobby = () => {
                     background: game.riddlesReady ? '#2e7d32' : '#3a2a00',
                   }}
                 />
-                <p style={{ fontSize: 10, letterSpacing: '1px', color: game.riddlesReady ? '#7ac47f' : '#8a7a55' }}>
-                  {game.riddlesReady ? 'RIDDLES READY' : 'GENERATING RIDDLES...'}
+                <p
+                  style={{
+                    fontSize: 10,
+                    letterSpacing: '1px',
+                    color: game.riddlesReady ? '#7ac47f' : '#8a7a55',
+                  }}
+                >
+                  {game.riddlesReady
+                    ? t('extra.riddlesReady')
+                    : t('extra.generatingRiddles')}
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <p style={{ fontSize: 9, letterSpacing: '1px', color: '#aa8984' }}>{t('host.lobby.capacity')}</p>
-              <p style={{ fontSize: 28, fontWeight: 700, letterSpacing: '2px', color: '#e5e2e1' }}>
+              <p
+                style={{ fontSize: 9, letterSpacing: '1px', color: '#aa8984' }}
+              >
+                {t('host.lobby.capacity')}
+              </p>
+              <p
+                style={{
+                  fontSize: 28,
+                  fontWeight: 700,
+                  letterSpacing: '2px',
+                  color: '#e5e2e1',
+                }}
+              >
                 {String(players.length).padStart(2, '0')} /{' '}
-                <span style={{ color: '#555' }}>{String(capacity).padStart(2, '0')}</span>
+                <span style={{ color: '#555' }}>
+                  {String(capacity).padStart(2, '0')}
+                </span>
               </p>
             </div>
           </div>
 
           {/* Players grid */}
-          <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+          <div
+            className="grid gap-3"
+            style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}
+          >
             {slots.map((player, i) =>
               player ? (
                 <PlayerCard key={player._id} player={player} />
@@ -275,7 +441,9 @@ const Lobby = () => {
           </div>
 
           {error && (
-            <p style={{ fontSize: 11, color: '#8b0000', letterSpacing: '1px' }}>!! {error}</p>
+            <p style={{ fontSize: 11, color: '#8b0000', letterSpacing: '1px' }}>
+              !! {t(error)}
+            </p>
           )}
 
           {/* Start button */}
@@ -284,7 +452,13 @@ const Lobby = () => {
               className="text-center py-4"
               style={{ border: '1px solid #8b0000', background: '#1c0000' }}
             >
-              <p style={{ fontSize: 12, letterSpacing: '1.5px', color: '#aa8984' }}>
+              <p
+                style={{
+                  fontSize: 12,
+                  letterSpacing: '1.5px',
+                  color: '#aa8984',
+                }}
+              >
                 {t('host.lobby.missionActive')}
               </p>
             </div>
@@ -295,7 +469,11 @@ const Lobby = () => {
               style={{
                 width: '100%',
                 padding: '18px',
-                background: starting ? '#3a0000' : lobbyFull ? '#8b0000' : '#1c1b1b',
+                background: starting
+                  ? '#3a0000'
+                  : lobbyFull
+                    ? '#8b0000'
+                    : '#1c1b1b',
                 color: starting || !lobbyFull ? '#555' : '#e5e2e1',
                 fontWeight: 700,
                 fontSize: 14,
@@ -304,17 +482,24 @@ const Lobby = () => {
                 transition: 'background 0.15s',
                 border: 'none',
               }}
-              onMouseEnter={e => { if (!starting && lobbyFull) e.currentTarget.style.background = '#a50000'; }}
-              onMouseLeave={e => { if (!starting && lobbyFull) e.currentTarget.style.background = '#8b0000'; }}
+              onMouseEnter={(e) => {
+                if (!starting && lobbyFull)
+                  e.currentTarget.style.background = '#a50000';
+              }}
+              onMouseLeave={(e) => {
+                if (!starting && lobbyFull)
+                  e.currentTarget.style.background = '#8b0000';
+              }}
             >
               {starting
-                ? 'DEPLOYING AGENTS...'
+                ? t('host.lobby.deploying')
                 : lobbyFull
-                  ? 'START MISSION'
-                  : `AWAITING ${capacity - players.length} MORE OPERATIVE${capacity - players.length === 1 ? '' : 'S'}...`}
+                  ? t('host.lobby.startMission')
+                  : t('extra.awaitingPlayers', {
+                      n: capacity - players.length,
+                    })}
             </button>
           )}
-
         </div>
       </main>
     </div>

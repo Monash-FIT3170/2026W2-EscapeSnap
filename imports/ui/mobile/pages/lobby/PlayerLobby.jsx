@@ -31,7 +31,10 @@ export function PlayerLobby({
     }
     const tick = () =>
       setTimeLeft(
-        Math.max(0, roundDuration - Math.floor((Date.now() - gameStartedAt) / 1000))
+        Math.max(
+          0,
+          roundDuration - Math.floor((Date.now() - gameStartedAt) / 1000)
+        )
       );
     tick();
     if (!inSession) return;
@@ -44,9 +47,11 @@ export function PlayerLobby({
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-[#0e0e0e] text-[#e5e2e1]">
       <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col px-5 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
-
         <div className="flex-shrink-0">
-          <LobbyHeader unitLabel={gameCode || 'OPERATIVE'} onExit={onExit} />
+          <LobbyHeader
+            unitLabel={gameCode || t('host.summary.operative')}
+            onExit={onExit}
+          />
         </div>
 
         {/* Takes whatever height is left between the header and the fixed
@@ -55,7 +60,9 @@ export function PlayerLobby({
         <div className="flex min-h-0 flex-1 items-center justify-center py-4">
           <SurvivorIdCard
             callSign={playerName.toUpperCase()}
-            refCode={gameCode ? `CODE_${gameCode}` : null}
+            refCode={
+              gameCode ? `${t('mobile.home.gameCode')}: ${gameCode}` : null
+            }
             status={t('mobile.lobby.awaitingGuidance')}
           />
         </div>
@@ -66,18 +73,28 @@ export function PlayerLobby({
             <span className="flex-1 font-mono text-[10px] uppercase tracking-[0.25em] text-[#aa8984]">
               {t('mobile.lobby.playersInLobby')}
             </span>
-            <span className="font-mono text-lg font-bold tabular-nums text-[#e5e2e1]">{playerCount}</span>
+            <span className="font-mono text-lg font-bold tabular-nums text-[#e5e2e1]">
+              {playerCount}
+            </span>
           </div>
 
           {inSession && (
             <div className="flex items-center gap-3 border border-[#353534] bg-[#1c1b1b] px-4 py-3">
-              <span className={`h-2 w-2 flex-shrink-0 ${isExpired ? 'bg-[#555]' : 'bg-[#8b0000]'}`} />
+              <span
+                className={`h-2 w-2 flex-shrink-0 ${isExpired ? 'bg-[#555]' : 'bg-[#8b0000]'}`}
+              />
               <span className="flex-1 font-mono text-[10px] uppercase tracking-[0.25em] text-[#aa8984]">
                 {t('mobile.lobby.roundTimer')}
               </span>
-              <span className={`font-mono text-lg font-bold tabular-nums ${
-                isExpired ? 'text-[#555]' : timeLeft <= 30 ? 'text-[#ef4444]' : 'text-[#e5e2e1]'
-              }`}>
+              <span
+                className={`font-mono text-lg font-bold tabular-nums ${
+                  isExpired
+                    ? 'text-[#555]'
+                    : timeLeft <= 30
+                      ? 'text-[#ef4444]'
+                      : 'text-[#e5e2e1]'
+                }`}
+              >
                 {isExpired ? t('mobile.lobby.expired') : formatTime(timeLeft)}
               </span>
             </div>

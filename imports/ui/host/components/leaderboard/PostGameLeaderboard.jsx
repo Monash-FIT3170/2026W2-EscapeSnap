@@ -1,21 +1,13 @@
+import { formatLocalizedDuration } from '../../../../languages/translate';
 // React must remain in scope for Meteor's classic JSX transform.
 import React from 'react';
 import { useGameResults } from '/imports/ui/shared/hooks/useGameResults';
 import { BadgeList } from '/imports/ui/shared/components/achievements/BadgeList';
-import { useT } from '../../../../languages/LanguageProvider';
-
-function formatSolveTime(milliseconds) {
-  if (!Number.isFinite(milliseconds)) return '—';
-  const totalSeconds = Math.max(0, Math.round(milliseconds / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return minutes > 0
-    ? `${minutes}m ${String(seconds).padStart(2, '0')}s`
-    : `${seconds}s`;
-}
+import { useT, useLanguage } from '../../../../languages/LanguageProvider';
 
 export default function PostGameLeaderboard({ gameId }) {
   const t = useT();
+  const { locale } = useLanguage();
   const { loading, results } = useGameResults(gameId);
 
   return (
@@ -78,7 +70,9 @@ export default function PostGameLeaderboard({ gameId }) {
             <span>{t('host.leaderboard.rank')}</span>
             <span>{t('host.leaderboard.playerAndAchievements')}</span>
             <span className="text-center">{t('host.leaderboard.solved')}</span>
-            <span className="text-center">{t('host.leaderboard.accuracy')}</span>
+            <span className="text-center">
+              {t('host.leaderboard.accuracy')}
+            </span>
             <span className="text-right">{t('host.leaderboard.fastest')}</span>
           </div>
 
@@ -127,7 +121,7 @@ export default function PostGameLeaderboard({ gameId }) {
                 className="text-right font-mono"
                 style={{ color: '#e5e2e1', fontSize: 12 }}
               >
-                {formatSolveTime(result.stats.fastestSolveMs)}
+                {formatLocalizedDuration(result.stats.fastestSolveMs, locale)}
               </span>
             </div>
           ))}

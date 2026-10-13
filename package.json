@@ -7,7 +7,7 @@
     "start:windows": "powershell -ExecutionPolicy Bypass -File ./scripts/start-windows.ps1",
     "lint": "eslint . --ext .js,.jsx",
     "test": "npm run test:unit && npm run test:meteor",
-    "test:unit": "node --experimental-default-type=module --test imports/api/achievements/calculateGameResults.test.js",
+    "test:unit": "node --experimental-default-type=module --test imports/api/achievements/calculateGameResults.test.js imports/api/translations/*.unit.js imports/languages/*.unit.js",
     "test:meteor": "cross-env TEST_CLIENT=0 meteor test --once --driver-package meteortesting:mocha",
     "format": "prettier --write '**/*.{js,jsx,css,md}'"
   },
@@ -36,6 +36,7 @@
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.0.0",
-    "prettier": "^3.8.3"
+    "prettier": "^3.8.3",
+    "@babel/parser": "^7.29.2"
   }
 }

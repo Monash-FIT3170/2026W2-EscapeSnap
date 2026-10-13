@@ -52,3 +52,12 @@ body {
   background: #0e0e0e;
   overscroll-behavior-y: none;
 }
+
+/* Connected scripts must not inherit the game's widely spaced Latin lettering. */
+html[lang='ar'] *,
+html[lang='hi'] * {
+  letter-spacing: normal !important;
+}
+html[dir='rtl'] input[lang='en'] {
+  text-align: left;
+}

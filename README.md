@@ -37,11 +37,11 @@ meteor run --settings settings.example.json
 
 ## Scripts
 
-| Command | Purpose |
-| --- | --- |
-| `meteor npm run start` | Start the app (`meteor run`) |
-| `meteor npm run lint` | ESLint |
-| `meteor npm run format` | Prettier write |
+| Command                 | Purpose                      |
+| ----------------------- | ---------------------------- |
+| `meteor npm run start`  | Start the app (`meteor run`) |
+| `meteor npm run lint`   | ESLint                       |
+| `meteor npm run format` | Prettier write               |
 
 ## Stack
 
@@ -66,3 +66,21 @@ GEMINI_MODEL=         # optional, defaults to gemini-3-flash-preview
 
 Get a key from https://aistudio.google.com/apikey. The app boots without `.env` — every variable is optional for startup — but photo submissions and riddle generation will fail without `GEMINI_API_KEY`. `scripts/start.mjs` loads `.env` automatically for `meteor npm run start`.
 
+### Languages and English answers
+
+The language picker saves the selected language in this browser. Interface text,
+round/final riddles, revealed hints, badge details, photo labels, and share exports
+use that language. Product/player/team names, join codes, and English answer
+letters retain their original values. Arabic uses right-to-left layout.
+
+Riddles and hints are translated on the server using the existing `GEMINI_API_KEY`
+and `GEMINI_MODEL` configuration. This also applies to English fallback riddles.
+Translations are cached by source text and language in a bounded process-local
+cache. Without a working API key/network, the interface stays translated and
+riddles show a localized retry message; there is no silent English fallback.
+Translation never modifies stored answers or collected letters. The final answer
+must still be entered in English, as explained beside the answer input. Paid
+round hints must be revealed before their translation can be requested.
+
+Run `npm run test:unit` for translation coverage, cache/failure behavior, endpoint
+guards, share exports, and English-answer regression checks.

@@ -1,10 +1,10 @@
-import { en } from './locales/en';
-import { es } from './locales/es';
-import { fr } from './locales/fr';
-import { hi } from './locales/hi';
-import { id } from './locales/id';
-import { zh } from './locales/zh';
-import { ar } from './locales/ar';
+import { en } from './locales/en.js';
+import { es } from './locales/es.js';
+import { fr } from './locales/fr.js';
+import { hi } from './locales/hi.js';
+import { id } from './locales/id.js';
+import { zh } from './locales/zh.js';
+import { ar } from './locales/ar.js';
 
 export const DEFAULT_LOCALE = 'en';
 

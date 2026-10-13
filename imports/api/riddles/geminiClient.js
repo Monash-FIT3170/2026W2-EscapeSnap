@@ -54,7 +54,7 @@ async function callGeminiOnce(prompt, schema) {
 }
 
 // Retries once on timeout — the free tier occasionally runs long on a cold request.
-async function callGemini(prompt, schema) {
+export async function callGemini(prompt, schema) {
   let lastErr;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {

@@ -7,6 +7,7 @@ import WinScreen from '/imports/ui/host/pages/game-completion/WinScreen.jsx';
 import LoseScreen from '/imports/ui/host/pages/game-completion/LoseScreen.jsx';
 import FinalRiddleInput from '/imports/ui/host/components/riddle/FinalRiddleInput.jsx';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
+import { TranslatedRiddle } from '../../../../languages/TranslatedRiddle';
 import { useT } from '../../../../languages/LanguageProvider';
 
 const BG = '#131313';
@@ -24,8 +25,13 @@ const FinalRiddlePage = () => {
 
   if (loading || lettersLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: BG }}>
-        <p style={{ color: '#aa8984', fontSize: 10, letterSpacing: '1px' }}>{t('host.finalRiddle.loading')}</p>
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: BG }}
+      >
+        <p style={{ color: '#aa8984', fontSize: 10, letterSpacing: '1px' }}>
+          {t('host.finalRiddle.loading')}
+        </p>
       </div>
     );
   }
@@ -55,38 +61,95 @@ const FinalRiddlePage = () => {
 
   return (
     <SidebarLayout gameId={gameId} activePage="final-riddle">
-
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4" style={{ background: BG, borderBottom: '2px solid #1c1b1b' }}>
-        <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: '#e5e2e1' }}>ESCAPESNAP</span>
+      <header
+        className="flex items-center justify-between px-6 py-4"
+        style={{ background: BG, borderBottom: '2px solid #1c1b1b' }}
+      >
+        <span
+          style={{
+            fontWeight: 700,
+            fontSize: 18,
+            letterSpacing: '1.8px',
+            color: '#e5e2e1',
+          }}
+        >
+          ESCAPESNAP
+        </span>
       </header>
 
       {/* Body */}
       <div className="flex-1 p-8 flex flex-col gap-6">
-
         {/* Title */}
         <div className="flex items-center gap-3">
           <div style={{ width: 4, height: 32, background: '#8b0000' }} />
           <div>
-            <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>{t('host.finalRiddle.missionCritical')}</p>
-            <h1 style={{ fontWeight: 700, fontSize: 28, letterSpacing: '2px', color: '#e5e2e1', lineHeight: 1.2 }}>
-              {t('host.finalRiddle.theFinal')} <span style={{ color: '#8b0000' }}>{t('host.finalRiddle.riddle')}</span>
+            <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>
+              {t('host.finalRiddle.missionCritical')}
+            </p>
+            <h1
+              style={{
+                fontWeight: 700,
+                fontSize: 28,
+                letterSpacing: '2px',
+                color: '#e5e2e1',
+                lineHeight: 1.2,
+              }}
+            >
+              {t('host.summary.finalRiddle')}
             </h1>
           </div>
         </div>
 
         {/* Riddle card */}
-        <div style={{ background: '#0e0e0e', borderLeft: '4px solid #8b0000', padding: '32px' }}>
-          <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984', marginBottom: 12 }}>{t('host.finalRiddle.decryptTheClue')}</p>
-          <p style={{ fontSize: 22, fontWeight: 600, color: '#e5e2e1', lineHeight: 1.6, letterSpacing: '0.5px' }}>
-            &ldquo;{finalRiddle}&rdquo;
+        <div
+          style={{
+            background: '#0e0e0e',
+            borderLeft: '4px solid #8b0000',
+            padding: '32px',
+          }}
+        >
+          <p
+            style={{
+              fontSize: 10,
+              letterSpacing: '1px',
+              color: '#aa8984',
+              marginBottom: 12,
+            }}
+          >
+            {t('host.finalRiddle.decryptTheClue')}
+          </p>
+          <p
+            style={{
+              fontSize: 22,
+              fontWeight: 600,
+              color: '#e5e2e1',
+              lineHeight: 1.6,
+              letterSpacing: '0.5px',
+            }}
+          >
+            &ldquo;
+            <TranslatedRiddle kind="final" id={gameId} source={finalRiddle} />
+            &rdquo;
           </p>
 
           {finalRiddleHint && (
             <div style={{ marginTop: 20 }}>
               {hintRevealed ? (
-                <p style={{ fontSize: 13, color: '#aa8984', letterSpacing: '0.3px' }}>
-                  💡 HINT: {finalRiddleHint}
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: '#aa8984',
+                    letterSpacing: '0.3px',
+                  }}
+                >
+                  💡 {t('extra.hint')}:{' '}
+                  <TranslatedRiddle
+                    kind="final"
+                    id={gameId}
+                    field="hint"
+                    source={finalRiddleHint}
+                  />
                 </p>
               ) : (
                 <button
@@ -102,7 +165,7 @@ const FinalRiddlePage = () => {
                     cursor: 'pointer',
                   }}
                 >
-                  REVEAL HINT
+                  {t('extra.revealHint')}
                 </button>
               )}
             </div>
@@ -113,23 +176,42 @@ const FinalRiddlePage = () => {
         <div style={{ background: '#1c1b1b', padding: '24px' }}>
           <div className="flex items-center gap-3 mb-4">
             <div style={{ width: 4, height: 16, background: '#8b0000' }} />
-            <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: '#e5e2e1' }}>{t('host.finalRiddle.revealedLetters')}</span>
+            <span
+              style={{
+                fontWeight: 700,
+                fontSize: 12,
+                letterSpacing: '1.2px',
+                color: '#e5e2e1',
+              }}
+            >
+              {t('host.finalRiddle.revealedLetters')}
+            </span>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-3" dir="ltr">
             {letters.map((letter, i) => (
-              <div key={i} style={{
-                width: 64, height: 64,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: '#0e0e0e',
-                borderBottom: '2px solid #8b0000',
-                fontWeight: 700, fontSize: 24,
-                color: '#e5e2e1', letterSpacing: '2px',
-              }}>
+              <div
+                key={i}
+                style={{
+                  width: 64,
+                  height: 64,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: '#0e0e0e',
+                  borderBottom: '2px solid #8b0000',
+                  fontWeight: 700,
+                  fontSize: 24,
+                  color: '#e5e2e1',
+                  letterSpacing: '2px',
+                }}
+              >
                 {letter}
               </div>
             ))}
             {letters.length === 0 && (
-              <p style={{ fontSize: 11, color: '#aa8984', opacity: 0.6 }}>{t('host.finalRiddle.noLettersRevealedYet')}</p>
+              <p style={{ fontSize: 11, color: '#aa8984', opacity: 0.6 }}>
+                {t('host.finalRiddle.noLettersRevealedYet')}
+              </p>
             )}
           </div>
         </div>
@@ -138,7 +220,16 @@ const FinalRiddlePage = () => {
         <div style={{ background: '#0e0e0e', padding: '24px' }}>
           <div className="flex items-center gap-3 mb-4">
             <div style={{ width: 4, height: 16, background: '#8b0000' }} />
-            <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: '#e5e2e1' }}>{t('host.finalRiddle.submitAnswer')}</span>
+            <span
+              style={{
+                fontWeight: 700,
+                fontSize: 12,
+                letterSpacing: '1.2px',
+                color: '#e5e2e1',
+              }}
+            >
+              {t('host.finalRiddle.submitAnswer')}
+            </span>
           </div>
           <FinalRiddleInput
             gameId={gameId}
@@ -146,9 +237,7 @@ const FinalRiddlePage = () => {
             onFailed={() => setHasLost(true)}
           />
         </div>
-
       </div>
-
     </SidebarLayout>
   );
 };

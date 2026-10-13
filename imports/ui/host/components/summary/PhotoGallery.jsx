@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useT } from '../../../../languages/LanguageProvider';
+import { useT, useLanguage } from '../../../../languages/LanguageProvider';
 
 const PANEL = '#1c1b1b';
 const INNER = '#0e0e0e';
@@ -19,23 +19,34 @@ function isPass(photo) {
   return photo.outcome === 'pass';
 }
 
-function formatTimestamp(value) {
+function formatTimestamp(value, locale) {
   if (!value) return '—';
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return '—';
-  return d.toLocaleString(undefined, {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    day: '2-digit',
-    month: 'short',
-  }).toUpperCase();
+  return d
+    .toLocaleString(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      day: '2-digit',
+      month: 'short',
+    })
+    .toUpperCase();
 }
 
 const SectionHeader = ({ label }) => (
   <div className="flex items-center gap-3 mb-4">
     <div style={{ width: 4, height: 16, background: ACCENT }} />
-    <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: TEXT }}>{label}</span>
+    <span
+      style={{
+        fontWeight: 700,
+        fontSize: 12,
+        letterSpacing: '1.2px',
+        color: TEXT,
+      }}
+    >
+      {label}
+    </span>
   </div>
 );
 
@@ -61,10 +72,25 @@ const FilterButton = ({ active, onClick, children }) => (
 );
 
 const EmptyPanel = ({ title, detail }) => (
-  <div style={{ background: INNER, border: `1px dashed ${BORDER}`, padding: '48px 24px', textAlign: 'center' }}>
+  <div
+    style={{
+      background: INNER,
+      border: `1px dashed ${BORDER}`,
+      padding: '48px 24px',
+      textAlign: 'center',
+    }}
+  >
     <p style={{ fontSize: 11, letterSpacing: '1px', color: MUTED }}>{title}</p>
     {detail && (
-      <p style={{ fontSize: 10, letterSpacing: '0.5px', color: DIM, marginTop: 10, lineHeight: 1.8 }}>
+      <p
+        style={{
+          fontSize: 10,
+          letterSpacing: '0.5px',
+          color: DIM,
+          marginTop: 10,
+          lineHeight: 1.8,
+        }}
+      >
         {detail}
       </p>
     )}
@@ -79,7 +105,13 @@ const PhotoTile = ({ photo, onOpen }) => {
   return (
     <button
       onClick={() => onOpen(photo)}
-      aria-label={`Round ${photo.roundNumber}, ${photo.playerName}, ${pass ? 'correct' : 'incorrect'} — open larger view`}
+      aria-label={t('extra.photoOpen', {
+        n: photo.roundNumber,
+        name: photo.playerName,
+        status: t(
+          pass ? 'host.summary.correctLabel' : 'host.summary.incorrectLabel'
+        ),
+      })}
       style={{
         position: 'relative',
         padding: 0,
@@ -97,33 +129,73 @@ const PhotoTile = ({ photo, onOpen }) => {
       <img
         src={photo.photoUrl}
         alt=""
-        style={{ display: 'block', width: '100%', aspectRatio: '4 / 3', objectFit: 'cover' }}
+        style={{
+          display: 'block',
+          width: '100%',
+          aspectRatio: '4 / 3',
+          objectFit: 'cover',
+        }}
       />
 
-      <span style={{
-        position: 'absolute', top: 8, left: 8,
-        background: 'rgba(14,14,14,0.85)', color: TEXT,
-        fontSize: 9, fontWeight: 700, letterSpacing: '1px', padding: '4px 8px',
-      }}>
+      <span
+        style={{
+          position: 'absolute',
+          top: 8,
+          left: 8,
+          background: 'rgba(14,14,14,0.85)',
+          color: TEXT,
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: '1px',
+          padding: '4px 8px',
+        }}
+      >
         {t('host.summary.round', { n: photo.roundNumber })}
       </span>
 
       {photo.attemptNumber > 1 && (
-        <span style={{
-          position: 'absolute', top: 8, right: 8,
-          background: 'rgba(139,0,0,0.9)', color: TEXT,
-          fontSize: 9, fontWeight: 700, letterSpacing: '1px', padding: '4px 8px',
-        }}>
+        <span
+          style={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            background: 'rgba(139,0,0,0.9)',
+            color: TEXT,
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: '1px',
+            padding: '4px 8px',
+          }}
+        >
           {t('host.summary.retry', { n: photo.attemptNumber })}
         </span>
       )}
 
-      <div className="flex items-center justify-between" style={{ padding: '10px 12px' }}>
-        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1px', color: TEXT }}>
+      <div
+        className="flex items-center justify-between"
+        style={{ padding: '10px 12px' }}
+      >
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '1px',
+            color: TEXT,
+          }}
+        >
           {String(photo.playerName).toUpperCase()}
         </span>
-        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '1px', color: status }}>
-          {pass ? t('host.summary.correctLabel') : t('host.summary.incorrectLabel')}
+        <span
+          style={{
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: '1px',
+            color: status,
+          }}
+        >
+          {pass
+            ? t('host.summary.correctLabel')
+            : t('host.summary.incorrectLabel')}
         </span>
       </div>
     </button>
@@ -131,6 +203,7 @@ const PhotoTile = ({ photo, onOpen }) => {
 };
 
 const PhotoLightbox = ({ photo, onClose }) => {
+  const { locale } = useLanguage();
   const t = useT();
   const dialogRef = useRef(null);
   const closeRef = useRef(null);
@@ -172,43 +245,87 @@ const PhotoLightbox = ({ photo, onClose }) => {
 
   const pass = isPass(photo);
   const status = pass ? CORRECT : INCORRECT;
-  const detections = [...(photo.detections ?? [])].sort((a, b) => b.confidence - a.confidence);
+  const detections = [...(photo.detections ?? [])].sort(
+    (a, b) => b.confidence - a.confidence
+  );
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={`Photo detail — round ${photo.roundNumber}, ${photo.playerName}`}
+      aria-label={t('extra.photoDetail', {
+        n: photo.roundNumber,
+        name: photo.playerName,
+      })}
       ref={dialogRef}
       onClick={onClose}
       style={{
-        position: 'fixed', inset: 0, zIndex: 50,
+        position: 'fixed',
+        inset: 0,
+        zIndex: 50,
         background: 'rgba(0,0,0,0.85)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         padding: 32,
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: PANEL, border: `1px solid ${BORDER}`,
-          display: 'flex', gap: 0,
-          maxWidth: 1100, width: '100%', maxHeight: '100%',
+          background: PANEL,
+          border: `1px solid ${BORDER}`,
+          display: 'flex',
+          gap: 0,
+          maxWidth: 1100,
+          width: '100%',
+          maxHeight: '100%',
         }}
       >
-        <div style={{ background: '#000', flex: '1 1 60%', display: 'flex', alignItems: 'center', minWidth: 0 }}>
+        <div
+          style={{
+            background: '#000',
+            flex: '1 1 60%',
+            display: 'flex',
+            alignItems: 'center',
+            minWidth: 0,
+          }}
+        >
           <img
             src={photo.photoUrl}
-            alt={`Submission for round ${photo.roundNumber} by ${photo.playerName}`}
+            alt={t('extra.photoAlt', {
+              n: photo.roundNumber,
+              name: photo.playerName,
+            })}
             style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
           />
         </div>
 
-        <div style={{ flex: '0 0 320px', padding: 24, overflowY: 'auto', maxHeight: '80vh' }}>
-          <div className="flex items-start justify-between" style={{ marginBottom: 20 }}>
+        <div
+          style={{
+            flex: '0 0 320px',
+            padding: 24,
+            overflowY: 'auto',
+            maxHeight: '80vh',
+          }}
+        >
+          <div
+            className="flex items-start justify-between"
+            style={{ marginBottom: 20 }}
+          >
             <div>
-              <p style={{ fontSize: 10, letterSpacing: '1px', color: MUTED }}>{t('host.summary.round', { n: photo.roundNumber })}</p>
-              <p style={{ fontSize: 20, fontWeight: 700, letterSpacing: '1.5px', color: TEXT, marginTop: 4 }}>
+              <p style={{ fontSize: 10, letterSpacing: '1px', color: MUTED }}>
+                {t('host.summary.round', { n: photo.roundNumber })}
+              </p>
+              <p
+                style={{
+                  fontSize: 20,
+                  fontWeight: 700,
+                  letterSpacing: '1.5px',
+                  color: TEXT,
+                  marginTop: 4,
+                }}
+              >
                 {String(photo.playerName).toUpperCase()}
               </p>
             </div>
@@ -217,8 +334,13 @@ const PhotoLightbox = ({ photo, onClose }) => {
               onClick={onClose}
               aria-label={t('host.summary.closePhotoDetail')}
               style={{
-                background: 'transparent', border: `1px solid ${BORDER}`, color: MUTED,
-                fontSize: 14, lineHeight: 1, padding: '8px 12px', cursor: 'pointer',
+                background: 'transparent',
+                border: `1px solid ${BORDER}`,
+                color: MUTED,
+                fontSize: 14,
+                lineHeight: 1,
+                padding: '8px 12px',
+                cursor: 'pointer',
               }}
               onFocus={(e) => (e.currentTarget.style.outline = FOCUS_RING)}
               onBlur={(e) => (e.currentTarget.style.outline = 'none')}
@@ -227,25 +349,70 @@ const PhotoLightbox = ({ photo, onClose }) => {
             </button>
           </div>
 
-          <div style={{ borderLeft: `4px solid ${status}`, background: INNER, padding: '12px 16px', marginBottom: 20 }}>
-            <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: '1.5px', color: status }}>
-              {pass ? t('host.summary.correctLabel') : t('host.summary.incorrectLabel')}
+          <div
+            style={{
+              borderLeft: `4px solid ${status}`,
+              background: INNER,
+              padding: '12px 16px',
+              marginBottom: 20,
+            }}
+          >
+            <p
+              style={{
+                fontSize: 14,
+                fontWeight: 700,
+                letterSpacing: '1.5px',
+                color: status,
+              }}
+            >
+              {pass
+                ? t('host.summary.correctLabel')
+                : t('host.summary.incorrectLabel')}
             </p>
             {photo.attemptNumber > 1 && (
-              <p style={{ fontSize: 10, letterSpacing: '0.5px', color: DIM, marginTop: 4 }}>
+              <p
+                style={{
+                  fontSize: 10,
+                  letterSpacing: '0.5px',
+                  color: DIM,
+                  marginTop: 4,
+                }}
+              >
                 {t('host.summary.attempt', { n: photo.attemptNumber })}
               </p>
             )}
           </div>
 
-          <p style={{ fontSize: 10, letterSpacing: '1px', color: MUTED }}>{t('host.summary.targetObject')}</p>
-          <p style={{ fontSize: 16, fontWeight: 700, letterSpacing: '1px', color: TEXT, marginTop: 4, marginBottom: 20 }}>
-            {String(photo.targetObject ?? '—').toUpperCase()}
+          <p style={{ fontSize: 10, letterSpacing: '1px', color: MUTED }}>
+            {t('host.summary.targetObject')}
+          </p>
+          <p
+            style={{
+              fontSize: 16,
+              fontWeight: 700,
+              letterSpacing: '1px',
+              color: TEXT,
+              marginTop: 4,
+              marginBottom: 20,
+            }}
+          >
+            {t(`objects.${photo.targetObject}`)}
           </p>
 
-          <p style={{ fontSize: 10, letterSpacing: '1px', color: MUTED, marginBottom: 8 }}>{t('host.summary.detections')}</p>
+          <p
+            style={{
+              fontSize: 10,
+              letterSpacing: '1px',
+              color: MUTED,
+              marginBottom: 8,
+            }}
+          >
+            {t('host.summary.detections')}
+          </p>
           {detections.length === 0 ? (
-            <p style={{ fontSize: 11, color: DIM, marginBottom: 20 }}>{t('host.summary.nothingDetected')}</p>
+            <p style={{ fontSize: 11, color: DIM, marginBottom: 20 }}>
+              {t('host.summary.nothingDetected')}
+            </p>
           ) : (
             <div style={{ marginBottom: 20 }}>
               {detections.map((d, i) => {
@@ -254,10 +421,19 @@ const PhotoLightbox = ({ photo, onClose }) => {
                   <div
                     key={`${d.label}-${i}`}
                     className="flex items-center justify-between"
-                    style={{ padding: '8px 0', borderBottom: `1px solid ${BORDER}` }}
+                    style={{
+                      padding: '8px 0',
+                      borderBottom: `1px solid ${BORDER}`,
+                    }}
                   >
-                    <span style={{ fontSize: 12, letterSpacing: '0.5px', color: hit ? CORRECT : TEXT }}>
-                      {String(d.label).toUpperCase()}
+                    <span
+                      style={{
+                        fontSize: 12,
+                        letterSpacing: '0.5px',
+                        color: hit ? CORRECT : TEXT,
+                      }}
+                    >
+                      {t(`objects.${d.label}`)}
                     </span>
                     <span style={{ fontSize: 12, color: MUTED }}>
                       {Math.round(d.confidence * 100)}%
@@ -268,9 +444,18 @@ const PhotoLightbox = ({ photo, onClose }) => {
             </div>
           )}
 
-          <p style={{ fontSize: 10, letterSpacing: '1px', color: MUTED }}>{t('host.summary.captured')}</p>
-          <p style={{ fontSize: 12, letterSpacing: '0.5px', color: TEXT, marginTop: 4 }}>
-            {formatTimestamp(photo.createdAt)}
+          <p style={{ fontSize: 10, letterSpacing: '1px', color: MUTED }}>
+            {t('host.summary.captured')}
+          </p>
+          <p
+            style={{
+              fontSize: 12,
+              letterSpacing: '0.5px',
+              color: TEXT,
+              marginTop: 4,
+            }}
+          >
+            {formatTimestamp(photo.createdAt, locale)}
           </p>
         </div>
       </div>
@@ -289,7 +474,8 @@ const PhotoGallery = ({ photos = [], players = [], photosExpired = false }) => {
       photos.filter((photo) => {
         if (outcomeFilter === 'correct' && !isPass(photo)) return false;
         if (outcomeFilter === 'incorrect' && isPass(photo)) return false;
-        if (playerFilter !== 'all' && photo.playerId !== playerFilter) return false;
+        if (playerFilter !== 'all' && photo.playerId !== playerFilter)
+          return false;
         return true;
       }),
     [photos, outcomeFilter, playerFilter]
@@ -316,20 +502,53 @@ const PhotoGallery = ({ photos = [], players = [], photosExpired = false }) => {
         )
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-2" style={{ marginBottom: 16 }}>
-            <span style={{ fontSize: 10, letterSpacing: '1px', color: DIM, marginRight: 4 }}>{t('host.summary.outcome')}</span>
-            <FilterButton active={outcomeFilter === 'all'} onClick={() => setOutcomeFilter('all')}>
+          <div
+            className="flex flex-wrap items-center gap-2"
+            style={{ marginBottom: 16 }}
+          >
+            <span
+              style={{
+                fontSize: 10,
+                letterSpacing: '1px',
+                color: DIM,
+                marginRight: 4,
+              }}
+            >
+              {t('host.summary.outcome')}
+            </span>
+            <FilterButton
+              active={outcomeFilter === 'all'}
+              onClick={() => setOutcomeFilter('all')}
+            >
               {t('host.summary.all')}
             </FilterButton>
-            <FilterButton active={outcomeFilter === 'correct'} onClick={() => setOutcomeFilter('correct')}>
+            <FilterButton
+              active={outcomeFilter === 'correct'}
+              onClick={() => setOutcomeFilter('correct')}
+            >
               {t('host.summary.correctLabel')}
             </FilterButton>
-            <FilterButton active={outcomeFilter === 'incorrect'} onClick={() => setOutcomeFilter('incorrect')}>
+            <FilterButton
+              active={outcomeFilter === 'incorrect'}
+              onClick={() => setOutcomeFilter('incorrect')}
+            >
               {t('host.summary.incorrectLabel')}
             </FilterButton>
 
-            <span style={{ fontSize: 10, letterSpacing: '1px', color: DIM, margin: '0 4px 0 16px' }}>{t('host.summary.operative')}</span>
-            <FilterButton active={playerFilter === 'all'} onClick={() => setPlayerFilter('all')}>
+            <span
+              style={{
+                fontSize: 10,
+                letterSpacing: '1px',
+                color: DIM,
+                margin: '0 4px 0 16px',
+              }}
+            >
+              {t('host.summary.operative')}
+            </span>
+            <FilterButton
+              active={playerFilter === 'all'}
+              onClick={() => setPlayerFilter('all')}
+            >
               {t('host.summary.all')}
             </FilterButton>
             {players.map((p) => (
@@ -343,18 +562,30 @@ const PhotoGallery = ({ photos = [], players = [], photosExpired = false }) => {
             ))}
           </div>
 
-          <p style={{ fontSize: 10, letterSpacing: '1px', color: DIM, marginBottom: 12 }}>
-            {t('host.summary.showingXOfY', { shown: visible.length, total: photos.length })}
+          <p
+            style={{
+              fontSize: 10,
+              letterSpacing: '1px',
+              color: DIM,
+              marginBottom: 12,
+            }}
+          >
+            {t('host.summary.showingXOfY', {
+              shown: visible.length,
+              total: photos.length,
+            })}
           </p>
 
           {visible.length === 0 ? (
             <EmptyPanel title={t('host.summary.noPhotosMatchFilter')} />
           ) : (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-              gap: 12,
-            }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                gap: 12,
+              }}
+            >
               {visible.map((photo) => (
                 <PhotoTile key={photo._id} photo={photo} onOpen={setSelected} />
               ))}
@@ -370,9 +601,15 @@ const PhotoGallery = ({ photos = [], players = [], photosExpired = false }) => {
             setPlayerFilter('all');
           }}
           style={{
-            marginTop: 16, background: 'transparent', border: `1px solid ${BORDER}`,
-            color: MUTED, fontSize: 10, fontWeight: 700, letterSpacing: '1px',
-            padding: '8px 16px', cursor: 'pointer',
+            marginTop: 16,
+            background: 'transparent',
+            border: `1px solid ${BORDER}`,
+            color: MUTED,
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '1px',
+            padding: '8px 16px',
+            cursor: 'pointer',
           }}
           onFocus={(e) => (e.currentTarget.style.outline = FOCUS_RING)}
           onBlur={(e) => (e.currentTarget.style.outline = 'none')}
@@ -381,7 +618,9 @@ const PhotoGallery = ({ photos = [], players = [], photosExpired = false }) => {
         </button>
       )}
 
-      {selected && <PhotoLightbox photo={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <PhotoLightbox photo={selected} onClose={() => setSelected(null)} />
+      )}
     </div>
   );
 };
