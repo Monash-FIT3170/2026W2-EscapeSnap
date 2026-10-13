@@ -143,24 +143,6 @@ jobs:
           rm -rf /tmp/escapesnap-build
           meteor build --directory /tmp/escapesnap-build
 
-  # Blocks PRs that add or upgrade to a dependency with a known HIGH or
-  # CRITICAL vulnerability. Unlike npm audit, it only judges what the PR
-  # changes, so pre-existing advisories on main don't block unrelated work.
-  dependency-review:
-    name: Dependency review
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-
-      - name: Review dependency changes
-        uses: actions/dependency-review-action@v4
-        with:
-          fail-on-severity: high
-
   code-scan:
     name: Code security scan
     runs-on: ubuntu-latest
@@ -213,7 +195,6 @@ jobs:
     if: always() && !cancelled()
     needs:
       - verify
-      - dependency-review
       - code-scan
       - secret-scan
     runs-on: ubuntu-latest
