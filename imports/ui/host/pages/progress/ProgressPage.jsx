@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Games } from '../../../../api/games/GamesCollection';
@@ -75,6 +75,22 @@ const ProgressPage = () => {
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [game?.startedAt, game?.timerMinutes, game?.timePenaltyMs]);
+
+  // The game can end while this screen is up — the clock running out, an
+  // admin ending it, a rival escaping first — so follow it to the end screen.
+  // Only on the change itself, so the board can still be reopened afterwards.
+  const navigate = useNavigate();
+  const lastStatus = useRef(null);
+  useEffect(() => {
+    const status = game?.status;
+    if (
+      lastStatus.current === 'in_progress' &&
+      (status === 'won' || status === 'lost')
+    ) {
+      navigate(`/game/${gameId}/final-riddle`, { replace: true });
+    }
+    lastStatus.current = status ?? null;
+  }, [game?.status, gameId]);
 
   if (loading) {
     return (
