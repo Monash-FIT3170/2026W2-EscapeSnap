@@ -12,13 +12,27 @@ import { Games } from '../imports/api/games/GamesCollection';
 import { Rounds } from '../imports/api/rounds/RoundsCollection';
 import { Submissions, photoExpiryFrom } from '../imports/api/submissions/SubmissionsCollection';
 import { GameResults } from '../imports/api/achievements/GameResultsCollection';
+import { normalizeAnswerMode } from '../imports/lib/answerModes';
+import {
+  buildClassifyPrompt,
+  submissionMimeType,
+} from '../imports/api/submissions/classifyPrompt';
+import {
+  gemini,
+  modelCandidates,
+  supportsThinkingLevel,
+} from '../imports/api/gemini/geminiModels';
 
 const MAX_UPLOAD_CHARS = 10 * 1024 * 1024; // ~7.5MB of image data
 // Mirrors the `photoUrl` max in SubmissionsCollection — kept here so an
 // oversized capture is skipped with a log rather than throwing on insert.
 const MAX_STORED_PHOTO_CHARS = 1500000;
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3-flash-preview';
+// Preferred model for photo/sketch checks; if it is busy or missing the
+// shared fallback list in geminiModels.js takes over.
+const CLASSIFY_MODELS = modelCandidates(
+  process.env.GEMINI_MODEL || 'gemini-3-flash-preview'
+);
 // gemini-3-flash-preview thinks before answering, and at the default budget
 // that regularly ran 3-10s and occasionally past the old 10s abort. Capping
 // the thinking at 'low' puts it at ~2-5s; the timeout keeps real headroom
@@ -65,9 +79,10 @@ Meteor.startup(async () => {
 
 Meteor.methods({
   // Returns { outcome: 'pass' | 'fail' | 'error', explanation: string }
-  async 'submissions.classify'(imageBase64, targetObject, roundId) {
+  async 'submissions.classify'(imageBase64, targetObject, roundId, mode) {
+    const answerMode = normalizeAnswerMode(mode);
     console.log(
-      `[submissions.classify] target="${targetObject}" round=${roundId ?? 'none'} size=${imageBase64?.length ?? 0} chars`
+      `[submissions.classify] mode=${answerMode} target="${targetObject}" round=${roundId ?? 'none'} size=${imageBase64?.length ?? 0} chars`
     );
 
     if (typeof imageBase64 !== 'string' || !imageBase64) {
@@ -77,7 +92,7 @@ Meteor.methods({
       return { outcome: 'error', explanation: 'Photo is too large.' };
     }
 
-    const result = await classifyWithGemini(imageBase64, targetObject);
+    const result = await classifyWithGemini(imageBase64, targetObject, answerMode);
 
     // Store every attempt, pass or fail — the end-game gallery needs the
     // misses too. A classification error is not a submission, so it is not
@@ -89,6 +104,7 @@ Meteor.methods({
           roundId,
           targetObject,
           outcome: result.outcome,
+          answerMode,
         });
       } catch (err) {
         console.error('[EscapeSnap] recordSubmission failed:', err);
@@ -99,7 +115,7 @@ Meteor.methods({
   },
 });
 
-async function classifyWithGemini(imageBase64, targetObject) {
+async function classifyWithGemini(imageBase64, targetObject, answerMode) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     console.error('[Gemini] GEMINI_API_KEY is not set');
@@ -109,48 +125,29 @@ async function classifyWithGemini(imageBase64, targetObject) {
     };
   }
 
-  const prompt = `Does this photo clearly show a "${targetObject}"? Ignore any other objects, people, or background in the frame — only judge whether a "${targetObject}" is present. Respond with strict JSON only, no markdown: {"outcome": "pass" or "fail", "explanation": "one short sentence"}`;
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+  const prompt = buildClassifyPrompt(targetObject, answerMode);
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': apiKey,
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: prompt },
-                { inline_data: { mime_type: 'image/jpeg', data: imageBase64 } },
-              ],
-            },
-          ],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            thinkingConfig: { thinkingLevel: 'low' },
+    const { data } = await gemini.generate(
+      (model) => ({
+        contents: [
+          {
+            parts: [
+              { text: prompt },
+              { inline_data: { mime_type: submissionMimeType(answerMode), data: imageBase64 } },
+            ],
           },
-        }),
-        signal: controller.signal,
-      }
+        ],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          ...(supportsThinkingLevel(model) && {
+            thinkingConfig: { thinkingLevel: 'low' },
+          }),
+        },
+      }),
+      { models: CLASSIFY_MODELS, timeoutMs: GEMINI_TIMEOUT_MS }
     );
 
-    if (!response.ok) {
-      const body = await response.text();
-      console.error(`[Gemini] HTTP ${response.status}:`, body);
-      return {
-        outcome: 'error',
-        explanation: 'Could not verify photo — try again.',
-      };
-    }
-
-    const data = await response.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     const parsed = JSON.parse(text);
 
@@ -165,17 +162,15 @@ async function classifyWithGemini(imageBase64, targetObject) {
       outcome: 'error',
       explanation: 'Could not verify photo — try again.',
     };
-  } finally {
-    clearTimeout(timeout);
   }
 }
 
 // The capture is downscaled on the client before upload (see
-// MobileRiddlePage), so what arrives is already storage-sized and is kept
-// as-is. The schema wants a data URL, but the client strips the prefix to
-// send Gemini bare base64 — put it back.
-function toPhotoUrl(imageBase64) {
-  return `data:image/jpeg;base64,${imageBase64}`;
+// MobileRiddlePage / MobileDrawingPage), so what arrives is already
+// storage-sized and is kept as-is. The schema wants a data URL, but the
+// client strips the prefix to send Gemini bare base64 — put it back.
+function toPhotoUrl(imageBase64, answerMode) {
+  return `data:${submissionMimeType(answerMode)};base64,${imageBase64}`;
 }
 
 async function recordSubmission({
@@ -183,12 +178,13 @@ async function recordSubmission({
   roundId,
   targetObject,
   outcome,
+  answerMode,
 }) {
   if (!roundId) return;
   const round = await Rounds.findOneAsync(roundId);
   if (!round) return;
 
-  const photoUrl = toPhotoUrl(imageBase64);
+  const photoUrl = toPhotoUrl(imageBase64, answerMode);
   if (photoUrl.length > MAX_STORED_PHOTO_CHARS) {
     console.warn(
       `[EscapeSnap] submission photo too large to store round=${roundId} ${photoUrl.length} chars`
