@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { Players } from './PlayersCollection';
 import { Games } from '../games/GamesCollection';
+import { logGameEvent } from '../events/gameEventLog';
 
 Meteor.methods({
   async 'players.join'(joinCode, playerName) {
@@ -17,6 +18,7 @@ Meteor.methods({
       joinedAt: new Date(),
       revealedLetters: [],
     });
+    await logGameEvent({ gameId: game._id, type: 'playerJoined', playerId });
     return { playerId, gameId: game._id };
   },
 });

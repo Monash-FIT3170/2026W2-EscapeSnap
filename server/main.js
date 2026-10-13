@@ -8,10 +8,13 @@ import '../imports/api/rounds/roundsPublications';
 import '../imports/api/achievements/achievementsPublications';
 import '/imports/api/rounds/RoundSessions';
 import '../imports/api/submissions/submissionsPublications';
+import '../imports/api/events/gameEventsPublications';
 import { Games } from '../imports/api/games/GamesCollection';
 import { Rounds } from '../imports/api/rounds/RoundsCollection';
 import { Submissions, photoExpiryFrom } from '../imports/api/submissions/SubmissionsCollection';
 import { GameResults } from '../imports/api/achievements/GameResultsCollection';
+import { GameEvents } from '../imports/api/events/GameEventsCollection';
+import { logGameEvent } from '../imports/api/events/gameEventLog';
 
 const MAX_UPLOAD_CHARS = 10 * 1024 * 1024; // ~7.5MB of image data
 // Mirrors the `photoUrl` max in SubmissionsCollection — kept here so an
@@ -50,6 +53,7 @@ Meteor.startup(async () => {
   await Rounds.createIndexAsync({ gameId: 1, roundNumber: 1 });
   await Rounds.createIndexAsync({ playerId: 1, roundNumber: 1 });
   await GameResults.createIndexAsync({ gameId: 1, playerId: 1 }, { unique: true });
+  await GameEvents.createIndexAsync({ gameId: 1, createdAt: -1 });
 
   // TTL index: Mongo drops each submission once its own expiresAt passes,
   // which photoExpiryFrom sets to createdAt + PHOTO_TTL_MS (6 hours). The
@@ -93,6 +97,12 @@ Meteor.methods({
       } catch (err) {
         console.error('[EscapeSnap] recordSubmission failed:', err);
       }
+    }
+
+    // A pass is logged by rounds.submit once the round settles, so only the
+    // misses are logged here.
+    if (result.outcome === 'fail') {
+      await logPhotoRejected(roundId);
     }
 
     return result;
@@ -168,6 +178,20 @@ async function classifyWithGemini(imageBase64, targetObject) {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+async function logPhotoRejected(roundId) {
+  if (!roundId) return;
+  const round = await Rounds.findOneAsync(roundId, {
+    fields: { gameId: 1, playerId: 1, roundNumber: 1 },
+  });
+  if (!round) return;
+  await logGameEvent({
+    gameId: round.gameId,
+    type: 'photoRejected',
+    playerId: round.playerId,
+    roundNumber: round.roundNumber,
+  });
 }
 
 // The capture is downscaled on the client before upload (see

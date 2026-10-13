@@ -9,6 +9,7 @@ import { RIDDLE_BANK } from '../../lib/riddleBank';
 import { THEME_OBJECT_POOLS } from '../../lib/cocoClasses';
 import { advanceGameRound } from '../rounds/roundProgression';
 import { finalizeGameResults } from '../achievements/achievementService';
+import { logGameEvent } from '../events/gameEventLog';
 import {
   generateFinalRiddle,
   generateRoundRiddles,
@@ -274,6 +275,7 @@ Meteor.methods({
     await Games.updateAsync(gameId, {
       $set: { status: 'in_progress', startedAt },
     });
+    await logGameEvent({ gameId, type: 'gameStarted' });
   },
 
   async 'games.startRound'(sessionId) {
@@ -339,10 +341,12 @@ Meteor.methods({
       await Games.updateAsync(gameId, {
         $set: { status: outcome, endedAt, finalRiddleAttempts: attempts },
       });
+      await logGameEvent({ gameId, type: isCorrect ? 'gameWon' : 'gameLost' });
     } else {
       await Games.updateAsync(gameId, {
         $set: { finalRiddleAttempts: attempts },
       });
+      await logGameEvent({ gameId, type: 'finalAnswerWrong' });
     }
 
     return { isCorrect, attemptsLeft: isCorrect ? 0 : MAX_ATTEMPTS - attempts };

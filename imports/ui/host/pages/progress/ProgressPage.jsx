@@ -5,16 +5,18 @@ import { useTracker } from 'meteor/react-meteor-data';
 import { Games } from '../../../../api/games/GamesCollection';
 import { Rounds } from '../../../../api/rounds/RoundsCollection';
 import { Players } from '../../../../api/players/PlayersCollection';
+import { GameEvents } from '../../../../api/events/GameEventsCollection';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
 import { remainingGameMs } from '/imports/lib/gameClock';
 import { useT } from '../../../../languages/LanguageProvider';
 
-const MOCK_EVENTS = [
-  { time: '14:22:10', message: 'DYLAN HAS COMPLETED THE PUZZLE', highlight: true },
-  { time: '14:18:05', message: 'SEBASTIAN HAS UPLOADED AN INCORRECT ANSWER', highlight: false },
-  { time: '14:15:33', message: 'KAYVIS HAS UPLOADED AN INCORRECT ANSWER', highlight: false },
-  { time: '14:10:12', message: 'CASIE HAS COMPLETED THE PUZZLE', highlight: false },
-];
+// Event types drawn in the accent colour — the moments the host most wants to spot.
+const HIGHLIGHTED_EVENTS = ['roundSolved', 'gameWon'];
+
+const formatClock = (date) =>
+  [date.getHours(), date.getMinutes(), date.getSeconds()]
+    .map((n) => String(n).padStart(2, '0'))
+    .join(':');
 
 
 const CheckIcon = () => (
@@ -34,15 +36,17 @@ const ProgressPage = () => {
   const t = useT();
   const [timeLeft, setTimeLeft] = useState(null);
 
-  const { game, rounds, players, loading } = useTracker(() => {
+  const { game, rounds, players, events, loading } = useTracker(() => {
     const gameSub = Meteor.subscribe('games.current', gameId);
     const roundsSub = Meteor.subscribe('rounds.forGame', gameId);
     const playersSub = Meteor.subscribe('players.inGame', gameId);
+    const eventsSub = Meteor.subscribe('gameEvents.forGame', gameId);
     return {
-      loading: !gameSub.ready() || !roundsSub.ready() || !playersSub.ready(),
+      loading: !gameSub.ready() || !roundsSub.ready() || !playersSub.ready() || !eventsSub.ready(),
       game: Games.findOne(gameId),
       rounds: Rounds.find({ gameId }).fetch(),
       players: Players.find({ gameId }, { sort: { joinedAt: 1 } }).fetch(),
+      events: GameEvents.find({ gameId }, { sort: { createdAt: -1 } }).fetch(),
     };
   }, [gameId]);
 
@@ -257,13 +261,25 @@ const ProgressPage = () => {
             <div style={{ width: 4, height: 16, background: '#8b0000' }} />
             <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: '#e5e2e1' }}>{t('host.progress.eventLog')}</span>
           </div>
+          {events.length === 0 && (
+            <div style={{ color: '#555', fontSize: 11, letterSpacing: '1px' }}>
+              {t('host.progress.noEvents')}
+            </div>
+          )}
           <div className="flex flex-col gap-4">
-            {MOCK_EVENTS.map((event, i) => (
-              <div key={i} className="flex items-start gap-4 pl-3 py-1" style={{ borderLeft: `1px solid ${event.highlight ? '#8b0000' : 'rgba(90,64,60,0.3)'}` }}>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#aa8984', whiteSpace: 'nowrap' }}>[ {event.time} ]</span>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: event.highlight ? '#e5e2e1' : '#e3beb8' }}>{event.message}</span>
-              </div>
-            ))}
+            {events.map((event) => {
+              const highlight = HIGHLIGHTED_EVENTS.includes(event.type);
+              const message = t(`host.progress.events.${event.type}`, {
+                name: event.playerName?.toUpperCase() ?? '',
+                n: event.roundNumber,
+              });
+              return (
+                <div key={event._id} className="flex items-start gap-4 pl-3 py-1" style={{ borderLeft: `1px solid ${highlight ? '#8b0000' : 'rgba(90,64,60,0.3)'}` }}>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: '#aa8984', whiteSpace: 'nowrap' }}>[ {formatClock(event.createdAt)} ]</span>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: highlight ? '#e5e2e1' : '#e3beb8' }}>{message}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
