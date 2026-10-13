@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import { useT } from '../../../../languages/LanguageProvider';
 import { LanguagePicker } from '../../../../languages/LanguagePicker';
 import { errorKey } from '../../../../languages/errors';
+import { DEFAULT_ANSWER_MODE } from '../../../../lib/answerModes';
 
 const DIFFICULTY_OPTIONS = [
   { value: 'easy', labelKey: 'difficulty.easy', subKey: 'difficulty.easySub' },
@@ -14,6 +15,11 @@ const DIFFICULTY_OPTIONS = [
 const THEME_OPTIONS = [
   { value: 'classroom', label: 'CLASSROOM', sub: 'LECTURE HALL ITEMS' },
   { value: 'home', label: 'HOME', sub: 'DOMESTIC ITEMS' },
+];
+
+const MODE_OPTIONS = [
+  { value: 'camera', labelKey: 'host.createGame.modeCamera', subKey: 'host.createGame.modeCameraSub' },
+  { value: 'drawing', labelKey: 'host.createGame.modeDrawing', subKey: 'host.createGame.modeDrawingSub' },
 ];
 
 const CreateGame = () => {
@@ -27,6 +33,7 @@ const CreateGame = () => {
   const [capacity, setCapacity] = useState(4);
   const [difficulty, setDifficulty] = useState('medium');
   const [theme, setTheme] = useState('classroom');
+  const [mode, setMode] = useState(DEFAULT_ANSWER_MODE);
 
   const handleCreateGame = async () => {
     if (!groupName.trim()) {
@@ -36,7 +43,7 @@ const CreateGame = () => {
     setLoading(true);
     setError(null);
     try {
-      const gameId = await Meteor.callAsync('games.create', { groupName: groupName.trim(), timerMinutes: timer, capacity, difficulty, theme });
+      const gameId = await Meteor.callAsync('games.create', { groupName: groupName.trim(), timerMinutes: timer, capacity, difficulty, theme, mode });
       navigate(`/game/${gameId}/lobby`);
     } catch (err) {
       setError(t(errorKey(err)));
@@ -166,6 +173,32 @@ const CreateGame = () => {
                     </div>
                     <div className="text-xs mt-1 leading-tight" style={{ color: theme === opt.value ? '#aa8984' : '#555' }}>
                       {opt.sub}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-4" style={{ border: '1px solid #1c1b1b' }}>
+              <label className="block text-xs tracking-widest mb-3" style={{ color: '#aa8984' }}>
+                {t('host.createGame.answerMode')}
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {MODE_OPTIONS.map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setMode(opt.value)}
+                    className="p-3 text-left transition-colors cursor-pointer"
+                    style={{
+                      border: mode === opt.value ? '1px solid #8b0000' : '1px solid #1c1b1b',
+                      background: mode === opt.value ? '#1c0000' : 'transparent',
+                    }}
+                  >
+                    <div className="text-xs font-bold" style={{ color: '#e5e2e1' }}>
+                      {t(opt.labelKey)}
+                    </div>
+                    <div className="text-xs mt-1 leading-tight" style={{ color: mode === opt.value ? '#aa8984' : '#555' }}>
+                      {t(opt.subKey)}
                     </div>
                   </button>
                 ))}

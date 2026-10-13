@@ -2,6 +2,7 @@ import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
 import 'meteor/aldeed:collection2/static';
 import { THEMES } from '/imports/lib/cocoClasses';
+import { ANSWER_MODES, DEFAULT_ANSWER_MODE } from '/imports/lib/answerModes';
 
 export const Games = new Mongo.Collection('games');
 
@@ -48,6 +49,11 @@ Games.attachSchema(
       type: String,
       allowedValues: THEMES,
       defaultValue: 'classroom',
+    },
+    mode: {
+      type: String,
+      allowedValues: ANSWER_MODES,
+      defaultValue: DEFAULT_ANSWER_MODE,
     },
     createdAt: {
       type: Date,
