@@ -6,6 +6,10 @@ preview/
 
 # Tooling configs (Meteor will try to bundle root files otherwise)
 eslint.config.js
+vitest.config.mjs
+
+# Frontend component tests run in Vitest, not in the Meteor app bundle.
+**/*.component.test.jsx
 
 # Local UI preview (dev-only, not part of the Meteor app)
 preview/
