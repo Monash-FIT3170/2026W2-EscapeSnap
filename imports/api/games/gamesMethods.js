@@ -5,6 +5,8 @@ import { Rounds } from '../rounds/RoundsCollection';
 import { RoundSessions } from '/imports/api/rounds/RoundSessions';
 import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 import { FINAL_RIDDLE } from '../../lib/finalRiddle';
+import { DEFAULT_ANSWER_MODE } from '../../lib/answerModes';
+import { CUSTOM_THEME, normalizeCustomTheme } from '../../lib/customTheme';
 import { advanceGameRound } from '../rounds/roundProgression';
 import {
   endGame,
@@ -19,7 +21,7 @@ import { remainingGameMs } from '../../lib/gameClock';
 
 const ROUND_DURATION_MS = 60 * 1000;
 const MAX_FINAL_ATTEMPTS = 3;
-const GAME_MODES = ['solo', 'online'];
+const PLAY_MODES = ['solo', 'online'];
 
 // Mark every still-pending round matching `selector` as wrong.
 // The status is part of the update selector, so a round can only make the
@@ -55,14 +57,25 @@ Meteor.methods({
     capacity = 4,
     difficulty = 'medium',
     theme = 'classroom',
-    mode = 'solo',
+    mode = DEFAULT_ANSWER_MODE,
+    customTheme,
+    playMode = 'solo',
   } = {}) {
     if (!groupName || !groupName.trim()) {
       throw new Meteor.Error('invalid-group-name', 'Group name is required');
     }
     // Same-room matches create both teams at once through matches.createLocal.
-    if (!GAME_MODES.includes(mode)) {
+    if (!PLAY_MODES.includes(playMode)) {
       throw new Meteor.Error('invalid-mode', 'Unknown game mode');
+    }
+    // Only kept for the custom theme; a preset theme ignores any stray text.
+    const cleanCustomTheme =
+      theme === CUSTOM_THEME ? normalizeCustomTheme(customTheme) : '';
+    if (theme === CUSTOM_THEME && !cleanCustomTheme) {
+      throw new Meteor.Error(
+        'invalid-custom-theme',
+        'Custom theme text is required'
+      );
     }
     const joinCode = await generateJoinCode();
 
@@ -76,7 +89,9 @@ Meteor.methods({
       capacity,
       difficulty,
       theme,
+      ...(cleanCustomTheme && { customTheme: cleanCustomTheme }),
       mode,
+      playMode,
       createdAt: new Date(),
       startedAt: null,
       endedAt: null,
@@ -90,6 +105,8 @@ Meteor.methods({
       capacity,
       difficulty,
       theme,
+      customTheme: cleanCustomTheme,
+      mode,
     });
 
     return gameId;
@@ -102,7 +119,7 @@ Meteor.methods({
       throw new Meteor.Error('invalid-state', 'Game is not in lobby state');
     // Versus games start together with their rival — matches.start for a
     // same-room match, matchmaking for an online one.
-    if (game.matchId || (game.mode && game.mode !== 'solo'))
+    if (game.matchId || (game.playMode && game.playMode !== 'solo'))
       throw new Meteor.Error('invalid-state', 'Versus games start as a match');
 
     const playerCount = await Players.find({ gameId }).countAsync();

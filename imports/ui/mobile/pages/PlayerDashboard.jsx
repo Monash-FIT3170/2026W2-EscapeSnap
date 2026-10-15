@@ -6,6 +6,8 @@ import { Rounds } from '/imports/api/rounds/RoundsCollection';
 import { Players } from '/imports/api/players/PlayersCollection';
 import { Games } from '/imports/api/games/GamesCollection';
 import MobileRiddlePage from './gameplay/MobileRiddlePage';
+import MobileDrawingPage from './gameplay/MobileDrawingPage';
+import { normalizeAnswerMode } from '/imports/lib/answerModes';
 import { MobileBottomNav } from '../components/navigation/MobileBottomNav';
 import { RoundTimer } from '../components/gameplay/RoundTimer';
 import { PlayerWinScreen } from './result/PlayerWinScreen';
@@ -395,6 +397,8 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
     !!answered?.correct && !!round && answered.roundId !== round._id && !roundSettled;
 
   const totalRounds = game?.totalRounds ?? 1;
+  // Old games have no `mode`; normalizeAnswerMode treats that as camera.
+  const answerMode = normalizeAnswerMode(game?.mode);
   // 'correct', 'wrong' (skipped) and 'timeout' all mean the same thing here:
   // this player has nothing left to solve this round and is waiting on the
   // others. `roundSettled` comes from the tracker, which knows about riddles
@@ -730,12 +734,23 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
 
             {activeTab === 'scanner' && (
               <>
-                <MobileRiddlePage
-                  roundId={round?._id}
-                  targetObject={round?.answer}
-                  isExpired={isExpired}
-                  onCorrect={handleCorrectAnswer}
-                />
+                {answerMode === 'drawing' ? (
+                  // Keyed by round so the next riddle starts on a blank canvas.
+                  <MobileDrawingPage
+                    key={round?._id}
+                    roundId={round?._id}
+                    targetObject={round?.answer}
+                    isExpired={isExpired}
+                    onCorrect={handleCorrectAnswer}
+                  />
+                ) : (
+                  <MobileRiddlePage
+                    roundId={round?._id}
+                    targetObject={round?.answer}
+                    isExpired={isExpired}
+                    onCorrect={handleCorrectAnswer}
+                  />
+                )}
                 {round?._id && (
                   <div className="flex-shrink-0 border-t border-[#353534] bg-[#0e0e0e] px-5 pb-4 pt-3">
                     <SkipRoundButton

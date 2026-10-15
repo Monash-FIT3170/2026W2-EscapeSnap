@@ -11,6 +11,8 @@ import {
   startGame,
 } from '../games/gameLifecycle';
 import { SEARCH_TTL_MS } from '../../lib/teamStatus';
+import { DEFAULT_ANSWER_MODE } from '../../lib/answerModes';
+import { CUSTOM_THEME, normalizeCustomTheme } from '../../lib/customTheme';
 
 async function assertLobbyFull(game) {
   const playerCount = await Players.find({ gameId: game._id }).countAsync();
@@ -36,6 +38,9 @@ async function launchTeams(gameIds, { shareSettings = false } = {}) {
       timerMinutes: source.timerMinutes,
       difficulty: source.difficulty,
       theme: source.theme,
+      ...(source.customTheme && { customTheme: source.customTheme }),
+      // The shared riddles were written for the source's answer mode.
+      ...(source.mode && { mode: source.mode }),
     });
   }
   await Games.updateAsync(
@@ -60,6 +65,8 @@ export async function createLocalMatch({
   capacity = 4,
   difficulty = 'medium',
   theme = 'classroom',
+  mode = DEFAULT_ANSWER_MODE,
+  customTheme,
 } = {}) {
   const names = (Array.isArray(teamNames) ? teamNames : []).map((name) =>
     typeof name === 'string' ? name.trim() : ''
@@ -69,6 +76,14 @@ export async function createLocalMatch({
   }
   if (names[0].toLowerCase() === names[1].toLowerCase()) {
     throw new Meteor.Error('duplicate-team-name', 'Team names must differ');
+  }
+  const cleanCustomTheme =
+    theme === CUSTOM_THEME ? normalizeCustomTheme(customTheme) : '';
+  if (theme === CUSTOM_THEME && !cleanCustomTheme) {
+    throw new Meteor.Error(
+      'invalid-custom-theme',
+      'Custom theme text is required'
+    );
   }
 
   const createdAt = new Date();
@@ -85,7 +100,9 @@ export async function createLocalMatch({
         capacity,
         difficulty,
         theme,
-        mode: 'local',
+        ...(cleanCustomTheme && { customTheme: cleanCustomTheme }),
+        mode,
+        playMode: 'local',
         createdAt,
         startedAt: null,
         endedAt: null,
@@ -113,6 +130,8 @@ export async function createLocalMatch({
       capacity,
       difficulty,
       theme,
+      customTheme: cleanCustomTheme,
+      mode,
     });
   }
 
@@ -165,7 +184,7 @@ export async function startLocalMatch(matchId) {
 export async function enterMatchmaking(gameId) {
   const game = await Games.findOneAsync(gameId);
   if (!game) throw new Meteor.Error('not-found', 'Game not found');
-  if (game.mode !== 'online') {
+  if (game.playMode !== 'online') {
     throw new Meteor.Error('invalid-state', 'Not an online versus game');
   }
   if (game.status !== 'lobby' || game.matchId) {
@@ -239,7 +258,7 @@ async function pairTeams(first, second) {
 async function pairWaitingTeams() {
   const waiting = await Games.find(
     {
-      mode: 'online',
+      playMode: 'online',
       status: 'lobby',
       matchId: { $exists: false },
       matchmakingSince: { $gte: new Date(Date.now() - SEARCH_TTL_MS) },

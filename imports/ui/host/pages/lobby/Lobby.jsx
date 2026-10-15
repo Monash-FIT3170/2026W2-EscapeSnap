@@ -173,10 +173,10 @@ const Lobby = () => {
 
   // A same-room team's lobby lives on the shared match screen.
   useEffect(() => {
-    if (game?.mode === 'local' && game.matchId) {
+    if (game?.playMode === 'local' && game.matchId) {
       navigate(`/match/${game.matchId}/lobby`, { replace: true });
     }
-  }, [game?.mode, game?.matchId]);
+  }, [game?.playMode, game?.matchId]);
 
   const handleStartGame = async () => {
     setStarting(true);
@@ -327,7 +327,7 @@ const Lobby = () => {
               <h1 style={{ fontWeight: 700, fontSize: 28, letterSpacing: '2px', color: '#e5e2e1' }}>
                 {t('host.lobby.title')}
               </h1>
-              {game.mode === 'online' && (
+              {game.playMode === 'online' && (
                 <p style={{ fontSize: 10, letterSpacing: '1.5px', color: '#aa8984', marginTop: 2 }}>
                   {t('host.lobby.onlineVersus')}
                 </p>
@@ -377,7 +377,7 @@ const Lobby = () => {
           )}
 
           {/* Start button */}
-          {game.mode === 'online' && !gameStarted ? (
+          {game.playMode === 'online' && !gameStarted ? (
             <OnlineMatchmaking
               game={game}
               lobbyFull={lobbyFull}

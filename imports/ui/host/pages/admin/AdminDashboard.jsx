@@ -379,7 +379,7 @@ function GameRow({ game, players, rounds, now, expanded, onToggle, adminKey }) {
           className="text-xs uppercase tracking-widest"
           style={{ color: COLORS.muted }}
         >
-          {game.mode}
+          {game.playMode}
         </span>
         <span>
           <StatusBadge status={game.status} />
@@ -624,7 +624,7 @@ function Dashboard({ adminKey, onAuthError, onLock }) {
   const filtered = games.filter(
     (g) =>
       (statusFilter === 'all' || g.status === statusFilter) &&
-      (modeFilter === 'all' || g.mode === modeFilter) &&
+      (modeFilter === 'all' || g.playMode === modeFilter) &&
       (!needle ||
         g.joinCode.toLowerCase().includes(needle) ||
         g.groupName.toLowerCase().includes(needle))

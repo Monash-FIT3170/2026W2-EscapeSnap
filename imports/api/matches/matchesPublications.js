@@ -10,7 +10,7 @@ const TEAM_FIELDS = {
   joinCode: 1,
   groupName: 1,
   status: 1,
-  mode: 1,
+  playMode: 1,
   matchId: 1,
   capacity: 1,
   currentRound: 1,

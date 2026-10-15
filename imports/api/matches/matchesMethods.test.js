@@ -69,7 +69,7 @@ if (Meteor.isServer) {
           games.map((g) => g.groupName),
           ['Red', 'Blue']
         );
-        assert.isTrue(games.every((g) => g.mode === 'local'));
+        assert.isTrue(games.every((g) => g.playMode === 'local'));
         assert.notEqual(games[0].joinCode, games[1].joinCode);
       });
 
@@ -192,7 +192,7 @@ if (Meteor.isServer) {
       async function createOnlineTeam(groupName, options = {}) {
         const gameId = await Meteor.callAsync('games.create', {
           groupName,
-          mode: 'online',
+          playMode: 'online',
           capacity: 1,
           ...options,
         });
@@ -235,7 +235,7 @@ if (Meteor.isServer) {
         const solo = await createOnlineTeam('solo', { capacity: 1 });
         const pairId = await Meteor.callAsync('games.create', {
           groupName: 'pair',
-          mode: 'online',
+          playMode: 'online',
           capacity: 2,
         });
         await fillLobby(pairId, 'pair');
@@ -261,7 +261,7 @@ if (Meteor.isServer) {
       it('refuses to queue a team whose lobby is not full', async function () {
         const gameId = await Meteor.callAsync('games.create', {
           groupName: 'alpha',
-          mode: 'online',
+          playMode: 'online',
           capacity: 2,
         });
         await expectError(

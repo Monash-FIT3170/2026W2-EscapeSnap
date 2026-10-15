@@ -2,6 +2,8 @@ import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
 import 'meteor/aldeed:collection2/static';
 import { THEMES } from '/imports/lib/cocoClasses';
+import { CUSTOM_THEME, CUSTOM_THEME_MAX_LENGTH } from '/imports/lib/customTheme';
+import { ANSWER_MODES, DEFAULT_ANSWER_MODE } from '/imports/lib/answerModes';
 
 export const Games = new Mongo.Collection('games');
 
@@ -46,12 +48,25 @@ Games.attachSchema(
     },
     theme: {
       type: String,
-      allowedValues: THEMES,
+      allowedValues: [...THEMES, CUSTOM_THEME],
       defaultValue: 'classroom',
+    },
+    // The host's own theme text; only set when theme === 'custom'.
+    customTheme: {
+      type: String,
+      optional: true,
+      min: 1,
+      max: CUSTOM_THEME_MAX_LENGTH,
+    },
+    // How players answer a riddle: photo or sketch.
+    mode: {
+      type: String,
+      allowedValues: ANSWER_MODES,
+      defaultValue: DEFAULT_ANSWER_MODE,
     },
     // 'solo' is the classic single-team game. 'local' and 'online' are one
     // team's side of a team-vs-team match — same room, or randomly paired.
-    mode: {
+    playMode: {
       type: String,
       allowedValues: ['solo', 'local', 'online'],
       defaultValue: 'solo',

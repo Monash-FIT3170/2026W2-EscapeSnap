@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router';
 import { useT } from '../../../../languages/LanguageProvider';
 import { LanguagePicker } from '../../../../languages/LanguagePicker';
 import { errorKey } from '../../../../languages/errors';
+import { DEFAULT_ANSWER_MODE } from '../../../../lib/answerModes';
+import { CUSTOM_THEME, CUSTOM_THEME_MAX_LENGTH } from '../../../../lib/customTheme';
 
 const DIFFICULTY_OPTIONS = [
   { value: 'easy', labelKey: 'difficulty.easy', subKey: 'difficulty.easySub' },
@@ -11,7 +13,7 @@ const DIFFICULTY_OPTIONS = [
   { value: 'hard', labelKey: 'difficulty.hard', subKey: 'difficulty.hardSub' },
 ];
 
-const MODE_OPTIONS = [
+const PLAY_MODE_OPTIONS = [
   { value: 'solo', labelKey: 'host.createGame.modeSolo', subKey: 'host.createGame.modeSoloSub' },
   { value: 'local', labelKey: 'host.createGame.modeLocal', subKey: 'host.createGame.modeLocalSub' },
   { value: 'online', labelKey: 'host.createGame.modeOnline', subKey: 'host.createGame.modeOnlineSub' },
@@ -20,6 +22,12 @@ const MODE_OPTIONS = [
 const THEME_OPTIONS = [
   { value: 'classroom', label: 'CLASSROOM', sub: 'LECTURE HALL ITEMS' },
   { value: 'home', label: 'HOME', sub: 'DOMESTIC ITEMS' },
+  { value: CUSTOM_THEME, labelKey: 'host.createGame.themeOther', subKey: 'host.createGame.themeOtherSub' },
+];
+
+const MODE_OPTIONS = [
+  { value: 'camera', labelKey: 'host.createGame.modeCamera', subKey: 'host.createGame.modeCameraSub' },
+  { value: 'drawing', labelKey: 'host.createGame.modeDrawing', subKey: 'host.createGame.modeDrawingSub' },
 ];
 
 const CreateGame = () => {
@@ -28,24 +36,37 @@ const CreateGame = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const [mode, setMode] = useState('solo');
+  const [playMode, setPlayMode] = useState('solo');
   const [groupName, setGroupName] = useState('');
   const [rivalName, setRivalName] = useState('');
   const [timer, setTimer] = useState(30);
   const [capacity, setCapacity] = useState(4);
   const [difficulty, setDifficulty] = useState('medium');
   const [theme, setTheme] = useState('classroom');
+  const [customTheme, setCustomTheme] = useState('');
+  const [mode, setMode] = useState(DEFAULT_ANSWER_MODE);
 
-  const isLocal = mode === 'local';
+  const isLocal = playMode === 'local';
 
   const handleCreateGame = async () => {
     if (!groupName.trim() || (isLocal && !rivalName.trim())) {
       setError(t(isLocal ? 'host.createGame.errTeamNamesRequired' : 'host.createGame.errGroupNameRequired'));
       return;
     }
+    if (theme === CUSTOM_THEME && !customTheme.trim()) {
+      setError(t('host.createGame.errCustomThemeRequired'));
+      return;
+    }
     setLoading(true);
     setError(null);
-    const settings = { timerMinutes: timer, capacity, difficulty, theme };
+    const settings = {
+      timerMinutes: timer,
+      capacity,
+      difficulty,
+      theme,
+      mode,
+      customTheme: theme === CUSTOM_THEME ? customTheme.trim() : undefined,
+    };
     try {
       if (isLocal) {
         const matchId = await Meteor.callAsync('matches.createLocal', {
@@ -54,11 +75,11 @@ const CreateGame = () => {
         });
         navigate(`/match/${matchId}/lobby`);
       } else {
-        const gameId = await Meteor.callAsync('games.create', { ...settings, groupName: groupName.trim(), mode });
+        const gameId = await Meteor.callAsync('games.create', { ...settings, groupName: groupName.trim(), playMode });
         navigate(`/game/${gameId}/lobby`);
       }
     } catch (err) {
-      setError(t(errorKey(err)));
+      setError(t(errorKey(err, { 'invalid-custom-theme': 'host.createGame.errCustomThemeRequired' })));
       setLoading(false);
     }
   };
@@ -93,26 +114,26 @@ const CreateGame = () => {
                 {t('host.createGame.gameMode')}
               </label>
               <div className="grid grid-cols-3 gap-2">
-                {MODE_OPTIONS.map(opt => (
+                {PLAY_MODE_OPTIONS.map(opt => (
                   <button
                     key={opt.value}
-                    onClick={() => setMode(opt.value)}
+                    onClick={() => setPlayMode(opt.value)}
                     className="p-3 text-left transition-colors cursor-pointer"
                     style={{
-                      border: mode === opt.value ? '1px solid #8b0000' : '1px solid #1c1b1b',
-                      background: mode === opt.value ? '#1c0000' : 'transparent',
+                      border: playMode === opt.value ? '1px solid #8b0000' : '1px solid #1c1b1b',
+                      background: playMode === opt.value ? '#1c0000' : 'transparent',
                     }}
                   >
                     <div className="text-xs font-bold" style={{ color: '#e5e2e1' }}>
                       {t(opt.labelKey)}
                     </div>
-                    <div className="text-xs mt-1 leading-tight" style={{ color: mode === opt.value ? '#aa8984' : '#555' }}>
+                    <div className="text-xs mt-1 leading-tight" style={{ color: playMode === opt.value ? '#aa8984' : '#555' }}>
                       {t(opt.subKey)}
                     </div>
                   </button>
                 ))}
               </div>
-              {mode !== 'solo' && (
+              {playMode !== 'solo' && (
                 <p className="text-xs mt-3 leading-relaxed" style={{ color: '#555' }}>
                   {t(isLocal ? 'host.createGame.localNote' : 'host.createGame.onlineNote')}
                 </p>
@@ -122,7 +143,7 @@ const CreateGame = () => {
             <div className="p-4 space-y-4" style={{ border: '1px solid #1c1b1b' }}>
               {[
                 {
-                  labelKey: isLocal ? 'host.createGame.team1Name' : mode === 'online' ? 'host.createGame.teamName' : 'host.createGame.groupName',
+                  labelKey: isLocal ? 'host.createGame.team1Name' : playMode === 'online' ? 'host.createGame.teamName' : 'host.createGame.groupName',
                   placeholderKey: isLocal ? 'host.createGame.team1Placeholder' : 'host.createGame.groupNamePlaceholder',
                   value: groupName,
                   onChange: setGroupName,
@@ -170,7 +191,7 @@ const CreateGame = () => {
 
             <div className="p-4" style={{ border: '1px solid #1c1b1b' }}>
               <label className="block text-xs tracking-widest mb-3" style={{ color: '#aa8984' }}>
-                {t(mode === 'solo' ? 'host.createGame.lobbyCapacity' : 'host.createGame.playersPerTeam')}
+                {t(playMode === 'solo' ? 'host.createGame.lobbyCapacity' : 'host.createGame.playersPerTeam')}
               </label>
               <div className="flex items-center gap-4">
                 <input
@@ -214,7 +235,7 @@ const CreateGame = () => {
               <label className="block text-xs tracking-widest mb-3" style={{ color: '#aa8984' }}>
                 RIDDLE THEME
               </label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 {THEME_OPTIONS.map(opt => (
                   <button
                     key={opt.value}
@@ -226,10 +247,55 @@ const CreateGame = () => {
                     }}
                   >
                     <div className="text-xs font-bold" style={{ color: '#e5e2e1' }}>
-                      {opt.label}
+                      {opt.value === CUSTOM_THEME ? (
+                        // Shimmers so hosts notice they can type their own theme.
+                        <span className="ai-text">{t(opt.labelKey)}</span>
+                      ) : (
+                        opt.label
+                      )}
                     </div>
                     <div className="text-xs mt-1 leading-tight" style={{ color: theme === opt.value ? '#aa8984' : '#555' }}>
-                      {opt.sub}
+                      {opt.subKey ? t(opt.subKey) : opt.sub}
+                    </div>
+                  </button>
+                ))}
+              </div>
+              {theme === CUSTOM_THEME && (
+                <input
+                  type="text"
+                  autoFocus
+                  placeholder={t('host.createGame.customThemePlaceholder')}
+                  aria-label={t('host.createGame.themeOther')}
+                  value={customTheme}
+                  onChange={e => setCustomTheme(e.target.value)}
+                  maxLength={CUSTOM_THEME_MAX_LENGTH}
+                  autoComplete="off"
+                  className="mt-3 w-full bg-transparent px-3 py-3 text-sm tracking-wide focus:outline-none"
+                  style={{ border: '1px solid #8b0000', color: '#e5e2e1' }}
+                />
+              )}
+            </div>
+
+            <div className="p-4" style={{ border: '1px solid #1c1b1b' }}>
+              <label className="block text-xs tracking-widest mb-3" style={{ color: '#aa8984' }}>
+                {t('host.createGame.answerMode')}
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {MODE_OPTIONS.map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setMode(opt.value)}
+                    className="p-3 text-left transition-colors cursor-pointer"
+                    style={{
+                      border: mode === opt.value ? '1px solid #8b0000' : '1px solid #1c1b1b',
+                      background: mode === opt.value ? '#1c0000' : 'transparent',
+                    }}
+                  >
+                    <div className="text-xs font-bold" style={{ color: '#e5e2e1' }}>
+                      {t(opt.labelKey)}
+                    </div>
+                    <div className="text-xs mt-1 leading-tight" style={{ color: mode === opt.value ? '#aa8984' : '#555' }}>
+                      {t(opt.subKey)}
                     </div>
                   </button>
                 ))}

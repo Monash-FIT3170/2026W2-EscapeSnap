@@ -69,9 +69,18 @@ export const en = {
       playersPerTeam: 'PLAYERS PER TEAM',
       errTeamNamesRequired: 'BOTH TEAM NAMES REQUIRED',
       onlineNote:
-        'Once your lobby is full you can search for a rival team of the same size. If they were waiting first, their time limit, difficulty and theme are used.',
+        'Once your lobby is full you can search for a rival team of the same size. If they were waiting first, their time limit, difficulty, theme and answer mode are used.',
       localNote:
         'Each team gets its own join code. Both teams hunt the same objects; the first to crack its final code wins.',
+      answerMode: 'ANSWER MODE',
+      modeCamera: 'CAMERA',
+      modeCameraSub: 'SNAP THE OBJECT',
+      modeDrawing: 'DRAWING',
+      modeDrawingSub: 'SKETCH THE ANSWER',
+      themeOther: 'OTHER',
+      themeOtherSub: 'YOUR OWN THEME',
+      customThemePlaceholder: 'e.g. HARRY POTTER',
+      errCustomThemeRequired: 'ENTER A THEME',
     },
     lobby: {
       navTag: 'GAME LOBBY',
@@ -335,6 +344,12 @@ export const en = {
       roundEnded: 'Round Ended',
       noSubmissionAccepted: 'No submission accepted',
       capturePhotoAria: 'Capture photo',
+      drawPrompt: 'Draw the answer',
+      toolDraw: 'Draw',
+      toolErase: 'Erase',
+      toolClear: 'Clear',
+      submitSketch: 'Submit Sketch',
+      canvasAria: 'Drawing canvas',
     },
     dashboard: {
       lettersCollected: 'Letters Collected',

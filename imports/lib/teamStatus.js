@@ -6,7 +6,7 @@
 export const SEARCH_TTL_MS = 10 * 60 * 1000;
 
 export const isVersusGame = (game) =>
-  !!game && (!!game.matchId || (!!game.mode && game.mode !== 'solo'));
+  !!game && (!!game.matchId || (!!game.playMode && game.playMode !== 'solo'));
 
 // 'waiting' | 'playing' | 'final' | 'escaped' | 'failed'
 export function teamPhase(game, rounds) {

@@ -94,14 +94,20 @@ async function writeRiddlesIfNotReady(gameId, finalRiddle, roundRiddles) {
 // games.start if generation hasn't finished yet.
 async function pregenerateRiddles(
   gameId,
-  { totalRounds, capacity, difficulty, theme }
+  { totalRounds, capacity, difficulty, theme, customTheme, mode }
 ) {
   const needed = totalRounds * capacity;
   const finalAnswerLength = clampFinalAnswerLength(needed);
 
   const [finalRiddleResult, roundPoolResult] = await Promise.allSettled([
     generateFinalRiddle({ difficulty, letterCount: finalAnswerLength }),
-    generateRoundRiddles({ count: needed, difficulty, theme }),
+    generateRoundRiddles({
+      count: needed,
+      difficulty,
+      theme,
+      customTheme,
+      mode,
+    }),
   ]);
 
   let finalRiddle;
@@ -176,6 +182,8 @@ export async function ensureRiddlesReady(game) {
     capacity: game.capacity,
     difficulty: game.difficulty,
     theme: game.theme,
+    customTheme: game.customTheme,
+    mode: game.mode,
   });
 
   const readyInTime = await Promise.race([
