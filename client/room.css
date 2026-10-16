@@ -294,11 +294,15 @@ body:not(:has(.lp))::after {
     inset 0 -2px 0 rgba(0, 0, 0, 0.5),
     0 40px 80px -30px rgba(0, 0, 0, 0.9);
 }
-/* Daylight's plates stay dark, so their text resets to the dark room's.
-   .es-dark does the same for any other device that stays dark (the host's
-   side rail). */
+/* Daylight's devices (plates, LCDs, fields, keys) stay dark, like the
+   landing page's, so their tokens reset to the dark room's. .es-dark does the
+   same for anything else that stays dark (the host's side rail). Only the
+   tokens are reset here: each class sets its own text colour from them, and a
+   colour set here would outrank .es-lcd-text's glow. */
 [data-ui-theme='daylight'] .es-plate,
 [data-ui-theme='daylight'] .es-lcd,
+[data-ui-theme='daylight'] .es-field,
+[data-ui-theme='daylight'] .es-key,
 [data-ui-theme='daylight'] .es-dark {
   --es-ink: 244 240 232;
   --es-muted: 207 198 184;
@@ -308,7 +312,35 @@ body:not(:has(.lp))::after {
   --es-ground: 26 22 19;
   --es-brand-bright: 255 90 70;
   --es-correct: 63 210 122;
+  --es-warn: 252 211 77;
+  --es-incorrect: 255 90 70;
+}
+.es-dark {
   color: rgb(var(--es-ink));
+}
+/* Lit from above, the dark props cast lighter, warmer shadows. */
+[data-ui-theme='daylight'] .es-plate {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.5),
+    0 22px 40px -22px rgba(60, 45, 30, 0.55);
+}
+[data-ui-theme='daylight'] .es-paper,
+[data-ui-theme='daylight'] .es-pola {
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.12),
+    0 18px 30px -14px rgba(60, 45, 30, 0.45);
+}
+/* High contrast: every device gets a crisp white edge. */
+[data-ui-theme='contrast'] .es-plate,
+[data-ui-theme='contrast'] .es-well,
+[data-ui-theme='contrast'] .es-key,
+[data-ui-theme='contrast'] .es-chip {
+  border-color: rgb(255 255 255 / 0.85);
+}
+[data-ui-theme='contrast'] .es-lcd,
+[data-ui-theme='contrast'] .es-field {
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.6);
 }
 /* A quieter recessed panel: a row or card inside a plate, or on the floor. */
 .es-well {
@@ -378,8 +410,10 @@ body:not(:has(.lp))::after {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--es-ember) 85%, rgb(var(--es-brand-bright)));
-  box-shadow: inset 0 0 2px #000;
+  /* Unlit: the surface's line colour with a hint of red, so it sits quietly
+     on a dark plate and on Daylight's light floor alike. */
+  background: color-mix(in srgb, rgb(var(--es-line)) 82%, rgb(var(--es-brand)));
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.5);
 }
 .es-led[data-state='ready'],
 .es-led[data-state='busy'] {
@@ -573,7 +607,8 @@ body:not(:has(.lp))::after {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 30%, rgba(0, 0, 0, 0.18)),
     rgb(var(--es-brand));
-  color: color-mix(in srgb, var(--es-ember) 40%, black);
+  /* Each theme's text-on-accent colour, so the tape reads in all of them. */
+  color: rgb(var(--es-on-brand));
   font-family: var(--es-f-ui);
   font-weight: 700;
   letter-spacing: 0.09em;

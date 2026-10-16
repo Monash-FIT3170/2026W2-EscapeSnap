@@ -13,6 +13,7 @@ import {
 import { SEARCH_TTL_MS } from '../../lib/teamStatus';
 import { DEFAULT_ANSWER_MODE } from '../../lib/answerModes';
 import { CUSTOM_THEME, normalizeCustomTheme } from '../../lib/customTheme';
+import { DEFAULT_UI_THEME } from '../../lib/uiThemes';
 
 async function assertLobbyFull(game) {
   const playerCount = await Players.find({ gameId: game._id }).countAsync();
@@ -65,6 +66,7 @@ export async function createLocalMatch({
   capacity = 4,
   difficulty = 'medium',
   theme = 'classroom',
+  uiTheme = DEFAULT_UI_THEME,
   mode = DEFAULT_ANSWER_MODE,
   customTheme,
 } = {}) {
@@ -99,6 +101,8 @@ export async function createLocalMatch({
         capacity,
         difficulty,
         theme,
+        // Both teams' phones and the shared screen show the host's skin.
+        uiTheme,
         ...(cleanCustomTheme && { customTheme: cleanCustomTheme }),
         mode,
         playMode: 'local',

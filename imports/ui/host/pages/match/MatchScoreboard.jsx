@@ -4,6 +4,7 @@ import { useMatch } from '/imports/ui/shared/hooks/useMatch';
 import TeamScoreCard from '../../components/match/TeamScoreCard';
 import { useT } from '../../../../languages/LanguageProvider';
 import { RoomBar } from '/imports/ui/shared/components/room/RoomBar';
+import { useGameUiTheme } from '/imports/ui/shared/components/theme/UiThemeProvider';
 
 // The shared screen for a same-room match. It deliberately shows no riddles
 // and no letters — both teams can see it, so it is a scoreboard only, and each
@@ -13,6 +14,8 @@ const MatchScoreboard = () => {
   const navigate = useNavigate();
   const t = useT();
   const { loading, match, teams, players, rounds } = useMatch(matchId);
+  // Both teams were created in the same skin; show it here as on their phones.
+  useGameUiTheme(match?.gameIds?.[0]);
 
   if (loading) {
     return (

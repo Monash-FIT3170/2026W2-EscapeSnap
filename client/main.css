@@ -28,7 +28,7 @@
   --es-line: 66 50 22;
   --es-ink: 255 224 170;
   --es-muted: 196 154 92;
-  --es-dim: 116 90 52;
+  --es-dim: 150 118 70;
   --es-brand: 255 176 0;
   --es-brand-bright: 255 198 64;
   --es-on-brand: 20 14 0;
@@ -42,7 +42,7 @@
   --es-line: 38 62 98;
   --es-ink: 220 232 245;
   --es-muted: 132 162 198;
-  --es-dim: 84 108 140;
+  --es-dim: 104 130 164;
   --es-brand: 14 165 233;
   --es-brand-bright: 56 189 248;
   --es-on-brand: 4 14 28;
@@ -55,13 +55,13 @@
   --es-line: 205 196 182;
   --es-ink: 32 28 26;
   --es-muted: 110 90 84;
-  --es-dim: 138 128 118;
+  --es-dim: 112 102 92;
   --es-brand: 165 20 20;
   --es-brand-bright: 190 30 30;
   --es-on-brand: 255 250 245;
-  --es-correct: 22 128 61;
+  --es-correct: 20 112 52;
   --es-incorrect: 200 30 30;
-  --es-warn: 161 98 7;
+  --es-warn: 140 84 6;
 }
 
 [data-ui-theme='contrast'] {

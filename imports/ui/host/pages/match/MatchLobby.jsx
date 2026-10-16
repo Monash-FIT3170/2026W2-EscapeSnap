@@ -7,6 +7,7 @@ import { useT } from '../../../../languages/LanguageProvider';
 import { LanguagePicker } from '../../../../languages/LanguagePicker';
 import { errorKey } from '../../../../languages/errors';
 import { RoomBar } from '/imports/ui/shared/components/room/RoomBar';
+import { useGameUiTheme } from '/imports/ui/shared/components/theme/UiThemeProvider';
 
 const TeamLobbyPanel = ({ team, players }) => {
   const t = useT();
@@ -75,6 +76,8 @@ const MatchLobby = () => {
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState(null);
   const { loading, match, teams, players } = useMatch(matchId);
+  // Both teams were created in the same skin; show it here as on their phones.
+  useGameUiTheme(match?.gameIds?.[0]);
 
   useEffect(() => {
     if (match && match.status !== 'lobby' && match.startedAt) {

@@ -28,7 +28,7 @@ export function PlayerResultSummary({ playerId }) {
         </span>
         <BadgeList badges={result.badges} size={25} />
       </div>
-      <p className="mt-3 text-sm text-muted">
+      <p className="mt-3 font-display text-base tracking-[0.02em] text-muted">
         {t('mobile.share.solvedAccuracy', {
           correct: result.stats.correctCount,
           total: result.stats.totalRounds,
