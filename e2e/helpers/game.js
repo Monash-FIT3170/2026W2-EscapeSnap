@@ -1,6 +1,6 @@
 // Shared steps for the E2E specs. Each helper drives the real UI rather than
 // calling Meteor methods directly, so the flows stay covered end to end.
-import { devices, expect } from '@playwright/test';
+import { devices, expect, test } from '@playwright/test';
 import { FINAL_RIDDLE_BANK } from '../../imports/lib/finalRiddle';
 import { DEMO, PLAYER_VIEWPORT, demoPause, placeWindow } from './demo';
 
@@ -49,12 +49,35 @@ export async function openPlayerPage(browser) {
     ...devices['Pixel 7'],
     locale: 'en-US',
     permissions: ['camera'],
-    ...(DEMO && { viewport: PLAYER_VIEWPORT }),
+    ...(DEMO && {
+      viewport: PLAYER_VIEWPORT,
+      recordVideo: {
+        dir: test.info().outputPath('player-videos'),
+        size: PLAYER_VIEWPORT,
+      },
+    }),
   });
   const page = await context.newPage();
   // The host's context is the first one, so this is the player's join order.
-  await placeWindow(page, browser.contexts().length - 1);
-  return { context, page };
+  const slot = browser.contexts().length - 1;
+  await placeWindow(page, slot);
+  return { context, page, slot };
+}
+
+// Closes every player's browser. In demo mode each player's screen recording
+// is attached to the report (it's only written once the context closes).
+export async function closePlayers(players) {
+  await Promise.all(players.map(({ context }) => context.close()));
+  if (!DEMO) return;
+  for (const { page, slot } of players) {
+    const video = page.video();
+    if (video) {
+      await test.info().attach(`player ${slot} screen`, {
+        path: await video.path(),
+        contentType: 'video/webm',
+      });
+    }
+  }
 }
 
 // Fills in the player join form. Doesn't assert the outcome, so it can be

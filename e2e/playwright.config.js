@@ -33,9 +33,11 @@ export default defineConfig({
     // The app picks its language from navigator.language, so pin English or
     // the text-based selectors break on a non-English machine.
     locale: 'en-US',
-    trace: 'retain-on-failure',
+    // Demo runs always keep a trace and video so they can be replayed from
+    // the report afterwards (player videos are attached by closePlayers).
+    trace: DEMO ? 'on' : 'retain-on-failure',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    video: DEMO ? 'on' : 'retain-on-failure',
   },
 
   projects: [

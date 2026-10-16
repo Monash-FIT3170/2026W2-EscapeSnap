@@ -5,6 +5,7 @@
 import { test, expect } from '@playwright/test';
 import { demoPause } from '../helpers/demo';
 import {
+  closePlayers,
   checkLetters,
   drawAnswer,
   finalAnswerFor,
@@ -93,7 +94,7 @@ test.describe('Full game', () => {
     await expect(hostPage.getByText(groupName)).toBeVisible();
     await demoPause(hostPage);
 
-    await Promise.all(players.map(({ context }) => context.close()));
+    await closePlayers(players);
   });
 
   test('team sketches every answer and escapes (drawing mode)', async ({
@@ -113,7 +114,7 @@ test.describe('Full game', () => {
 
     await solveFinalRiddle(hostPage, players);
 
-    await Promise.all(players.map(({ context }) => context.close()));
+    await closePlayers(players);
   });
 
   test('team skips every round and fails the final riddle', async ({
@@ -150,6 +151,6 @@ test.describe('Full game', () => {
     }
     await demoPause(hostPage, 5000);
 
-    await Promise.all(players.map(({ context }) => context.close()));
+    await closePlayers(players);
   });
 });

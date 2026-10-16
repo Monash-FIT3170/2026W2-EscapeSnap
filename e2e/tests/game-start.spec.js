@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import {
+  closePlayers,
   createGame,
   joinGame,
   openPlayerPage,
@@ -36,7 +37,7 @@ test.describe('Starting a game', () => {
       await expect(page.getByText('Loading riddle...')).toBeHidden();
     }
 
-    await Promise.all(players.map(({ context }) => context.close()));
+    await closePlayers(players);
   });
 
   test('a started game no longer accepts new players', async ({
@@ -63,6 +64,6 @@ test.describe('Starting a game', () => {
       'Game not found, or it has already started'
     );
 
-    await Promise.all([...players, late].map(({ context }) => context.close()));
+    await closePlayers([...players, late]);
   });
 });

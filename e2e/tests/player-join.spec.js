@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import {
+  closePlayers,
   createGame,
   joinGame,
   openPlayerPage,
@@ -97,6 +98,6 @@ test.describe('Player: join game', () => {
       'This game is full'
     );
 
-    await Promise.all(players.map(({ context }) => context.close()));
+    await closePlayers(players);
   });
 });
