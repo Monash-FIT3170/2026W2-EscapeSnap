@@ -51,15 +51,23 @@ const MobileRiddlePage = ({
 
   useEffect(() => {
     if (isExpired) return;
-    startCamera();
-    return () => stopCamera();
+    // getUserMedia can resolve after this screen has unmounted (the result
+    // screen swaps in and out between rounds). A stream that arrives then has
+    // no owner left to stop it, so it stays live, keeping the camera on and
+    // blanking the next screen's feed. Flag the unmount so it's stopped instead.
+    const mount = { unmounted: false };
+    startCamera(mount);
+    return () => {
+      mount.unmounted = true;
+      stopCamera();
+    };
   }, []);
 
   useEffect(() => {
     if (isExpired) stopCamera();
   }, [isExpired]);
 
-  async function startCamera() {
+  async function startCamera(mount) {
     if (!navigator.mediaDevices?.getUserMedia) {
       console.error('[camera] navigator.mediaDevices is unavailable - likely an insecure (non-HTTPS) context');
       setCameraError(t('mobile.riddle.errCameraSecure'));
@@ -70,6 +78,10 @@ const MobileRiddlePage = ({
         video: { facingMode: 'environment' },
         audio: false,
       });
+      if (mount.unmounted) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -135,7 +147,7 @@ const MobileRiddlePage = ({
             await submitRiddle(base64);
           } else {
             setUploading(false);
-            if (result.outcome === 'fail' && onCorrect) onCorrect('?', false);
+            if (result.outcome === 'fail' && onCorrect) onCorrect('?', false, roundId);
           }
         } catch (err) {
           console.error('[submissions.classify] failed:', err.error || err.reason || err.message);
@@ -153,7 +165,7 @@ const MobileRiddlePage = ({
     if (isExpired || !roundId) return;
     try {
       const letter = await Meteor.callAsync('rounds.submit', roundId, true);
-      if (onCorrect) onCorrect(letter, true);
+      if (onCorrect) onCorrect(letter, true, roundId);
     } catch (err) {
       console.error('[rounds.submit] failed:', err.error || err.reason || err.message);
       setValidationState('error');
