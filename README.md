@@ -91,8 +91,8 @@ Configure these GitHub Environments and values before deployment:
 
 | Environment | Variable | Secrets |
 | --- | --- | --- |
-| `staging` | `GALAXY_APP_URL` (staging Galaxy hostname, without `https://`) | `GALAXY_STAGING_SESSION` or `METEOR_STAGING_SESSION_FILE`, `STAGING_GEMINI_API_KEY`, `STAGING_MONGO_URL` |
-| `production` | Optional `GALAXY_APP_URL` (defaults to `escape-snap.sandbox.galaxycloud.app`) | `GALAXY_SESSION` or `METEOR_SESSION_FILE`, `GEMINI_API_KEY`, `MONGO_URL` |
+| `staging` | `GALAXY_APP_URL` (staging Galaxy hostname, without `https://`) | `GALAXY_STAGING_SESSION` or `METEOR_STAGING_SESSION_FILE`, `STAGING_GEMINI_API_KEY`, `STAGING_MONGO_URL`, optional `STAGING_ADMIN_KEY` |
+| `production` | Optional `GALAXY_APP_URL` (defaults to `escape-snap.sandbox.galaxycloud.app`) | `GALAXY_SESSION` or `METEOR_SESSION_FILE`, `GEMINI_API_KEY`, `MONGO_URL`, optional `ADMIN_KEY` |
 
 Use separate staging database and API credentials; do not point staging at
 production data. Galaxy builds from the checked-out commit during each
