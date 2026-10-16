@@ -15,18 +15,18 @@ export default function GameCompletionActions({
         className="font-bold uppercase transition-colors duration-200"
         style={{
           padding: '14px 64px',
-          background: '#8b0000',
-          color: '#e5e2e1',
+          background: 'rgb(var(--es-brand))',
+          color: 'rgb(var(--es-on-brand))',
           fontSize: 13,
           letterSpacing: '1.5px',
           cursor: 'pointer',
           border: 'none',
         }}
         onMouseEnter={event => {
-          event.currentTarget.style.background = '#a50000';
+          event.currentTarget.style.background = 'rgb(var(--es-brand-bright))';
         }}
         onMouseLeave={event => {
-          event.currentTarget.style.background = '#8b0000';
+          event.currentTarget.style.background = 'rgb(var(--es-brand))';
         }}
       >
         {playAgainLabel}
@@ -39,11 +39,11 @@ export default function GameCompletionActions({
         style={{
           padding: '10px 32px',
           background: 'transparent',
-          color: '#aa8984',
+          color: 'rgb(var(--es-muted))',
           fontSize: 11,
           letterSpacing: '1.5px',
           cursor: 'pointer',
-          border: '1px solid #353534',
+          border: '1px solid rgb(var(--es-line))',
         }}
       >
         {t('host.gameCompletion.viewGroupLeaderboard')}

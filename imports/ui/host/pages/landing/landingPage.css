@@ -22,6 +22,13 @@
   /* LCD text: #db4b36 clears 4.5:1 on the keypad's #0c0302 (the prototype's
      #c8432f sat at 4.2:1). */
   --lcd: #db4b36;
+  /* Recoloured per theme (see the end of this file): */
+  --hot: #ff4a32; /* LEDs, LCD digits, lit letters */
+  --deep: #a3150e; /* stamp, red string, ink on paper */
+  --ember: #2e0c08; /* near-black red behind screens */
+  --surface: #3b342e; /* wall, keypad, TV, door (shaded darker from this) */
+  --glow: #ffe2b6; /* torch and lamp light */
+  --on-alarm: #fff7ee; /* text on the primary button */
   --gutter: clamp(16px, 4vw, 40px);
   --sec-pad: clamp(64px, 8vw, 112px);
   --f-ui: 'Oswald', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
@@ -171,25 +178,25 @@
 }
 .lp .lp-btn-primary {
   background: var(--alarm);
-  color: #fff7ee;
+  color: var(--on-alarm);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 14px 32px -14px rgba(211, 42, 29, 0.85);
+    0 14px 32px -14px color-mix(in srgb, var(--alarm) 85%, transparent);
 }
 .lp .lp-btn-primary:hover {
-  background: #e3372a;
+  background: color-mix(in srgb, var(--hot) 88%, black);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 16px 40px -10px rgba(227, 55, 42, 0.9);
+    0 16px 40px -10px color-mix(in srgb, var(--hot) 90%, transparent);
 }
 .lp .lp-btn-ghost {
   background: rgba(0, 0, 0, 0.45);
   color: var(--bone);
-  border-color: rgba(232, 223, 207, 0.42);
+  border-color: color-mix(in srgb, var(--bone) 42%, transparent);
 }
 .lp .lp-btn-ghost:hover {
   border-color: var(--bone);
-  background: rgba(232, 223, 207, 0.08);
+  background: color-mix(in srgb, var(--bone) 8%, transparent);
 }
 .lp .lp-link-quiet {
   display: inline-flex;
@@ -200,7 +207,7 @@
   font-size: 1.15rem;
   letter-spacing: 0.03em;
   text-decoration: underline;
-  text-decoration-color: rgba(232, 223, 207, 0.35);
+  text-decoration-color: color-mix(in srgb, var(--bone) 35%, transparent);
   text-underline-offset: 6px;
   transition: text-decoration-color 0.2s;
 }
@@ -230,8 +237,8 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  border-bottom: 1px solid #211c18;
-  background: rgba(6, 5, 4, 0.88);
+  border-bottom: 1px solid color-mix(in srgb, var(--surface) 56%, black);
+  background: color-mix(in srgb, color-mix(in srgb, var(--surface) 10%, black) 88%, transparent);
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   opacity: 0;
@@ -301,7 +308,7 @@
   min-height: 44px;
   min-width: 44px;
   padding: 0 14px;
-  border: 1px solid #3a332d;
+  border: 1px solid var(--surface);
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.45);
   font-family: var(--f-ui);
@@ -334,7 +341,7 @@
   height: 5px;
 }
 .lp .lp-chip[aria-pressed='true'] {
-  border-color: rgba(211, 42, 29, 0.7);
+  border-color: color-mix(in srgb, var(--alarm) 70%, transparent);
 }
 .lp .lp-chip[aria-pressed='true'] .lp-bars i {
   animation: lp-eq 0.8s ease-in-out infinite alternate;
@@ -375,7 +382,7 @@
   background:
     radial-gradient(
       55% 40% at 16% 74%,
-      rgba(96, 20, 13, 0.42),
+      color-mix(in srgb, var(--deep) 42%, transparent),
       transparent 70%
     ),
     radial-gradient(
@@ -392,7 +399,7 @@
       rgba(0, 0, 0, 0.16) 63.2% 63.4%,
       transparent 63.7%
     ),
-    linear-gradient(180deg, #352e27, #251f1a 65%, #1b1612);
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 90%, black), color-mix(in srgb, var(--surface) 62%, black) 65%, color-mix(in srgb, var(--surface) 44%, black));
 }
 .lp .lp-wall::before {
   content: '';
@@ -424,7 +431,7 @@
   white-space: nowrap;
   pointer-events: none;
   user-select: none;
-  color: rgba(160, 26, 18, 0.9);
+  color: color-mix(in srgb, var(--deep) 90%, transparent);
 }
 .lp .lp-chalk {
   color: rgba(225, 214, 196, 0.6);
@@ -440,8 +447,8 @@
   background:
     radial-gradient(
       circle var(--r) at var(--lx) var(--ly),
-      rgba(255, 226, 182, 0.13),
-      rgba(255, 226, 182, 0) 75%
+      color-mix(in srgb, var(--glow) 13%, transparent),
+      color-mix(in srgb, var(--glow) 0%, transparent) 75%
     ),
     radial-gradient(
       circle var(--r) at var(--lx) var(--ly),
@@ -572,7 +579,7 @@
   height: 22%;
   background: linear-gradient(
     transparent,
-    rgba(255, 240, 220, 0.035),
+    color-mix(in srgb, var(--glow) 3.5%, transparent),
     transparent
   );
   animation: lp-roll 9s linear infinite;
@@ -593,7 +600,7 @@
   font-size: 0.75rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(232, 223, 207, 0.78);
+  color: color-mix(in srgb, var(--bone) 78%, transparent);
   transition: opacity 0.8s;
 }
 .lp .lp-hero:not(.is-lit) .lp-osd {
@@ -603,7 +610,7 @@
   position: absolute;
   width: 26px;
   height: 26px;
-  border: 2px solid rgba(232, 223, 207, 0.55);
+  border: 2px solid color-mix(in srgb, var(--bone) 55%, transparent);
 }
 .lp .lp-c-tl {
   top: 0;
@@ -658,7 +665,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: #ff4b3a;
+  color: var(--hot);
 }
 .lp .lp-rec::before {
   content: '';
@@ -669,7 +676,7 @@
   animation: lp-blinkdot 1.2s steps(1) infinite;
 }
 .lp .lp-motion.is-alert {
-  color: #ff4b3a;
+  color: var(--hot);
   animation: lp-blinkdot 0.9s steps(1) infinite;
 }
 .lp .lp-motion-yes,
@@ -700,7 +707,7 @@
   display: block;
   width: 22%;
   height: 100%;
-  background: #ff4b3a;
+  background: var(--hot);
   animation: lp-blinkdot 2s steps(1) infinite;
 }
 
@@ -729,24 +736,24 @@
 /* Letters start dark and light up (is-on); scrolling away kills them (is-off). */
 .lp .lp-ltr {
   display: inline-block;
-  color: #2b2521;
+  color: color-mix(in srgb, var(--surface) 72%, black);
   text-shadow: none;
 }
 .lp .lp-ltr.lp-red {
-  color: #2c0e0b;
+  color: var(--ember);
 }
 .lp .lp-ltr.is-on {
   color: var(--bone);
   text-shadow:
-    0 0 28px rgba(255, 232, 200, 0.26),
-    0 0 3px rgba(255, 232, 200, 0.35);
+    0 0 28px color-mix(in srgb, var(--glow) 26%, transparent),
+    0 0 3px color-mix(in srgb, var(--glow) 35%, transparent);
   animation: lp-ignite 0.6s steps(1) both;
 }
 .lp .lp-ltr.is-on.lp-red {
-  color: #e3311f;
+  color: color-mix(in srgb, var(--hot) 88%, black);
   text-shadow:
-    0 0 30px rgba(227, 49, 31, 0.5),
-    0 0 3px rgba(255, 90, 60, 0.45);
+    0 0 30px color-mix(in srgb, var(--hot) 50%, transparent),
+    0 0 3px color-mix(in srgb, var(--hot) 45%, transparent);
 }
 .lp .lp-ltr.is-on.lp-faulty {
   animation:
@@ -754,12 +761,12 @@
     lp-faulty 7s steps(1) 1.6s infinite;
 }
 .lp .lp-ltr.is-on.is-off {
-  color: #2b2521;
+  color: color-mix(in srgb, var(--surface) 72%, black);
   text-shadow: none;
   animation: none;
 }
 .lp .lp-ltr.is-on.is-off.lp-red {
-  color: #2c0e0b;
+  color: var(--ember);
 }
 @keyframes lp-ignite {
   0% {
@@ -856,13 +863,13 @@
       rgba(255, 255, 255, 0.014) 0 1px,
       transparent 1px 3px
     ),
-    linear-gradient(180deg, #2f2a25, #1c1815);
-  border: 1px solid #453c35;
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 80%, black), color-mix(in srgb, var(--surface) 47%, black));
+  border: 1px solid color-mix(in srgb, var(--surface) 94%, var(--bone));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.09),
     inset 0 -2px 0 rgba(0, 0, 0, 0.5),
-    0 0 0 6px #0c0a09,
-    0 0 0 7px #2b2520,
+    0 0 0 6px color-mix(in srgb, var(--surface) 20%, black),
+    0 0 0 7px color-mix(in srgb, var(--surface) 72%, black),
     0 50px 90px -24px rgba(0, 0, 0, 0.95);
   text-shadow: none;
 }
@@ -922,19 +929,19 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #4a0c08;
+  background: color-mix(in srgb, var(--ember) 87%, var(--hot));
   box-shadow: inset 0 0 2px #000;
   transition:
     background 0.2s,
     box-shadow 0.2s;
 }
 .lp .lp-led[data-state='ready'] {
-  background: #ff5a3c;
-  box-shadow: 0 0 12px #ff3b22;
+  background: var(--hot);
+  box-shadow: 0 0 12px var(--hot);
 }
 .lp .lp-led[data-state='busy'] {
-  background: #ff5a3c;
-  box-shadow: 0 0 12px #ff3b22;
+  background: var(--hot);
+  box-shadow: 0 0 12px var(--hot);
   animation: lp-blinkdot 0.25s steps(1) infinite;
 }
 .lp .lp-led[data-state='ok'] {
@@ -949,16 +956,16 @@
   margin-bottom: 12px;
   padding: 0 14px;
   border-radius: 6px;
-  background: #0c0302;
+  background: color-mix(in srgb, var(--ember) 26%, black);
   box-shadow:
     inset 0 2px 12px rgba(0, 0, 0, 0.9),
-    inset 0 0 0 1px #2e0c08;
+    inset 0 0 0 1px var(--ember);
 }
 .lp .lp-kp-name:focus-within,
 .lp .lp-kp-display:focus-within {
   box-shadow:
     inset 0 2px 12px rgba(0, 0, 0, 0.9),
-    inset 0 0 0 1px #2e0c08,
+    inset 0 0 0 1px var(--ember),
     0 0 0 2px var(--bone);
 }
 .lp .lp-kp-name label {
@@ -982,9 +989,9 @@
   font-size: 1.5rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #ff4a32;
-  text-shadow: 0 0 12px rgba(255, 60, 30, 0.6);
-  caret-color: #ff4a32;
+  color: var(--hot);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--hot) 60%, transparent);
+  caret-color: var(--hot);
 }
 .lp .lp-kp-name input::placeholder {
   font-family: var(--f-osd);
@@ -1005,10 +1012,10 @@
   margin-bottom: 16px;
   padding: 12px 14px 10px;
   border-radius: 6px;
-  background: #0c0302;
+  background: color-mix(in srgb, var(--ember) 26%, black);
   box-shadow:
     inset 0 2px 12px rgba(0, 0, 0, 0.9),
-    inset 0 0 0 1px #2e0c08;
+    inset 0 0 0 1px var(--ember);
   cursor: text;
 }
 /* The real input covers the display, invisible: typing, pasting and the
@@ -1037,13 +1044,13 @@
   font-weight: 600;
   font-size: 2.8rem;
   line-height: 1;
-  color: #ff4a32;
-  text-shadow: 0 0 14px rgba(255, 60, 30, 0.75);
-  border-bottom: 2px solid #3d100a;
+  color: var(--hot);
+  text-shadow: 0 0 14px color-mix(in srgb, var(--hot) 75%, transparent);
+  border-bottom: 2px solid color-mix(in srgb, var(--ember) 92%, var(--hot));
 }
 .lp .lp-slot:empty::before {
   content: '8';
-  color: rgba(255, 74, 50, 0.07);
+  color: color-mix(in srgb, var(--hot) 7%, transparent);
   text-shadow: none;
 }
 .lp .lp-slot.is-cursor {
@@ -1051,10 +1058,10 @@
 }
 @keyframes lp-caret {
   0% {
-    border-bottom-color: #ff4a32;
+    border-bottom-color: var(--hot);
   }
   50% {
-    border-bottom-color: #3d100a;
+    border-bottom-color: color-mix(in srgb, var(--ember) 92%, var(--hot));
   }
 }
 .lp .lp-kp-status {
@@ -1069,7 +1076,7 @@
   color: var(--lcd);
 }
 .lp .lp-keypad.is-err .lp-kp-status {
-  color: #ff7259;
+  color: color-mix(in srgb, var(--hot) 78%, white);
 }
 .lp .lp-keys {
   display: grid;
@@ -1080,11 +1087,11 @@
 .lp .lp-key {
   height: 54px;
   border-radius: 6px;
-  border: 1px solid #433a33;
-  background: linear-gradient(180deg, #38322c, #221d1a);
+  border: 1px solid color-mix(in srgb, var(--surface) 96%, var(--bone));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, black), color-mix(in srgb, var(--surface) 57%, black));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 3px 0 #090706,
+    0 3px 0 color-mix(in srgb, var(--surface) 15%, black),
     0 5px 10px rgba(0, 0, 0, 0.45);
   font-family: var(--f-ui);
   font-weight: 600;
@@ -1103,9 +1110,9 @@
   transform: translateY(2px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 1px 0 #090706;
-  color: #ff5a3c;
-  text-shadow: 0 0 10px rgba(255, 80, 50, 0.85);
+    0 1px 0 color-mix(in srgb, var(--surface) 15%, black);
+  color: var(--hot);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--hot) 85%, transparent);
 }
 .lp .lp-key.lp-fn {
   font-size: 1rem;
@@ -1156,14 +1163,14 @@
   z-index: 2;
   transform: rotate(-2.6deg);
   background: var(--alarm);
-  color: #170605;
+  color: color-mix(in srgb, var(--ember) 50%, black);
 }
 .lp .lp-tape-b {
   top: 50%;
   z-index: 1;
   transform: rotate(2deg);
-  background: #2a0a07;
-  color: rgba(232, 223, 207, 0.72);
+  background: color-mix(in srgb, var(--ember) 91%, black);
+  color: color-mix(in srgb, var(--bone) 72%, transparent);
 }
 .lp .lp-track {
   display: flex;
@@ -1217,14 +1224,14 @@
   background:
     radial-gradient(
       60% 40% at 50% 0%,
-      rgba(255, 230, 190, 0.05),
+      color-mix(in srgb, var(--glow) 5%, transparent),
       transparent 70%
     ),
     linear-gradient(
       180deg,
       #000 0,
-      #17130f 140px,
-      #17130f calc(100% - 140px),
+      color-mix(in srgb, var(--surface) 38%, black) 140px,
+      color-mix(in srgb, var(--surface) 38%, black) calc(100% - 140px),
       #000 100%
     );
 }
@@ -1293,7 +1300,7 @@
   position: relative;
   aspect-ratio: 1;
   overflow: hidden;
-  background: #0b0908;
+  background: color-mix(in srgb, var(--surface) 18%, black);
 }
 .lp .lp-photo svg {
   width: 100%;
@@ -1333,7 +1340,7 @@
   font-family: var(--f-hand);
   font-size: 0.95rem;
   line-height: 1;
-  color: #a3150e;
+  color: var(--deep);
 }
 .lp .lp-cap h3 {
   font-size: calc(var(--d-scale) * 1.6rem);
@@ -1361,7 +1368,7 @@
 }
 .lp .lp-thread {
   fill: none;
-  stroke: #b0180f;
+  stroke: var(--deep);
   stroke-width: 2.2;
   stroke-linecap: round;
 }
@@ -1388,7 +1395,7 @@
   background:
     radial-gradient(
       45% 55% at 72% 38%,
-      rgba(255, 232, 196, 0.07),
+      color-mix(in srgb, var(--glow) 7%, transparent),
       transparent 70%
     ),
     #000;
@@ -1417,7 +1424,7 @@
     radial-gradient(
       circle at calc(100% - 64px) 70px,
       transparent 0 30px,
-      rgba(110, 24, 16, 0.2) 31px 34px,
+      color-mix(in srgb, var(--deep) 20%, transparent) 31px 34px,
       transparent 36px
     ),
     radial-gradient(
@@ -1461,8 +1468,8 @@
   display: inline-block;
   margin-bottom: 24px;
   padding: 5px 12px 3px;
-  border: 3px solid #a3150e;
-  color: #a3150e;
+  border: 3px solid var(--deep);
+  color: var(--deep);
   font-family: var(--f-ui);
   font-weight: 900;
   font-size: 1.25rem;
@@ -1536,7 +1543,7 @@
 .lp .lp-hint {
   margin-top: 8px;
   font-size: 0.95rem;
-  color: #6a1a12;
+  color: color-mix(in srgb, var(--deep) 65%, black);
 }
 .lp .lp-answer {
   margin-top: 26px;
@@ -1564,7 +1571,7 @@
   border-radius: 0;
   background: transparent;
   color: var(--ink);
-  caret-color: #a3150e;
+  caret-color: var(--deep);
   font-family: var(--f-type);
   font-size: 1.8rem;
   letter-spacing: 0.2em;
@@ -1583,20 +1590,20 @@
 /* Keeps the ink :focus-visible outline the prototype switched off here: the
    ink-to-red underline change alone is only about 2:1. */
 .lp .lp-answer input:focus {
-  border-bottom-color: #a3150e;
-  background: rgba(163, 21, 14, 0.06);
+  border-bottom-color: var(--deep);
+  background: color-mix(in srgb, var(--deep) 6%, transparent);
 }
 .lp .lp-answer input[readonly] {
   border-bottom-style: dashed;
 }
 .lp .lp-answer.is-wrong input {
-  border-bottom-color: #a3150e;
+  border-bottom-color: var(--deep);
 }
 .lp .lp-answer-msg {
   min-height: 1.6em;
   margin-top: 12px;
   font-size: 0.98rem;
-  color: #7a1810;
+  color: color-mix(in srgb, var(--deep) 75%, black);
 }
 .lp .lp-answer-msg.is-ok {
   color: var(--ink);
@@ -1617,8 +1624,8 @@
   right: 7%;
   top: 30%;
   padding: 4px 18px 2px;
-  border: 5px solid #a3150e;
-  color: #a3150e;
+  border: 5px solid var(--deep);
+  color: var(--deep);
   font-family: var(--f-ui);
   font-weight: 900;
   font-size: clamp(2.6rem, 5.5vw, 4rem);
@@ -1650,7 +1657,7 @@
    ========================================================== */
 .lp .lp-vitals-sec {
   padding: var(--sec-pad) 0;
-  background: linear-gradient(180deg, #000, #100d0b 30%, #100d0b 70%, #000);
+  background: linear-gradient(180deg, #000, color-mix(in srgb, var(--surface) 27%, black) 30%, color-mix(in srgb, var(--surface) 27%, black) 70%, #000);
 }
 .lp .lp-monitors {
   display: grid;
@@ -1659,24 +1666,24 @@
 }
 .lp .lp-monitor {
   margin: 0;
-  --trace: #e8dfcf;
+  --trace: var(--bone);
 }
 .lp .lp-monitor.lp-medium {
-  --trace: #ff7a5e;
+  --trace: color-mix(in srgb, var(--hot) 75%, white);
 }
 .lp .lp-monitor.lp-hard {
-  --trace: #ff3322;
+  --trace: var(--hot);
 }
 .lp .lp-screen {
   position: relative;
   height: 176px;
   overflow: hidden;
   border-radius: 16px;
-  border: 10px solid #211d1a;
+  border: 10px solid color-mix(in srgb, var(--surface) 56%, black);
   background: #020303;
   box-shadow:
     inset 0 0 30px rgba(0, 0, 0, 0.9),
-    0 0 0 1px #3b342e,
+    0 0 0 1px var(--surface),
     0 26px 44px -14px rgba(0, 0, 0, 0.85);
 }
 .lp .lp-glass {
@@ -1753,9 +1760,9 @@
 @keyframes lp-alarm {
   50% {
     box-shadow:
-      inset 0 0 44px rgba(255, 30, 20, 0.35),
-      0 0 0 1px #6b1a12,
-      0 0 34px -6px rgba(255, 40, 20, 0.45);
+      inset 0 0 44px color-mix(in srgb, var(--hot) 35%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--ember) 75%, var(--hot)),
+      0 0 34px -6px color-mix(in srgb, var(--hot) 45%, transparent);
   }
 }
 .lp .lp-monitor figcaption {
@@ -1782,7 +1789,7 @@
   position: relative;
   overflow: hidden;
   padding: var(--sec-pad) 0 calc(var(--sec-pad) + 40px);
-  background: #17130f;
+  background: color-mix(in srgb, var(--surface) 38%, black);
 }
 .lp .lp-setup-sec::before {
   content: '';
@@ -1810,13 +1817,13 @@
 .lp .lp-tv {
   position: relative;
   aspect-ratio: 16 / 9;
-  border: 12px solid #1c1815;
+  border: 12px solid color-mix(in srgb, var(--surface) 47%, black);
   border-radius: 10px;
-  background: #050404;
+  background: color-mix(in srgb, var(--surface) 9%, black);
   box-shadow:
-    0 0 0 1px #3b342e,
+    0 0 0 1px var(--surface),
     0 40px 80px -20px rgba(0, 0, 0, 0.9),
-    0 0 90px -10px rgba(211, 42, 29, 0.2);
+    0 0 90px -10px color-mix(in srgb, var(--alarm) 20%, transparent);
 }
 .lp .lp-tv-screen {
   position: absolute;
@@ -1826,7 +1833,7 @@
   grid-template-columns: 1fr auto;
   grid-template-rows: auto 1fr auto;
   padding: 5% 6%;
-  background: radial-gradient(80% 80% at 50% 45%, #1d0c08, #070303);
+  background: radial-gradient(80% 80% at 50% 45%, color-mix(in srgb, var(--ember) 63%, black), color-mix(in srgb, var(--ember) 15%, black));
   font-family: var(--f-osd);
   color: var(--bone);
 }
@@ -1868,8 +1875,8 @@
   font-size: clamp(2.8rem, 8vw, 6rem);
   line-height: 1;
   letter-spacing: 0.02em;
-  color: #ff3b26;
-  text-shadow: 0 0 26px rgba(255, 50, 30, 0.6);
+  color: var(--hot);
+  text-shadow: 0 0 26px color-mix(in srgb, var(--hot) 60%, transparent);
   font-variant-numeric: tabular-nums;
 }
 .lp .lp-tv-letters {
@@ -1894,7 +1901,7 @@
 }
 .lp .lp-tv-letters i.lp-empty {
   background: transparent;
-  border: 1px dashed rgba(232, 223, 207, 0.4);
+  border: 1px dashed color-mix(in srgb, var(--bone) 40%, transparent);
 }
 .lp .lp-tv-players {
   display: flex;
@@ -1910,14 +1917,14 @@
   box-shadow: 0 0 8px var(--ok);
 }
 .lp .lp-tv-players i.lp-off {
-  background: #3a332e;
+  background: var(--surface);
   box-shadow: none;
 }
 .lp .lp-tv-stand {
   width: 26%;
   height: 16px;
   margin: 0 auto;
-  background: linear-gradient(#1c1815, #0d0b0a);
+  background: linear-gradient(color-mix(in srgb, var(--surface) 47%, black), color-mix(in srgb, var(--surface) 22%, black));
   clip-path: polygon(18% 0, 82% 0, 100% 100%, 0 100%);
 }
 .lp .lp-phone {
@@ -1926,8 +1933,8 @@
   aspect-ratio: 9 / 18.5;
   padding: 4px;
   border-radius: 15px;
-  border: 3px solid #2f2924;
-  background: #0a0908;
+  border: 3px solid color-mix(in srgb, var(--surface) 80%, black);
+  background: color-mix(in srgb, var(--surface) 17%, black);
   box-shadow: 0 24px 40px -8px rgba(0, 0, 0, 0.9);
   transform: rotate(var(--r));
 }
@@ -1960,7 +1967,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  background: #120c0a;
+  background: color-mix(in srgb, var(--surface) 30%, black);
   font-family: var(--f-osd);
   font-size: clamp(0.45rem, 0.9vw, 0.6rem);
   letter-spacing: 0.12em;
@@ -1969,12 +1976,12 @@
   color: var(--ash);
 }
 .lp .lp-cam {
-  background: radial-gradient(circle at 50% 40%, #2c241f, #0b0908);
+  background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--surface) 73%, black), color-mix(in srgb, var(--surface) 18%, black));
 }
 .lp .lp-vf {
   position: absolute;
   inset: 16% 14% 34%;
-  --c: rgba(232, 223, 207, 0.85);
+  --c: color-mix(in srgb, var(--bone) 85%, transparent);
   background:
     linear-gradient(var(--c), var(--c)) 0 0 / 12px 2px no-repeat,
     linear-gradient(var(--c), var(--c)) 0 0 / 2px 12px no-repeat,
@@ -1995,16 +2002,16 @@
   border-radius: 50%;
   background: var(--alarm);
   box-shadow:
-    0 0 0 3px #0b0908,
-    0 0 0 5px rgba(232, 223, 207, 0.75);
+    0 0 0 3px color-mix(in srgb, var(--surface) 18%, black),
+    0 0 0 5px color-mix(in srgb, var(--bone) 75%, transparent);
 }
 .lp .lp-ph-screen b {
   font-family: var(--f-ui);
   font-weight: 900;
   font-size: clamp(1rem, 2vw, 1.45rem);
   letter-spacing: 0.1em;
-  color: #ff4a32;
-  text-shadow: 0 0 10px rgba(255, 60, 30, 0.6);
+  color: var(--hot);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--hot) 60%, transparent);
 }
 .lp .lp-ph-screen .lp-ok {
   color: var(--ok);
@@ -2033,10 +2040,10 @@
   margin: 0 auto;
   padding: clamp(56px, 8vw, 92px) clamp(22px, 5vw, 60px)
     clamp(80px, 10vw, 120px);
-  border: 14px solid #15110f;
+  border: 14px solid color-mix(in srgb, var(--surface) 35%, black);
   border-bottom: 0;
   border-radius: 4px 4px 0 0;
-  background: linear-gradient(180deg, #0f0d0c, #0a0908);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 25%, black), color-mix(in srgb, var(--surface) 17%, black));
 }
 .lp .lp-door::before {
   content: '';
@@ -2083,10 +2090,10 @@
   height: 6px;
   overflow: hidden;
   filter: brightness(calc(0.3 + var(--glow, 1) * 0.8));
-  background: #fff0d4;
+  background: color-mix(in srgb, var(--glow) 60%, white);
   box-shadow:
-    0 0 18px 4px rgba(255, 226, 170, 0.55),
-    0 0 70px 14px rgba(255, 200, 130, 0.2);
+    0 0 18px 4px color-mix(in srgb, var(--glow) 55%, transparent),
+    0 0 70px 14px color-mix(in srgb, var(--glow) 20%, transparent);
   animation: lp-gapflick 9s steps(1) infinite;
 }
 @keyframes lp-gapflick {
@@ -2148,7 +2155,7 @@
   transform: scaleX(calc(0.45 + var(--glow, 1) * 0.55));
   background: radial-gradient(
     55% 100% at 50% 0%,
-    rgba(255, 220, 160, 0.2),
+    color-mix(in srgb, var(--glow) 20%, transparent),
     transparent 70%
   );
 }
@@ -2156,7 +2163,7 @@
 /* ---------- footer ---------- */
 .lp .lp-foot {
   padding: 30px 0 34px;
-  border-top: 1px solid #1e1a17;
+  border-top: 1px solid color-mix(in srgb, var(--surface) 51%, black);
   background: #000;
 }
 .lp .lp-foot-row {
@@ -2194,7 +2201,7 @@
   text-align: center;
   font-family: var(--f-hand);
   font-size: 0.8rem;
-  color: #1c1714;
+  color: color-mix(in srgb, var(--surface) 47%, black);
 }
 
 /* ---------- overlays ---------- */
@@ -2425,4 +2432,226 @@
   .lp .lp-feet {
     display: none;
   }
+}
+
+/* ==========================================================
+   UI themes (UI_THEMES in imports/lib/uiThemes.js). The landing page stays a
+   dark room in every theme, so these recolour its light, accents and
+   surfaces rather than turning it light. Dossier is the palette at the top of
+   this file. Paper, metal, grime and the eyes in the dark keep their colours.
+   ========================================================== */
+
+/* Amber CRT */
+html[data-ui-theme='terminal'] .lp {
+  --bone: #ffe0aa;
+  --bone-dim: #d9b67a;
+  --ash: #b08a52;
+  --alarm: #ffb000;
+  --on-alarm: #140e00;
+  --hot: #ffc640;
+  --deep: #8a5a00;
+  --ember: #2b1c02;
+  --surface: #40331c;
+  --glow: #ffd98a;
+  --lcd: #ffb000;
+  --ok: #9dff5a;
+}
+
+/* Cold blue */
+html[data-ui-theme='blueprint'] .lp {
+  --bone: #dce8f5;
+  --bone-dim: #a9bfd8;
+  --ash: #8aa2bd;
+  --alarm: #0ea5e9;
+  --on-alarm: #04101c;
+  --hot: #38bdf8;
+  --deep: #0b4a85;
+  --ember: #061a2e;
+  --surface: #26374d;
+  --glow: #cfe6ff;
+  --lcd: #38bdf8;
+  --ok: #5be3b0;
+}
+
+/* Daylight: the same room with the lights on. The page, wall and text turn
+   light; the darkness, the torch and the eyes go. The physical devices (the
+   keypad, tape, monitors, TV, phone, door and letter tiles) stay dark, like
+   dark objects in a lit room, so they keep the dark-room palette below. */
+html[data-ui-theme='daylight'] .lp {
+  --pitch: #f4f0e8;
+  --bone: #201c1a;
+  --bone-dim: #4a403a;
+  --ash: #6e5a54;
+  --alarm: #be1e1e;
+  --on-alarm: #fffaf5;
+  --hot: #d02a1c;
+  --deep: #a51414;
+  --ember: #e9cfc8;
+  --surface: #d8cfc2;
+  --glow: #fff6e6;
+  --lcd: #d02a1c;
+  --ok: #1f9d55;
+}
+/* :where keeps this at the specificity of plain .lp, so an element's own
+   colour rule (dark text on the red tape, say) still wins. */
+:where(html[data-ui-theme='daylight']) .lp :where(
+    .lp-keypad,
+    .lp-tape,
+    .lp-screen,
+    .lp-tv,
+    .lp-phone,
+    .lp-door,
+    .lp-tile
+  ) {
+  --bone: #f4f0e8;
+  --bone-dim: #cfc6b8;
+  --ash: #a89c90;
+  --hot: #ff5a46;
+  --ember: #2e0c08;
+  --surface: #4a4139;
+  --glow: #fff4dc;
+  --lcd: #ff5a46;
+  --ok: #3fd27a;
+  /* Text inherits a colour already resolved at .lp, so reset it here too. */
+  color: var(--bone);
+}
+
+/* The monitors' screens stay dark, but their captions sit on the light page;
+   the traces are set here so the screens keep their dark-room colours. */
+html[data-ui-theme='daylight'] .lp .lp-monitor {
+  --trace: #f4f0e8;
+}
+html[data-ui-theme='daylight'] .lp .lp-monitor.lp-medium {
+  --trace: #ff8a70;
+}
+html[data-ui-theme='daylight'] .lp .lp-monitor.lp-hard {
+  --trace: #ff5a46;
+}
+/* The caption under each screen is on the light page, not the screen. */
+html[data-ui-theme='daylight'] .lp .lp-state {
+  color: var(--ash);
+}
+html[data-ui-theme='daylight'] .lp .lp-monitor:not(.lp-easy) .lp-state {
+  color: var(--hot);
+}
+
+/* Lights on: no darkness, no torch, nothing watching. */
+html[data-ui-theme='daylight'] .lp .lp-dark,
+html[data-ui-theme='daylight'] .lp .lp-eyes {
+  display: none;
+}
+html[data-ui-theme='daylight'] .lp .lp-wall {
+  background:
+    radial-gradient(
+      55% 40% at 16% 74%,
+      color-mix(in srgb, var(--deep) 14%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      30% 35% at 66% 30%,
+      rgba(90, 70, 40, 0.12),
+      transparent 70%
+    ),
+    radial-gradient(45% 60% at 88% 18%, rgba(0, 0, 0, 0.08), transparent 70%),
+    linear-gradient(
+      90deg,
+      transparent 0 21%,
+      rgba(0, 0, 0, 0.08) 21.2% 21.5%,
+      transparent 21.8% 63%,
+      rgba(0, 0, 0, 0.06) 63.2% 63.4%,
+      transparent 63.7%
+    ),
+    linear-gradient(180deg, #efe9df, #e6ded1 65%, #ddd3c4);
+}
+html[data-ui-theme='daylight'] .lp .lp-wall::before {
+  opacity: 0.22;
+}
+html[data-ui-theme='daylight'] .lp .lp-chalk {
+  color: rgba(60, 50, 45, 0.45);
+}
+/* The dark used to hide the wall's writing until the torch found it; in
+   daylight it is always there, so it sits back behind the copy. */
+html[data-ui-theme='daylight'] .lp .lp-scrawl {
+  opacity: 0.45;
+}
+/* Daytime footage: faint scanlines, a light vignette. */
+html[data-ui-theme='daylight'] .lp .lp-scan {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.04) 0 1px,
+      transparent 1px 3px
+    ),
+    radial-gradient(
+      120% 95% at 50% 45%,
+      transparent 60%,
+      rgba(60, 45, 30, 0.16) 100%
+    );
+}
+html[data-ui-theme='daylight'] .lp .lp-hero-copy {
+  text-shadow: none;
+}
+/* The title still lights up letter by letter, from faint to ink. */
+html[data-ui-theme='daylight'] .lp .lp-ltr:not(.is-on),
+html[data-ui-theme='daylight'] .lp .lp-ltr.is-on.is-off {
+  color: #d3c9ba;
+}
+html[data-ui-theme='daylight'] .lp .lp-ltr.lp-red:not(.is-on),
+html[data-ui-theme='daylight'] .lp .lp-ltr.is-on.is-off.lp-red {
+  color: #e8c9c1;
+}
+html[data-ui-theme='daylight'] .lp .lp-ltr.is-on {
+  text-shadow: none;
+}
+
+/* Light surfaces for the bar, chips and sections. */
+html[data-ui-theme='daylight'] .lp .lp-nav::before {
+  border-bottom-color: #d8cfc2;
+  background: rgba(244, 240, 232, 0.9);
+}
+html[data-ui-theme='daylight'] .lp .lp-chip,
+html[data-ui-theme='daylight'] .lp .lp-btn-ghost {
+  background: rgba(255, 255, 255, 0.55);
+}
+html[data-ui-theme='daylight'] .lp .lp-door .lp-btn-ghost {
+  background: rgba(0, 0, 0, 0.45);
+}
+html[data-ui-theme='daylight'] .lp .lp-tapes,
+html[data-ui-theme='daylight'] .lp .lp-lock-sec,
+html[data-ui-theme='daylight'] .lp .lp-exit {
+  background: var(--pitch);
+}
+html[data-ui-theme='daylight'] .lp .lp-board-sec,
+html[data-ui-theme='daylight'] .lp .lp-vitals-sec {
+  background: linear-gradient(
+    180deg,
+    var(--pitch) 0,
+    #ebe4d8 140px,
+    #ebe4d8 calc(100% - 140px),
+    var(--pitch) 100%
+  );
+}
+html[data-ui-theme='daylight'] .lp .lp-setup-sec,
+html[data-ui-theme='daylight'] .lp .lp-foot {
+  background: #ebe4d8;
+}
+html[data-ui-theme='daylight'] .lp .lp-board-sec::before,
+html[data-ui-theme='daylight'] .lp .lp-setup-sec::before {
+  opacity: 0.18;
+}
+
+/* White and yellow on black. Deep stays a dark red so ink on paper reads. */
+html[data-ui-theme='contrast'] .lp {
+  --bone: #ffffff;
+  --bone-dim: #e6e6e6;
+  --ash: #d0d0d0;
+  --alarm: #ffeb00;
+  --on-alarm: #000000;
+  --hot: #fff200;
+  --deep: #a00000;
+  --ember: #1a1a1a;
+  --surface: #4d4d4d;
+  --glow: #ffffff;
+  --lcd: #ffeb00;
+  --ok: #00ff66;
 }

@@ -3,6 +3,14 @@ export const es = {
     loading: 'Cargando...',
     language: 'Idioma',
     exit: 'Salir',
+    theme: 'Tema',
+    themes: {
+      dossier: 'Expediente',
+      terminal: 'Terminal',
+      blueprint: 'Plano',
+      daylight: 'Luz de día',
+      contrast: 'Alto contraste',
+    },
   },
   errors: {
     notFound: 'Partida no encontrada',

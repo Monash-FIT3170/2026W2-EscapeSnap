@@ -6,6 +6,7 @@ import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 import { FINAL_RIDDLE, getFallbackFinalRiddle } from '../../lib/finalRiddle';
 import { RIDDLE_BANK } from '../../lib/riddleBank';
 import { THEME_OBJECT_POOLS } from '../../lib/cocoClasses';
+import { UI_THEMES, DEFAULT_UI_THEME } from '../../lib/uiThemes';
 import { DEFAULT_ANSWER_MODE } from '../../lib/answerModes';
 import { CUSTOM_THEME, normalizeCustomTheme } from '../../lib/customTheme';
 import {
@@ -212,6 +213,7 @@ Meteor.methods({
     capacity = 4,
     difficulty = 'medium',
     theme = 'classroom',
+    uiTheme = DEFAULT_UI_THEME,
     mode = DEFAULT_ANSWER_MODE,
     customTheme,
   } = {}) {
@@ -236,6 +238,7 @@ Meteor.methods({
       capacity,
       difficulty,
       theme,
+      uiTheme,
       ...(cleanCustomTheme && { customTheme: cleanCustomTheme }),
       mode,
       createdAt: new Date(),
@@ -256,6 +259,21 @@ Meteor.methods({
     });
 
     return gameId;
+  },
+
+  // Callable by the host and by any player: the skin is shared by the whole
+  // game, so whoever changes it changes it for everyone.
+  async 'games.setUiTheme'(gameId, uiTheme) {
+    // A non-string id would be read as a Mongo selector and could match
+    // some other game.
+    if (typeof gameId !== 'string') {
+      throw new Meteor.Error('not-found', 'Game not found');
+    }
+    if (!UI_THEMES.includes(uiTheme)) {
+      throw new Meteor.Error('invalid-ui-theme', 'Unknown UI theme');
+    }
+    const updated = await Games.updateAsync(gameId, { $set: { uiTheme } });
+    if (!updated) throw new Meteor.Error('not-found', 'Game not found');
   },
 
   async 'games.start'(gameId) {

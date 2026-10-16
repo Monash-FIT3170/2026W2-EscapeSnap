@@ -3,6 +3,14 @@ export const zh = {
     loading: '加载中...',
     language: '语言',
     exit: '退出',
+    theme: '主题',
+    themes: {
+      dossier: '档案',
+      terminal: '终端',
+      blueprint: '蓝图',
+      daylight: '日光',
+      contrast: '高对比度',
+    },
   },
   errors: {
     notFound: '未找到游戏',

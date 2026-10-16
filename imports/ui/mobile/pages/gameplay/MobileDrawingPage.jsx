@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useT } from '../../../../languages/LanguageProvider';
-import { COLORS } from '../../theme';
+import { COLORS } from '../../../shared/theme';
+import { useUiTheme } from '../../../shared/components/theme/UiThemeProvider';
 
 // Widest edge of the exported sketch, in px. Matches CAPTURE_MAX_WIDTH on the
 // camera page so stored submissions stay within the `photoUrl` cap.
@@ -9,6 +10,15 @@ const EXPORT_MAX_EDGE = 900;
 // Stroke widths in CSS px; scaled to the canvas's device-pixel backing store.
 const PEN_WIDTH = 6;
 const ERASER_WIDTH = 28;
+
+// A canvas can't resolve the --es-* custom properties itself, so the active
+// skin's value is read off <html> and handed over as a plain rgb() colour.
+function themeColor(name) {
+  const channels = getComputedStyle(document.documentElement)
+    .getPropertyValue(`--es-${name}`)
+    .trim();
+  return `rgb(${channels})`;
+}
 
 function Icon({ children }) {
   return (
@@ -65,9 +75,9 @@ function ToolButton({ pressed, disabled, onClick, label, children }) {
       aria-pressed={pressed}
       className="flex flex-col items-center justify-center gap-1 py-3 font-mono text-[10px] uppercase tracking-[0.2em] transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
       style={{
-        border: `1px solid ${pressed ? COLORS.accent : COLORS.border}`,
-        background: pressed ? '#1c0000' : 'transparent',
-        color: pressed ? COLORS.text : COLORS.muted,
+        border: `1px solid ${pressed ? COLORS.brand : COLORS.line}`,
+        background: pressed ? 'rgb(var(--es-brand) / 0.12)' : 'transparent',
+        color: pressed ? COLORS.ink : COLORS.muted,
       }}
     >
       {children}
@@ -79,18 +89,12 @@ function ToolButton({ pressed, disabled, onClick, label, children }) {
 function Corners() {
   return (
     <>
-      <div className="pointer-events-none absolute left-5 top-5 h-8 w-8 border-l-2 border-t-2 border-[#8b0000]" />
-      <div className="pointer-events-none absolute right-5 top-5 h-8 w-8 border-r-2 border-t-2 border-[#8b0000]" />
-      <div className="pointer-events-none absolute bottom-5 left-5 h-8 w-8 border-b-2 border-l-2 border-[#8b0000]" />
-      <div className="pointer-events-none absolute bottom-5 right-5 h-8 w-8 border-b-2 border-r-2 border-[#8b0000]" />
+      <div className="pointer-events-none absolute left-5 top-5 h-8 w-8 border-l-2 border-t-2 border-brand" />
+      <div className="pointer-events-none absolute right-5 top-5 h-8 w-8 border-r-2 border-t-2 border-brand" />
+      <div className="pointer-events-none absolute bottom-5 left-5 h-8 w-8 border-b-2 border-l-2 border-brand" />
+      <div className="pointer-events-none absolute bottom-5 right-5 h-8 w-8 border-b-2 border-r-2 border-brand" />
     </>
   );
-}
-
-function paintBackground(canvas) {
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = COLORS.panel;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 const MobileDrawingPage = ({
@@ -100,6 +104,7 @@ const MobileDrawingPage = ({
   onCorrect,
 }) => {
   const t = useT();
+  const { uiTheme } = useUiTheme();
   const canvasRef = useRef(null);
   // { pointerId, last } while a stroke is in progress; one pointer at a time
   // so a second finger or a resting palm can't draw a jump line.
@@ -133,7 +138,6 @@ const MobileDrawingPage = ({
 
       canvas.width = width;
       canvas.height = height;
-      paintBackground(canvas);
       canvas.getContext('2d').drawImage(snapshot, 0, 0);
     }
 
@@ -142,6 +146,20 @@ const MobileDrawingPage = ({
     observer.observe(canvas);
     return () => observer.disconnect();
   }, [roundId]);
+
+  // The canvas holds only the strokes, on a transparent background, so the
+  // pad behind it follows the skin for free. When the skin changes mid-sketch
+  // the existing strokes are re-inked, or light ink would vanish on a light pad.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.save();
+    ctx.globalCompositeOperation = 'source-in';
+    ctx.fillStyle = themeColor('ink');
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.restore();
+  }, [uiTheme]);
 
   const canDraw = !isExpired && !uploading;
 
@@ -158,7 +176,9 @@ const MobileDrawingPage = ({
 
   function strokeSegment(from, to) {
     const ctx = canvasRef.current.getContext('2d');
-    ctx.strokeStyle = tool === 'erase' ? COLORS.panel : COLORS.text;
+    ctx.globalCompositeOperation =
+      tool === 'erase' ? 'destination-out' : 'source-over';
+    ctx.strokeStyle = themeColor('ink');
     ctx.lineWidth = (tool === 'erase' ? ERASER_WIDTH : PEN_WIDTH) * to.scale;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -194,7 +214,8 @@ const MobileDrawingPage = ({
   }
 
   function handleClear() {
-    paintBackground(canvasRef.current);
+    const canvas = canvasRef.current;
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
     setHasStrokes(false);
     setTool('draw');
     setValidationState(null);
@@ -210,7 +231,11 @@ const MobileDrawingPage = ({
     const out = document.createElement('canvas');
     out.width = Math.round(canvas.width * scale);
     out.height = Math.round(canvas.height * scale);
-    out.getContext('2d').drawImage(canvas, 0, 0, out.width, out.height);
+    const ctx = out.getContext('2d');
+    // The strokes alone are transparent; flatten them onto the pad colour.
+    ctx.fillStyle = themeColor('panel');
+    ctx.fillRect(0, 0, out.width, out.height);
+    ctx.drawImage(canvas, 0, 0, out.width, out.height);
     return out.toDataURL('image/png').split(',')[1];
   }
 
@@ -266,7 +291,7 @@ const MobileDrawingPage = ({
 
   if (!roundId) {
     return (
-      <div className="px-5 pt-6 text-center font-mono text-xs uppercase tracking-[0.2em] text-[#aa8984]">
+      <div className="px-5 pt-6 text-center font-mono text-xs uppercase tracking-[0.2em] text-muted">
         {t('mobile.riddle.loadingRound')}
       </div>
     );
@@ -276,7 +301,7 @@ const MobileDrawingPage = ({
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="relative min-h-0 flex-1 overflow-hidden bg-[#1c1b1b]">
+      <div className="relative min-h-0 flex-1 overflow-hidden bg-panel">
         <canvas
           ref={canvasRef}
           aria-label={t('mobile.riddle.canvasAria')}
@@ -289,7 +314,7 @@ const MobileDrawingPage = ({
 
         {!hasStrokes && !isExpired && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <span className="font-mono text-xs uppercase tracking-[0.25em] text-[#555]">
+            <span className="font-mono text-xs uppercase tracking-[0.25em] text-dim">
               {t('mobile.riddle.drawPrompt')}
             </span>
           </div>
@@ -300,10 +325,10 @@ const MobileDrawingPage = ({
         {uploading && (
           <>
             <div className="pointer-events-none absolute inset-5 overflow-hidden">
-              <div className="scan-sweep absolute inset-x-0 h-0.5 bg-[#8b0000] shadow-[0_0_8px_2px_rgba(139,0,0,0.8)]" />
+              <div className="scan-sweep absolute inset-x-0 h-0.5 bg-brand shadow-[0_0_8px_2px_rgb(var(--es-brand)/0.8)]" />
             </div>
             <div className="pointer-events-none absolute inset-x-0 bottom-6 flex items-center justify-center">
-              <span className="pulse-text bg-[#0e0e0e]/80 px-4 py-2 font-mono text-xs uppercase tracking-[0.25em] text-[#aa8984]">
+              <span className="pulse-text bg-ground/80 px-4 py-2 font-mono text-xs uppercase tracking-[0.25em] text-muted">
                 {t('mobile.riddle.analysing')}
               </span>
             </div>
@@ -311,12 +336,12 @@ const MobileDrawingPage = ({
         )}
 
         {showResult && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center gap-1 bg-[#0e0e0e]/90 px-6 py-4">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center gap-1 bg-ground/90 px-6 py-4">
             <span
               className={`font-mono text-xs uppercase tracking-widest ${
                 validationState === 'error'
-                  ? 'text-[#aa8984]'
-                  : 'text-[#ef4444]'
+                  ? 'text-muted'
+                  : 'text-incorrect'
               }`}
             >
               {validationState === 'error'
@@ -324,7 +349,7 @@ const MobileDrawingPage = ({
                 : t('mobile.riddle.notAMatch')}
             </span>
             {explanation && (
-              <span className="text-center font-mono text-[11px] leading-5 text-[#aa8984]">
+              <span className="text-center font-mono text-[11px] leading-5 text-muted">
                 {explanation}
               </span>
             )}
@@ -332,12 +357,12 @@ const MobileDrawingPage = ({
         )}
 
         {isExpired && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[#0e0e0e]/80">
-            <span className="font-mono text-3xl text-[#ef4444]">✗</span>
-            <span className="font-mono text-xs uppercase tracking-[0.25em] text-[#ef4444]">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-ground/80">
+            <span className="font-mono text-3xl text-incorrect">✗</span>
+            <span className="font-mono text-xs uppercase tracking-[0.25em] text-incorrect">
               {t('mobile.riddle.roundEnded')}
             </span>
-            <span className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-[#555]">
+            <span className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-dim">
               {t('mobile.riddle.noSubmissionAccepted')}
             </span>
           </div>
@@ -345,7 +370,7 @@ const MobileDrawingPage = ({
       </div>
 
       {!isExpired && (
-        <div className="flex-shrink-0 space-y-3 bg-[#0e0e0e] px-5 pb-5 pt-4">
+        <div className="flex-shrink-0 space-y-3 bg-ground px-5 pb-5 pt-4">
           <div className="grid grid-cols-3 gap-2">
             <ToolButton
               pressed={tool === 'draw'}
@@ -376,7 +401,7 @@ const MobileDrawingPage = ({
             type="button"
             onClick={handleSubmit}
             disabled={uploading || !hasStrokes}
-            className="w-full bg-[#8b0000] py-4 font-mono text-sm uppercase tracking-[0.25em] text-[#e5e2e1] transition active:bg-[#a50000] disabled:cursor-not-allowed disabled:opacity-40"
+            className="w-full bg-brand py-4 font-mono text-sm uppercase tracking-[0.25em] text-on-brand transition active:bg-brand-bright disabled:cursor-not-allowed disabled:opacity-40"
           >
             {uploading
               ? t('mobile.riddle.analysing')

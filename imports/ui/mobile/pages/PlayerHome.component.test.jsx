@@ -5,6 +5,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { LanguageProvider } from '../../../languages/LanguageProvider';
 import { PlayerHome } from './PlayerHome';
 
+// The theme picker reads the game's theme through Meteor, which this test
+// environment doesn't have. These tests are about the join form, not themes.
+vi.mock('../../shared/components/theme/ThemePicker', () => ({
+  ThemePicker: () => null,
+}));
+
 function renderPlayerHome(props = {}) {
   return render(
     <LanguageProvider>

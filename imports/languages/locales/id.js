@@ -3,6 +3,14 @@ export const id = {
     loading: 'Memuat...',
     language: 'Bahasa',
     exit: 'Keluar',
+    theme: 'Tema',
+    themes: {
+      dossier: 'Berkas',
+      terminal: 'Terminal',
+      blueprint: 'Cetak biru',
+      daylight: 'Siang',
+      contrast: 'Kontras tinggi',
+    },
   },
   errors: {
     notFound: 'Permainan tidak ditemukan',

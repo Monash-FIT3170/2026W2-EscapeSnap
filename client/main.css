@@ -1,3 +1,85 @@
+/* App palette as space-separated RGB channels, so Tailwind can apply
+   opacity modifiers (bg-ground/95). Exposed as colour utilities in main.html. */
+:root,
+[data-ui-theme='dossier'] {
+  --es-ground: 14 14 14;
+  --es-panel: 28 27 27;
+  --es-line: 53 53 52;
+  --es-ink: 229 226 225;
+  --es-muted: 170 137 132;
+  --es-dim: 85 85 85;
+  --es-brand: 139 0 0;
+  --es-brand-bright: 165 0 0;
+  --es-on-brand: 229 226 225;
+  --es-correct: 74 222 128;
+  --es-incorrect: 239 68 68;
+}
+
+/* Player-selectable skins (UI_THEMES in imports/ui/mobile/theme.js). The
+   attribute sits on <html>, and on each swatch in the picker so it previews
+   its own colours. */
+[data-ui-theme='terminal'] {
+  --es-ground: 12 9 4;
+  --es-panel: 24 18 8;
+  --es-line: 66 50 22;
+  --es-ink: 255 224 170;
+  --es-muted: 196 154 92;
+  --es-dim: 116 90 52;
+  --es-brand: 255 176 0;
+  --es-brand-bright: 255 198 64;
+  --es-on-brand: 20 14 0;
+}
+
+[data-ui-theme='blueprint'] {
+  --es-ground: 8 18 34;
+  --es-panel: 14 28 50;
+  --es-line: 38 62 98;
+  --es-ink: 220 232 245;
+  --es-muted: 132 162 198;
+  --es-dim: 84 108 140;
+  --es-brand: 14 165 233;
+  --es-brand-bright: 56 189 248;
+  --es-on-brand: 4 14 28;
+}
+
+/* The only light skin, so the feedback colours darken to stay readable. */
+[data-ui-theme='daylight'] {
+  --es-ground: 244 240 232;
+  --es-panel: 255 252 246;
+  --es-line: 205 196 182;
+  --es-ink: 32 28 26;
+  --es-muted: 110 90 84;
+  --es-dim: 138 128 118;
+  --es-brand: 165 20 20;
+  --es-brand-bright: 190 30 30;
+  --es-on-brand: 255 250 245;
+  --es-correct: 22 128 61;
+  --es-incorrect: 200 30 30;
+}
+
+[data-ui-theme='contrast'] {
+  --es-ground: 0 0 0;
+  --es-panel: 0 0 0;
+  --es-line: 255 255 255;
+  --es-ink: 255 255 255;
+  --es-muted: 230 230 230;
+  --es-dim: 180 180 180;
+  --es-brand: 255 235 0;
+  --es-brand-bright: 255 245 120;
+  --es-on-brand: 0 0 0;
+}
+
+/* Paints the page behind the app (overscroll, safe areas) in the
+   skin. Needs the attribute selector to outrank daisyUI's :root background,
+   which otherwise wins over the plain html rule further down. */
+html[data-ui-theme] {
+  background: rgb(var(--es-ground));
+}
+
+html[data-ui-theme='daylight'] {
+  color-scheme: light;
+}
+
 html,
 body,
 #app {
@@ -92,11 +174,11 @@ body {
 }
 
 html {
-  background: #0e0e0e;
+  background: rgb(var(--es-ground));
   -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: #0e0e0e;
+  background: rgb(var(--es-ground));
   overscroll-behavior-y: none;
 }

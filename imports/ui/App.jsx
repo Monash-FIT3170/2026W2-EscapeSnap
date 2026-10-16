@@ -14,6 +14,7 @@ import { PlayerHome } from './mobile/pages/PlayerHome';
 import { PlayerLobby } from './mobile/pages/lobby/PlayerLobby';
 import { PlayerDashboard } from './mobile/pages/PlayerDashboard';
 import { HelpTutorial } from './mobile/components/gameplay/HelpTutorial';
+import { useGameUiTheme } from './shared/components/theme/UiThemeProvider';
 import CreateGame from './host/pages/create-game/CreateGame';
 import Lobby from './host/pages/lobby/Lobby';
 import ProgressPage from './host/pages/progress/ProgressPage';
@@ -83,6 +84,7 @@ function PlayerFlow({ initialCode = '' }) {
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinError, setJoinError] = useState('');
   const t = useT();
+  useGameUiTheme(gameId);
 
   const { game, playerCount } = useTracker(() => {
     if (!gameId) return { game: null, playerCount: 0 };
@@ -193,10 +195,10 @@ function PlayerFlow({ initialCode = '' }) {
 
   if (screen === 'resuming') {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-[#0e0e0e] px-5">
+      <div className="flex min-h-[100dvh] items-center justify-center bg-ground px-5">
         <p
           role="status"
-          className="pulse-text font-mono text-xs uppercase tracking-[0.25em] text-[#aa8984]"
+          className="pulse-text font-mono text-xs uppercase tracking-[0.25em] text-muted"
         >
           {t('mobile.home.reconnecting')}
         </p>

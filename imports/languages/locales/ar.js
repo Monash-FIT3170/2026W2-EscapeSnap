@@ -4,6 +4,14 @@ export const ar = {
     loading: 'جارٍ التحميل...',
     language: 'اللغة',
     exit: 'خروج',
+    theme: 'المظهر',
+    themes: {
+      dossier: 'الملف',
+      terminal: 'الطرفية',
+      blueprint: 'المخطط',
+      daylight: 'ضوء النهار',
+      contrast: 'تباين عالٍ',
+    },
   },
   errors: {
     notFound: 'اللعبة غير موجودة',

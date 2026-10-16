@@ -2,6 +2,7 @@ import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
 import 'meteor/aldeed:collection2/static';
 import { THEMES } from '/imports/lib/cocoClasses';
+import { UI_THEMES, DEFAULT_UI_THEME } from '/imports/lib/uiThemes';
 import { CUSTOM_THEME, CUSTOM_THEME_MAX_LENGTH } from '/imports/lib/customTheme';
 import { ANSWER_MODES, DEFAULT_ANSWER_MODE } from '/imports/lib/answerModes';
 
@@ -50,6 +51,12 @@ Games.attachSchema(
       type: String,
       allowedValues: [...THEMES, CUSTOM_THEME],
       defaultValue: 'classroom',
+    },
+    // Skin shown on every screen in this game, host and players alike.
+    uiTheme: {
+      type: String,
+      allowedValues: UI_THEMES,
+      defaultValue: DEFAULT_UI_THEME,
     },
     // The host's own theme text; only set when theme === 'custom'.
     customTheme: {

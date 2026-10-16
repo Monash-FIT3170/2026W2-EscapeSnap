@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useT } from '../../../../languages/LanguageProvider';
 
-const PANEL = '#1c1b1b';
-const INNER = '#0e0e0e';
-const BORDER = '#353534';
-const ACCENT = '#8b0000';
-const TEXT = '#e5e2e1';
-const MUTED = '#aa8984';
-const DIM = '#555';
-const CORRECT = '#4ade80';
-const INCORRECT = '#ef4444';
+const PANEL = 'rgb(var(--es-panel))';
+const INNER = 'rgb(var(--es-ground))';
+const BORDER = 'rgb(var(--es-line))';
+const ACCENT = 'rgb(var(--es-brand))';
+const TEXT = 'rgb(var(--es-ink))';
+const MUTED = 'rgb(var(--es-muted))';
+const DIM = 'rgb(var(--es-dim))';
+const CORRECT = 'rgb(var(--es-correct))';
+const INCORRECT = 'rgb(var(--es-incorrect))';
 
 const FOCUS_RING = `2px solid ${MUTED}`;
 
@@ -102,7 +102,7 @@ const PhotoTile = ({ photo, onOpen }) => {
 
       <span style={{
         position: 'absolute', top: 8, left: 8,
-        background: 'rgba(14,14,14,0.85)', color: TEXT,
+        background: 'rgb(var(--es-ground) / 0.85)', color: TEXT,
         fontSize: 9, fontWeight: 700, letterSpacing: '1px', padding: '4px 8px',
       }}>
         {t('host.summary.round', { n: photo.roundNumber })}
@@ -111,7 +111,7 @@ const PhotoTile = ({ photo, onOpen }) => {
       {photo.attemptNumber > 1 && (
         <span style={{
           position: 'absolute', top: 8, right: 8,
-          background: 'rgba(139,0,0,0.9)', color: TEXT,
+          background: 'rgb(var(--es-brand) / 0.9)', color: 'rgb(var(--es-on-brand))',
           fontSize: 9, fontWeight: 700, letterSpacing: '1px', padding: '4px 8px',
         }}>
           {t('host.summary.retry', { n: photo.attemptNumber })}

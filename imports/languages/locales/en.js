@@ -7,6 +7,14 @@ export const en = {
     loading: 'Loading...',
     language: 'Language',
     exit: 'Exit',
+    theme: 'Theme',
+    themes: {
+      dossier: 'Dossier',
+      terminal: 'Terminal',
+      blueprint: 'Blueprint',
+      daylight: 'Daylight',
+      contrast: 'High contrast',
+    },
   },
   errors: {
     notFound: 'Game not found',

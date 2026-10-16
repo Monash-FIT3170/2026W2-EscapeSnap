@@ -52,10 +52,10 @@ export function AchievementBadge({ badge, size = 24 }) {
         role="tooltip"
         className="pointer-events-none invisible absolute bottom-full left-1/2 z-50 mb-3 w-56 -translate-x-1/2 text-left opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-focus:visible group-focus:opacity-100"
         style={{
-          background: '#090909',
+          background: 'rgb(var(--es-ground))',
           border: `1px solid ${definition.color}`,
           padding: '12px 14px',
-          color: '#e5e2e1',
+          color: 'rgb(var(--es-ink))',
           boxShadow: '0 12px 30px rgba(0,0,0,0.45)',
         }}
       >
@@ -71,14 +71,14 @@ export function AchievementBadge({ badge, size = 24 }) {
         </span>
         <span
           className="mt-1 block"
-          style={{ color: '#c9b8b5', fontSize: 11, lineHeight: 1.5 }}
+          style={{ color: 'rgb(var(--es-muted))', fontSize: 11, lineHeight: 1.5 }}
         >
           {definition.description}
         </span>
         {metric && (
           <span
             className="mt-2 block font-mono"
-            style={{ color: '#ffffff', fontSize: 10 }}
+            style={{ color: 'rgb(var(--es-ink))', fontSize: 10 }}
           >
             {metric}
           </span>

@@ -3,6 +3,14 @@ export const fr = {
     loading: 'Chargement...',
     language: 'Langue',
     exit: 'Quitter',
+    theme: 'Thème',
+    themes: {
+      dossier: 'Dossier',
+      terminal: 'Terminal',
+      blueprint: 'Plan',
+      daylight: 'Plein jour',
+      contrast: 'Contraste élevé',
+    },
   },
   errors: {
     notFound: 'Partie introuvable',
