@@ -1,13 +1,17 @@
 import { Meteor } from 'meteor/meteor';
 import { Games } from './GamesCollection';
 import { Players } from '../players/PlayersCollection';
-import { Rounds } from '../rounds/RoundsCollection';
 import { RoundSessions } from '/imports/api/rounds/RoundSessions';
 import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 import { FINAL_RIDDLE, getFallbackFinalRiddle } from '../../lib/finalRiddle';
 import { RIDDLE_BANK } from '../../lib/riddleBank';
 import { THEME_OBJECT_POOLS } from '../../lib/cocoClasses';
-import { advanceGameRound } from '../rounds/roundProgression';
+import { DEFAULT_ANSWER_MODE } from '../../lib/answerModes';
+import { CUSTOM_THEME, normalizeCustomTheme } from '../../lib/customTheme';
+import {
+  advanceGameRound,
+  resolvePendingRounds,
+} from '../rounds/roundProgression';
 import { finalizeGameResults } from '../achievements/achievementService';
 import { logGameEvent } from '../events/gameEventLog';
 import {
@@ -41,8 +45,44 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function generateJoinCode() {
+function randomJoinCode() {
   return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+// Where new join codes come from. Tests swap `next` for a fixed sequence
+// rather than stubbing the global Math.random, which background riddle
+// generation also draws from.
+export const joinCodeSource = { next: randomJoinCode };
+
+// players.join looks a game up by code among open lobbies, so two open
+// lobbies sharing a code would send players to whichever one Mongo returns
+// first. Pick a code no open lobby is using; abandoned lobbies never close,
+// so this matters more the longer the app runs.
+async function generateJoinCode() {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const joinCode = joinCodeSource.next();
+    const inUse = await Games.findOneAsync(
+      { joinCode, status: 'lobby' },
+      { fields: { _id: 1 } }
+    );
+    if (!inUse) return joinCode;
+  }
+  throw new Meteor.Error('no-join-code', 'Could not allocate a join code');
+}
+
+// The check in generateJoinCode can't stop two games created at the same
+// moment from picking the same free code. The unique open-lobby index
+// (server/main.js) rejects the second insert, so draw a new code and retry.
+async function insertGameWithJoinCode(game) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const joinCode = await generateJoinCode();
+    try {
+      return await Games.insertAsync({ ...game, joinCode });
+    } catch (err) {
+      if (err?.code !== 11000) throw err;
+    }
+  }
+  throw new Meteor.Error('no-join-code', 'Could not allocate a join code');
 }
 
 // Tops up a short/empty AI pool with the theme-filtered fallback bank, so a
@@ -88,14 +128,20 @@ async function writeRiddlesIfNotReady(gameId, finalRiddle, roundRiddles) {
 // games.start if generation hasn't finished yet.
 async function pregenerateRiddles(
   gameId,
-  { totalRounds, capacity, difficulty, theme }
+  { totalRounds, capacity, difficulty, theme, customTheme, mode }
 ) {
   const needed = totalRounds * capacity;
   const finalAnswerLength = clampFinalAnswerLength(needed);
 
   const [finalRiddleResult, roundPoolResult] = await Promise.allSettled([
     generateFinalRiddle({ difficulty, letterCount: finalAnswerLength }),
-    generateRoundRiddles({ count: needed, difficulty, theme }),
+    generateRoundRiddles({
+      count: needed,
+      difficulty,
+      theme,
+      customTheme,
+      mode,
+    }),
   ]);
 
   let finalRiddle;
@@ -158,32 +204,6 @@ function pregenerateRiddlesOnce(gameId, params) {
   return pendingPregeneration.get(gameId);
 }
 
-// Mark every still-pending round matching `selector` as wrong.
-// The status is part of the update selector, so a round can only make the
-// pending -> wrong transition once and can never push a duplicate '?'.
-async function resolvePendingRounds(selector) {
-  const pending = await Rounds.find({
-    ...selector,
-    status: 'pending',
-  }).fetchAsync();
-  let resolved = 0;
-
-  for (const round of pending) {
-    const updated = await Rounds.updateAsync(
-      { _id: round._id, status: 'pending' },
-      { $set: { status: 'wrong', submittedAt: new Date() } }
-    );
-    if (updated === 1) {
-      await Players.updateAsync(round.playerId, {
-        $push: { revealedLetters: '?' },
-      });
-      resolved++;
-    }
-  }
-
-  return resolved;
-}
-
 Meteor.methods({
   async 'games.create'({
     groupName,
@@ -192,14 +212,22 @@ Meteor.methods({
     capacity = 4,
     difficulty = 'medium',
     theme = 'classroom',
+    mode = DEFAULT_ANSWER_MODE,
+    customTheme,
   } = {}) {
     if (!groupName || !groupName.trim()) {
       throw new Meteor.Error('invalid-group-name', 'Group name is required');
     }
-    const joinCode = generateJoinCode();
-
-    const gameId = await Games.insertAsync({
-      joinCode,
+    // Only kept for the custom theme; a preset theme ignores any stray text.
+    const cleanCustomTheme =
+      theme === CUSTOM_THEME ? normalizeCustomTheme(customTheme) : '';
+    if (theme === CUSTOM_THEME && !cleanCustomTheme) {
+      throw new Meteor.Error(
+        'invalid-custom-theme',
+        'Custom theme text is required'
+      );
+    }
+    const gameId = await insertGameWithJoinCode({
       groupName: groupName.trim(),
       status: 'lobby',
       currentRound: 1,
@@ -208,6 +236,8 @@ Meteor.methods({
       capacity,
       difficulty,
       theme,
+      ...(cleanCustomTheme && { customTheme: cleanCustomTheme }),
+      mode,
       createdAt: new Date(),
       startedAt: null,
       endedAt: null,
@@ -221,6 +251,8 @@ Meteor.methods({
       capacity,
       difficulty,
       theme,
+      customTheme: cleanCustomTheme,
+      mode,
     });
 
     return gameId;
@@ -249,6 +281,8 @@ Meteor.methods({
         capacity: game.capacity,
         difficulty: game.difficulty,
         theme: game.theme,
+        customTheme: game.customTheme,
+        mode: game.mode,
       });
 
       const readyInTime = await Promise.race([
@@ -315,7 +349,8 @@ Meteor.methods({
   async 'games.advanceRound'(gameId) {
     const game = await Games.findOneAsync(gameId);
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
-    if (game.currentRound >= game.totalRounds) return;
+    if (game.status !== 'in_progress')
+      throw new Meteor.Error('invalid-state', 'Game is not in progress');
 
     await resolvePendingRounds({ gameId, roundNumber: game.currentRound });
 

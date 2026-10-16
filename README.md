@@ -41,13 +41,70 @@ meteor run --settings settings.example.json
 | --- | --- |
 | `meteor npm run start` | Start the app (`meteor run`) |
 | `meteor npm run lint` | ESLint |
+| `meteor npm test` | Unit, frontend component, and Meteor tests |
+| `meteor npm run test:ui` | Frontend component tests in jsdom |
 | `meteor npm run format` | Prettier write |
+| `meteor npm run test:e2e` | Playwright end-to-end tests (starts the app itself) |
+| `meteor npm run test:e2e:ui` | Same, in Playwright's visual runner |
+| `meteor npm run test:e2e:demo` | Presentation mode: slowed down, windows tiled (add `-- -g "photographs"` for one full game) |
+| `meteor npm run test:e2e:report` | Open the HTML report from the last E2E run |
+
+## End-to-end tests (Playwright)
+
+Tests live in `e2e/` (excluded from the Meteor bundle via `.meteorignore`):
+
+- `e2e/playwright.config.js` starts its own `meteor run` on port 3000 with test settings, so stop `meteor npm start` first (or set `E2E_PORT`).
+- `e2e/helpers/game.js` holds shared steps (create a game, join on a phone-sized browser, read the tutorial, take a photo, draw a sketch, reveal a hint, check letters, skip a round, answer the final riddle).
+- `e2e/tests/*.spec.js` hold the scenarios: landing page, creating a game, joining, starting a game, and three full games:
+  - **Photograph everything and escape:** tutorial, sealed debrief, hint penalty, letters tab, final riddle, win screens, debrief with every photo, and the leaderboard.
+  - **Sketch everything and escape:** the same game in drawing mode.
+  - **Skip everything and fail:** forfeited letters and three wrong final answers.
+
+First-time setup: `meteor npx playwright install chromium`.
+
+What the tests fake, so a whole game can be played without a person:
+
+- **Camera:** Chrome's built-in fake webcam (a moving test pattern).
+- **Photo check:** the app is started with `E2E_FAKE_CLASSIFY=pass`, so `server/main.js` marks every photo correct instead of calling Gemini. This is ignored in production builds.
+- **Riddles:** `GEMINI_API_KEY` is blank, so riddles come from the built-in bank. The full-game test reads the final riddle off the host screen and looks its answer up in that bank.
+
+To record a new test, run `meteor npx playwright codegen http://localhost:3000`.
+
+## CI/CD
+
+The `CI` GitHub Actions workflow runs on pull requests and pushes to `main`. It
+installs dependencies, audits npm dependencies for high/critical advisories,
+lints, runs unit and frontend component tests, runs the Meteor test suite
+against a temporary MongoDB, and builds the Meteor bundle. Separate jobs run
+CodeQL analysis and scan Git history for exposed secrets. The project does not
+build container images, so there is no container-image scan.
+
+After a successful CI run on `main`, the deployment workflow deploys that
+commit to staging, checks that the app's HTTPS home page responds successfully,
+then deploys and smoke-tests production. The production job uses the `production`
+GitHub Environment; configure required reviewers under **Settings > Environments
+> production** to require approval before release. GitHub Actions reports
+workflow status and includes a deployment summary; notification delivery
+depends on each user's GitHub notification settings.
+
+Configure these GitHub Environments and values before deployment:
+
+| Environment | Variable | Secrets |
+| --- | --- | --- |
+| `staging` | `GALAXY_APP_URL` (staging Galaxy hostname, without `https://`) | `GALAXY_STAGING_SESSION` or `METEOR_STAGING_SESSION_FILE`, `STAGING_GEMINI_API_KEY`, `STAGING_MONGO_URL` |
+| `production` | Optional `GALAXY_APP_URL` (defaults to `escape-snap.sandbox.galaxycloud.app`) | `GALAXY_SESSION` or `METEOR_SESSION_FILE`, `GEMINI_API_KEY`, `MONGO_URL` |
+
+Use separate staging database and API credentials; do not point staging at
+production data. Galaxy builds from the checked-out commit during each
+environment's deploy. Rollbacks remain a manual operation outside this
+workflow.
 
 ## Stack
 
 - **Frontend:** React, Tailwind CSS v4 (via PostCSS — see `postcss.config.mjs`)
 - **Backend / realtime:** Meteor (DDP), MongoDB
-- **E2E (planned):** Playwright in `e2e/` (excluded from the Meteor bundle via `.meteorignore`)
+- **Frontend tests:** Vitest, React Testing Library, and jsdom
+- **E2E:** Playwright in `e2e/` (excluded from the Meteor bundle via `.meteorignore`)
 
 ## Spike learnings (short)
 
@@ -65,4 +122,3 @@ GEMINI_MODEL=         # optional, defaults to gemini-3-flash-preview
 ```
 
 Get a key from https://aistudio.google.com/apikey. The app boots without `.env` — every variable is optional for startup — but photo submissions and riddle generation will fail without `GEMINI_API_KEY`. `scripts/start.mjs` loads `.env` automatically for `meteor npm run start`.
-

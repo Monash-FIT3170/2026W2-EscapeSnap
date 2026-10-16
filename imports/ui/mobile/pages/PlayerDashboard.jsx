@@ -1,11 +1,13 @@
 // Meteor's JSX transform still requires React in module scope.
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Rounds } from '/imports/api/rounds/RoundsCollection';
 import { Players } from '/imports/api/players/PlayersCollection';
 import { Games } from '/imports/api/games/GamesCollection';
 import MobileRiddlePage from './gameplay/MobileRiddlePage';
+import MobileDrawingPage from './gameplay/MobileDrawingPage';
+import { normalizeAnswerMode } from '/imports/lib/answerModes';
 import { MobileBottomNav } from '../components/navigation/MobileBottomNav';
 import { RoundTimer } from '../components/gameplay/RoundTimer';
 import { PlayerWinScreen } from './result/PlayerWinScreen';
@@ -257,7 +259,8 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
     shareRounds,
     shareLoading,
   } = useTracker(() => {
-    Meteor.subscribe('player.self', playerId);
+    // player.self is held by PlayerFlow for the whole session — it doubles as
+    // presence tracking, so subscribing again here would register twice.
     const gameSubscription = Meteor.subscribe('games.current', gameId);
     const trackedGame = Games.findOne(gameId);
 
@@ -297,6 +300,8 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   }, [playerId, gameId]);
 
   const totalRounds = game?.totalRounds ?? 1;
+  // Old games have no `mode`; normalizeAnswerMode treats that as camera.
+  const answerMode = normalizeAnswerMode(game?.mode);
   // 'correct', 'wrong' (skipped) and 'timeout' all mean the same thing here:
   // this player is done with the round and is waiting on the others.
   const roundSettled = !!round && round.status !== 'pending';
@@ -420,7 +425,15 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
     ? Math.round(gameBudgetMs(game) / 1000)
     : 30 * 60;
 
-  const handleCorrectAnswer = useCallback((letter, isCorrect) => {
+  const roundIdRef = useRef(null);
+  roundIdRef.current = round?._id ?? null;
+
+  // The last player's submit advances the round on the server, and the new
+  // round can reach us before the submit's own result does. Drop a result for
+  // a round we've already left, or it paints CORRECT! (with Retry/Skip) over
+  // the next riddle.
+  const handleCorrectAnswer = useCallback((letter, isCorrect, forRoundId) => {
+    if (forRoundId && forRoundId !== roundIdRef.current) return;
     setRevealedLetter(letter);
     setAnswerCorrect(isCorrect);
   }, []);
@@ -599,12 +612,23 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
 
             {activeTab === 'scanner' && (
               <>
-                <MobileRiddlePage
-                  roundId={round?._id}
-                  targetObject={round?.answer}
-                  isExpired={isExpired}
-                  onCorrect={handleCorrectAnswer}
-                />
+                {answerMode === 'drawing' ? (
+                  // Keyed by round so the next riddle starts on a blank canvas.
+                  <MobileDrawingPage
+                    key={round?._id}
+                    roundId={round?._id}
+                    targetObject={round?.answer}
+                    isExpired={isExpired}
+                    onCorrect={handleCorrectAnswer}
+                  />
+                ) : (
+                  <MobileRiddlePage
+                    roundId={round?._id}
+                    targetObject={round?.answer}
+                    isExpired={isExpired}
+                    onCorrect={handleCorrectAnswer}
+                  />
+                )}
                 {round?._id && (
                   <div className="flex-shrink-0 border-t border-[#353534] bg-[#0e0e0e] px-5 pb-4 pt-3">
                     <SkipRoundButton

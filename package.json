@@ -6,9 +6,14 @@
     "patch:meteor-win": "powershell -ExecutionPolicy Bypass -File ./scripts/patch-meteor-win-npm.ps1",
     "start:windows": "powershell -ExecutionPolicy Bypass -File ./scripts/start-windows.ps1",
     "lint": "eslint . --ext .js,.jsx",
-    "test": "npm run test:unit && npm run test:meteor",
-    "test:unit": "node --experimental-default-type=module --test imports/api/achievements/calculateGameResults.test.js",
+    "test": "npm run test:unit && npm run test:ui && npm run test:meteor",
+    "test:unit": "node --experimental-default-type=module --test imports/api/achievements/calculateGameResults.test.js imports/lib/answerModes.test.js imports/api/submissions/classifyPrompt.test.js imports/api/gemini/geminiModels.test.js imports/lib/customTheme.test.js imports/api/riddles/roundRiddlePrompt.test.js imports/ui/mobile/components/result/shareSnapshot.test.js imports/ui/mobile/components/result/shareCard.test.js imports/ui/host/components/landing/landingLogic.test.js",
+    "test:ui": "vitest run",
     "test:meteor": "cross-env TEST_CLIENT=0 meteor test --once --driver-package meteortesting:mocha",
+    "test:e2e": "playwright test -c e2e/playwright.config.js",
+    "test:e2e:ui": "playwright test -c e2e/playwright.config.js --ui",
+    "test:e2e:demo": "cross-env E2E_DEMO=1 playwright test -c e2e/playwright.config.js",
+    "test:e2e:report": "playwright show-report e2e/playwright-report",
     "format": "prettier --write '**/*.{js,jsx,css,md}'"
   },
   "dependencies": {
@@ -29,6 +34,10 @@
   "devDependencies": {
     "@babel/eslint-parser": "^7.28.6",
     "@eslint/js": "^9.39.4",
+    "@playwright/test": "^1.64.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@vitest/coverage-v8": "^4.1.11",
     "chai": "^4.5.0",
     "cross-env": "^10.1.0",
     "eslint": "^9.39.4",
@@ -36,6 +45,8 @@
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.0.0",
-    "prettier": "^3.8.3"
+    "jsdom": "^26.1.0",
+    "prettier": "^3.8.3",
+    "vitest": "^4.1.11"
   }
 }
