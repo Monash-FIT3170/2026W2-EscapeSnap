@@ -2473,19 +2473,171 @@ html[data-ui-theme='blueprint'] .lp {
   --ok: #5be3b0;
 }
 
-/* The lights a little higher, in Daylight's red */
+/* Daylight: the same room with the lights on. The page, wall and text turn
+   light; the darkness, the torch and the eyes go. The physical devices (the
+   keypad, tape, monitors, TV, phone, door and letter tiles) stay dark, like
+   dark objects in a lit room, so they keep the dark-room palette below. */
 html[data-ui-theme='daylight'] .lp {
+  --pitch: #f4f0e8;
+  --bone: #201c1a;
+  --bone-dim: #4a403a;
+  --ash: #6e5a54;
+  --alarm: #be1e1e;
+  --on-alarm: #fffaf5;
+  --hot: #d02a1c;
+  --deep: #a51414;
+  --ember: #e9cfc8;
+  --surface: #d8cfc2;
+  --glow: #fff6e6;
+  --lcd: #d02a1c;
+  --ok: #1f9d55;
+}
+/* :where keeps this at the specificity of plain .lp, so an element's own
+   colour rule (dark text on the red tape, say) still wins. */
+:where(html[data-ui-theme='daylight']) .lp :where(
+    .lp-keypad,
+    .lp-tape,
+    .lp-screen,
+    .lp-tv,
+    .lp-phone,
+    .lp-door,
+    .lp-tile
+  ) {
   --bone: #f4f0e8;
   --bone-dim: #cfc6b8;
   --ash: #a89c90;
-  --alarm: #be1e1e;
-  --on-alarm: #fffaf5;
   --hot: #ff5a46;
-  --deep: #a51414;
+  --ember: #2e0c08;
   --surface: #4a4139;
   --glow: #fff4dc;
   --lcd: #ff5a46;
   --ok: #3fd27a;
+  /* Text inherits a colour already resolved at .lp, so reset it here too. */
+  color: var(--bone);
+}
+
+/* The monitors' screens stay dark, but their captions sit on the light page;
+   the traces are set here so the screens keep their dark-room colours. */
+html[data-ui-theme='daylight'] .lp .lp-monitor {
+  --trace: #f4f0e8;
+}
+html[data-ui-theme='daylight'] .lp .lp-monitor.lp-medium {
+  --trace: #ff8a70;
+}
+html[data-ui-theme='daylight'] .lp .lp-monitor.lp-hard {
+  --trace: #ff5a46;
+}
+/* The caption under each screen is on the light page, not the screen. */
+html[data-ui-theme='daylight'] .lp .lp-state {
+  color: var(--ash);
+}
+html[data-ui-theme='daylight'] .lp .lp-monitor:not(.lp-easy) .lp-state {
+  color: var(--hot);
+}
+
+/* Lights on: no darkness, no torch, nothing watching. */
+html[data-ui-theme='daylight'] .lp .lp-dark,
+html[data-ui-theme='daylight'] .lp .lp-eyes {
+  display: none;
+}
+html[data-ui-theme='daylight'] .lp .lp-wall {
+  background:
+    radial-gradient(
+      55% 40% at 16% 74%,
+      color-mix(in srgb, var(--deep) 14%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      30% 35% at 66% 30%,
+      rgba(90, 70, 40, 0.12),
+      transparent 70%
+    ),
+    radial-gradient(45% 60% at 88% 18%, rgba(0, 0, 0, 0.08), transparent 70%),
+    linear-gradient(
+      90deg,
+      transparent 0 21%,
+      rgba(0, 0, 0, 0.08) 21.2% 21.5%,
+      transparent 21.8% 63%,
+      rgba(0, 0, 0, 0.06) 63.2% 63.4%,
+      transparent 63.7%
+    ),
+    linear-gradient(180deg, #efe9df, #e6ded1 65%, #ddd3c4);
+}
+html[data-ui-theme='daylight'] .lp .lp-wall::before {
+  opacity: 0.22;
+}
+html[data-ui-theme='daylight'] .lp .lp-chalk {
+  color: rgba(60, 50, 45, 0.45);
+}
+/* The dark used to hide the wall's writing until the torch found it; in
+   daylight it is always there, so it sits back behind the copy. */
+html[data-ui-theme='daylight'] .lp .lp-scrawl {
+  opacity: 0.45;
+}
+/* Daytime footage: faint scanlines, a light vignette. */
+html[data-ui-theme='daylight'] .lp .lp-scan {
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.04) 0 1px,
+      transparent 1px 3px
+    ),
+    radial-gradient(
+      120% 95% at 50% 45%,
+      transparent 60%,
+      rgba(60, 45, 30, 0.16) 100%
+    );
+}
+html[data-ui-theme='daylight'] .lp .lp-hero-copy {
+  text-shadow: none;
+}
+/* The title still lights up letter by letter, from faint to ink. */
+html[data-ui-theme='daylight'] .lp .lp-ltr:not(.is-on),
+html[data-ui-theme='daylight'] .lp .lp-ltr.is-on.is-off {
+  color: #d3c9ba;
+}
+html[data-ui-theme='daylight'] .lp .lp-ltr.lp-red:not(.is-on),
+html[data-ui-theme='daylight'] .lp .lp-ltr.is-on.is-off.lp-red {
+  color: #e8c9c1;
+}
+html[data-ui-theme='daylight'] .lp .lp-ltr.is-on {
+  text-shadow: none;
+}
+
+/* Light surfaces for the bar, chips and sections. */
+html[data-ui-theme='daylight'] .lp .lp-nav::before {
+  border-bottom-color: #d8cfc2;
+  background: rgba(244, 240, 232, 0.9);
+}
+html[data-ui-theme='daylight'] .lp .lp-chip,
+html[data-ui-theme='daylight'] .lp .lp-btn-ghost {
+  background: rgba(255, 255, 255, 0.55);
+}
+html[data-ui-theme='daylight'] .lp .lp-door .lp-btn-ghost {
+  background: rgba(0, 0, 0, 0.45);
+}
+html[data-ui-theme='daylight'] .lp .lp-tapes,
+html[data-ui-theme='daylight'] .lp .lp-lock-sec,
+html[data-ui-theme='daylight'] .lp .lp-exit {
+  background: var(--pitch);
+}
+html[data-ui-theme='daylight'] .lp .lp-board-sec,
+html[data-ui-theme='daylight'] .lp .lp-vitals-sec {
+  background: linear-gradient(
+    180deg,
+    var(--pitch) 0,
+    #ebe4d8 140px,
+    #ebe4d8 calc(100% - 140px),
+    var(--pitch) 100%
+  );
+}
+html[data-ui-theme='daylight'] .lp .lp-setup-sec,
+html[data-ui-theme='daylight'] .lp .lp-foot {
+  background: #ebe4d8;
+}
+html[data-ui-theme='daylight'] .lp .lp-board-sec::before,
+html[data-ui-theme='daylight'] .lp .lp-setup-sec::before {
+  opacity: 0.18;
 }
 
 /* White and yellow on black. Deep stays a dark red so ink on paper reads. */
