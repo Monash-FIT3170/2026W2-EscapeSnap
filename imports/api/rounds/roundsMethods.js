@@ -3,6 +3,7 @@ import { Rounds } from './RoundsCollection';
 import { Players } from '../players/PlayersCollection';
 import { Games } from '../games/GamesCollection';
 import { advanceIfRoundSettled } from './roundProgression';
+import { logGameEvent } from '../events/gameEventLog';
 import { HINT_PENALTY_MS, remainingGameMs } from '../../lib/gameClock';
 
 // Moves a pending round to its final status and awards its letter. The
@@ -27,6 +28,15 @@ async function settleRound(round, status, letter, settledAt) {
     $push: { revealedLetters: letter },
   });
   return true;
+}
+
+function logRoundEvent(round, type) {
+  return logGameEvent({
+    gameId: round.gameId,
+    type,
+    playerId: round.playerId,
+    roundNumber: round.roundNumber,
+  });
 }
 
 function assignLetters(answer, totalRounds, playerCount) {
@@ -118,7 +128,9 @@ Meteor.methods({
     const submittedAt = new Date();
 
     if (expired) {
-      await settleRound(round, 'timeout', '?', submittedAt);
+      if (await settleRound(round, 'timeout', '?', submittedAt)) {
+        await logRoundEvent(round, 'roundTimedOut');
+      }
       await advanceIfRoundSettled(round.gameId, round.roundNumber);
       throw new Meteor.Error('timeout', 'Round timer expired');
     }
@@ -132,6 +144,8 @@ Meteor.methods({
       submittedAt
     );
     if (settled) {
+      // Wrong photos are already logged by submissions.classify.
+      if (isCorrect) await logRoundEvent(round, 'roundSolved');
       await advanceIfRoundSettled(round.gameId, round.roundNumber);
     }
 
@@ -150,6 +164,7 @@ Meteor.methods({
       await Games.updateAsync(round.gameId, {
         $inc: { timePenaltyMs: HINT_PENALTY_MS },
       });
+      await logRoundEvent(round, 'hintRevealed');
     }
 
     return { hint: round.hint, penaltyMs: charged === 1 ? HINT_PENALTY_MS : 0 };
@@ -165,6 +180,7 @@ Meteor.methods({
     // Deliberately no game-timer check: skipping only ever awards '?', and it
     // is the one action that can still unstick a round after time runs out.
     if (await settleRound(round, 'wrong', '?', new Date())) {
+      await logRoundEvent(round, 'roundSkipped');
       await advanceIfRoundSettled(round.gameId, round.roundNumber);
     }
 

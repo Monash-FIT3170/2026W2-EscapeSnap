@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { Players } from './PlayersCollection';
 import { Games } from '../games/GamesCollection';
+import { logGameEvent } from '../events/gameEventLog';
 import { dropPlayer, findReconnectablePlayer } from './presence';
 
 Meteor.methods({
@@ -18,6 +19,7 @@ Meteor.methods({
       joinedAt: new Date(),
       revealedLetters: [],
     });
+    await logGameEvent({ gameId: game._id, type: 'playerJoined', playerId });
     return { playerId, gameId: game._id };
   },
 
