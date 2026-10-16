@@ -137,6 +137,22 @@ jobs:
           if-no-files-found: ignore
           include-hidden-files: true
 
+      # Playwright starts `meteor run` itself (see e2e/playwright.config.js)
+      # against the same throwaway MongoDB the unit tests used.
+      - name: Install Playwright browser
+        run: meteor npx playwright install --with-deps chromium
+
+      - name: Run end-to-end tests
+        run: meteor npm run test:e2e
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/playwright-report/
+          retention-days: 7
+
       - name: Build Meteor application
         shell: bash
         run: |
