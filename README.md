@@ -81,13 +81,17 @@ build container images, so there is no container-image scan.
 
 After a successful CI run on `main`, the deployment workflow deploys that
 commit to staging, checks that the app's HTTPS home page responds successfully,
-then deploys and smoke-tests production. The production job uses the `production`
+then deploys and smoke-tests production. Staging is optional: while none of its
+values below are set, it is skipped and production deploys straight away; once
+they are, it runs first again. Setting only some of them fails the deploy, so a
+half-finished setup is noticed. The production job uses the `production`
 GitHub Environment; configure required reviewers under **Settings > Environments
 > production** to require approval before release. GitHub Actions reports
 workflow status and includes a deployment summary; notification delivery
 depends on each user's GitHub notification settings.
 
-Configure these GitHub Environments and values before deployment:
+Configure these GitHub Environments and values (production's secrets may also
+be set at repository level, which is how this repository has them):
 
 | Environment | Variable | Secrets |
 | --- | --- | --- |
