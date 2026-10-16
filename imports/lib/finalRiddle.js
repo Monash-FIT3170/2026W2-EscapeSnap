@@ -3,7 +3,7 @@
 // totalRounds * playerCount letters directly — rounds.createForGame's assignLetters
 // wraps letter positions via modulo when there are more player-rounds than letters,
 // so a shorter word works fine and this bank always has an exact-length match.
-const FINAL_RIDDLE_BANK = [
+export const FINAL_RIDDLE_BANK = [
   {
     riddle:
       'I have cities, but no houses live there. I have mountains, but no trees grow there. I have water, but no fish swim there. I have roads, but no cars drive there. What am I?',

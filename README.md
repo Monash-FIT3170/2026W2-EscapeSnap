@@ -44,6 +44,31 @@ meteor run --settings settings.example.json
 | `meteor npm test` | Unit, frontend component, and Meteor tests |
 | `meteor npm run test:ui` | Frontend component tests in jsdom |
 | `meteor npm run format` | Prettier write |
+| `meteor npm run test:e2e` | Playwright end-to-end tests (starts the app itself) |
+| `meteor npm run test:e2e:ui` | Same, in Playwright's visual runner |
+| `meteor npm run test:e2e:demo` | Presentation mode: slowed down, windows tiled (add `-- -g "photographs"` for one full game) |
+| `meteor npm run test:e2e:report` | Open the HTML report from the last E2E run |
+
+## End-to-end tests (Playwright)
+
+Tests live in `e2e/` (excluded from the Meteor bundle via `.meteorignore`):
+
+- `e2e/playwright.config.js` starts its own `meteor run` on port 3000 with test settings, so stop `meteor npm start` first (or set `E2E_PORT`).
+- `e2e/helpers/game.js` holds shared steps (create a game, join on a phone-sized browser, read the tutorial, take a photo, draw a sketch, reveal a hint, check letters, skip a round, answer the final riddle).
+- `e2e/tests/*.spec.js` hold the scenarios: landing page, creating a game, joining, starting a game, and three full games:
+  - **Photograph everything and escape:** tutorial, sealed debrief, hint penalty, letters tab, final riddle, win screens, debrief with every photo, and the leaderboard.
+  - **Sketch everything and escape:** the same game in drawing mode.
+  - **Skip everything and fail:** forfeited letters and three wrong final answers.
+
+First-time setup: `meteor npx playwright install chromium`.
+
+What the tests fake, so a whole game can be played without a person:
+
+- **Camera:** Chrome's built-in fake webcam (a moving test pattern).
+- **Photo check:** the app is started with `E2E_FAKE_CLASSIFY=pass`, so `server/main.js` marks every photo correct instead of calling Gemini. This is ignored in production builds.
+- **Riddles:** `GEMINI_API_KEY` is blank, so riddles come from the built-in bank. The full-game test reads the final riddle off the host screen and looks its answer up in that bank.
+
+To record a new test, run `meteor npx playwright codegen http://localhost:3000`.
 
 ## CI/CD
 
@@ -79,7 +104,7 @@ workflow.
 - **Frontend:** React, Tailwind CSS v4 (via PostCSS — see `postcss.config.mjs`)
 - **Backend / realtime:** Meteor (DDP), MongoDB
 - **Frontend tests:** Vitest, React Testing Library, and jsdom
-- **E2E (planned):** Playwright in `e2e/` (excluded from the Meteor bundle via `.meteorignore`)
+- **E2E:** Playwright in `e2e/` (excluded from the Meteor bundle via `.meteorignore`)
 
 ## Spike learnings (short)
 

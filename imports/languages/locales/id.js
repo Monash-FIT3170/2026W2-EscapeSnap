@@ -18,12 +18,126 @@ export const id = {
     reconnectExpired: 'Batas waktu untuk menyambung ulang telah habis',
   },
   landing: {
-    initiateProtocol: 'MULAI PROTOKOL',
-    tagline:
-      'Ubah lingkungan sekitarmu menjadi ruang pelarian interaktif. Pecahkan teka-teki visual, kumpulkan petunjuk, dan bongkar kode terakhir — di mana pun kamu berada.',
-    joinAsPlayer: 'GABUNG SEBAGAI PEMAIN',
-    hostAGame: 'BUAT PERMAINAN',
-    footerTag: 'BUAT SESI · MULAI MISI',
+    host: 'Buat permainan',
+    join: 'Gabung permainan',
+    leaderboard: 'Papan peringkat',
+    homeLink: 'Beranda EscapeSnap',
+    nav: {
+      sections: 'Bagian',
+      how: 'Cara bermain',
+      final: 'Teka-teki terakhir',
+      pressure: 'Tingkat kesulitan',
+      soundOn: 'Suara aktif',
+      soundOff: 'Suara mati',
+    },
+    hero: {
+      lead1: 'Ruangan tempat kamu berdiri',
+      lead2: 'adalah escape room-nya.',
+      body: 'Setiap ronde, sebuah teka-teki menggambarkan benda yang tersembunyi di sekitarmu. Temukan dan foto benda itu sebelum waktu habis untuk mendapatkan satu huruf. Kumpulkan semuanya, lalu pecahkan teka-teki terakhir bersama-sama.',
+      meta: 'Untuk 2–4 pemain, 10–60 menit. Tuan rumah menampilkan permainan di layar besar dan yang lain bermain dari ponsel. Tanpa unduhan, tanpa pendaftaran.',
+      seeHow: 'Lihat cara bermain',
+      noMotion: 'Tidak ada gerakan',
+      motion: 'Gerakan terdeteksi',
+      lowLight: 'Cahaya redup',
+      scrawlLight: 'dia benci cahaya',
+      scrawlBehind: 'jangan menoleh ke belakang',
+      scrawlSmile: 'senyum ke kamera',
+      scrawlDay: 'hari ke-3',
+      scrawlOut: 'KELUAR',
+    },
+    keypad: {
+      code: 'Kode ruangan dari layar besar, 4 digit',
+      keys: 'Papan tombol',
+      clear: 'Hapus kode',
+      del: 'Hapus digit terakhir',
+      enter: 'Masuk permainan',
+      idle: 'Ketik kode dari layar besar',
+      needName: 'Sekarang isi namamu',
+      ready: 'Siap. Tekan masuk permainan',
+      codeShort: 'Kode harus 4 digit. Kurang {n}',
+      checking: 'Memeriksa ruangan {code}…',
+      found: 'Ruangan {code} ditemukan. Membuka…',
+    },
+    tape: {
+      a: 'Dilarang masuk|2–4 pemain|10–60 menit|Tanpa unduhan|Tanpa pendaftaran|Satu layar + ponsel',
+      b: 'TKP|Jangan melintas|Temukan|Potret|Keluar',
+      sr: '2–4 pemain. 10–60 menit. Tanpa unduhan. Tanpa pendaftaran. Satu layar dan ponsel.',
+    },
+    how: {
+      title: 'Lima langkah menuju pintu',
+      intro:
+        'Setiap ronde berjalan dengan cara yang sama. Teka-tekinya makin sulit. Waktunya tidak makin bersahabat.',
+      s1Title: 'Baca teka-tekinya',
+      s1Body:
+        'Teka-teki di layar besar menggambarkan benda yang tersembunyi di dekatmu.',
+      s2Title: 'Temukan bendanya',
+      s2Body: 'Pecahkan jawabannya bersama tim, lalu cari benda aslinya.',
+      s3Title: 'Ambil foto',
+      s3Body:
+        'Gunakan pemindai dalam permainan untuk memotretnya sebelum waktu habis.',
+      s4Title: 'Kumpulkan huruf',
+      s4Body:
+        'Setiap foto yang benar memberi satu huruf. Simpan semuanya; kamu akan membutuhkannya.',
+      s5Title: 'Kabur',
+      s5Body:
+        'Gabungkan huruf-hurufmu di layar besar, pecahkan teka-teki terakhir, lalu keluar.',
+    },
+    final: {
+      title: 'Pecahkan teka-teki terakhir',
+      intro1:
+        'Setiap permainan berakhir di sini. Timmu sudah mendapatkan tiga huruf dari ronde-ronde sebelumnya. Baca teka-tekinya, temukan katanya, lalu ketik.',
+      intro2:
+        'Dalam permainan sungguhan, kalian memecahkannya bersama di layar besar sementara waktu terus berjalan.',
+      lettersRecovered: 'Huruf yang didapat',
+      showHint: 'Tampilkan petunjuk',
+      hideHint: 'Sembunyikan petunjuk',
+      hint: 'Salah satu huruf yang kamu temukan muncul dua kali.',
+      answerLabel: 'Jawabanmu',
+      placeholder: 'Ketik di sini',
+      check: 'Periksa jawaban',
+      empty: 'Ketik jawaban dulu.',
+      wrong: 'Bukan {answer}. Baca lagi teka-tekinya.',
+      wrongHint: 'Bukan {answer}. Ini petunjuknya.',
+      correct:
+        'Benar. Kamu kabur dalam {time}. Setiap permainan berakhir seperti ini, dengan benda nyata dan waktu sungguhan.',
+      again: 'Coba lagi',
+      escaped: 'Lolos',
+    },
+    pressure: {
+      title: 'Atur tekanannya',
+      intro:
+        'Tuan rumah memilih tingkat kesulitan saat menyiapkan permainan. Denyut nadimu yang mengurus sisanya.',
+      easy: 'Mudah',
+      easyState: 'Tanda vital stabil',
+      easyDesc: 'Kunjungan pertama yang santai.',
+      medium: 'Sedang',
+      mediumState: 'Kortisol meningkat',
+      mediumDesc: 'Dinding mulai menyempit.',
+      hard: 'Sulit',
+      hardState: 'Kegagalan sistemik',
+      hardDesc: 'Belum ada yang berhasil keluar.',
+      bpm: 'BPM',
+      ecg: 'EKG II',
+      arrhythmia: 'Aritmia',
+    },
+    setup: {
+      title: 'Satu layar besar. Satu ponsel per orang.',
+      p1: 'Tuan rumah membuka EscapeSnap di TV atau laptop dan mendapat kode ruangan empat digit. Pemain mengetiknya di ponsel dan langsung masuk.',
+      p2: 'Layar besar menampilkan teka-teki, waktu, dan huruf timmu. Ponsel dipakai untuk mencari dan memotret.',
+      roomCode: 'Kode ruangan',
+      round: 'Ronde',
+      joined: 'Bergabung',
+      newLetter: 'Huruf baru',
+    },
+    exit: {
+      title: 'Kunci teman-temanmu di dalam.',
+      body: 'Pilih waktu, ukuran tim, dan tingkat kesulitan. Kode ruanganmu muncul di layar besar.',
+      joinWithCode: 'Gabung dengan kode',
+    },
+    footer: {
+      label: 'Kaki halaman',
+      whisper: 'kamu tidak pernah sendirian di sini',
+    },
   },
   difficulty: {
     easy: 'MUDAH',
@@ -65,7 +179,8 @@ export const id = {
       copyTitle: 'Pilih dan salin kode permainan 4 digit ini',
       shareHint: 'Bagikan kode 4 digit ini kepada pemain.',
       scanToDeploy: 'PINDAI UNTUK MENERJUNKAN',
-      distributeHint: 'Agen memindai kode ini untuk langsung bergabung — tanpa perlu memasukkan PIN.',
+      distributeHint:
+        'Agen memindai kode ini untuk langsung bergabung — tanpa perlu memasukkan PIN.',
       gameDifficulty: 'KESULITAN PERMAINAN',
       awaitingStart: 'MENUNGGU PERMAINAN DIMULAI...',
       capacity: 'KAPASITAS',
@@ -99,6 +214,11 @@ export const id = {
       needsHelp: 'PERLU BANTUAN',
       inProgress: 'SEDANG BERLANGSUNG',
       eventLog: 'LOG_KEJADIAN',
+      offline: 'TERPUTUS',
+      forceAdvance: 'PAKSA LANJUT',
+      forceAdvanceConfirm: 'KONFIRMASI: {n} TERTUNDA GUGUR',
+      forceAdvancing: 'MELANJUTKAN...',
+      forceAdvanceFailed: 'GAGAL MEMAKSA LANJUT - COBA LAGI',
     },
     finalRiddle: {
       loading: 'MEMUAT...',
@@ -110,7 +230,8 @@ export const id = {
       noLettersRevealedYet: 'BELUM ADA HURUF TERUNGKAP',
       submitAnswer: 'KIRIM JAWABAN',
       enterOverridePlaceholder: 'MASUKKAN KODE OVERRIDE TERMINAL...',
-      connectionError: 'KESALAHAN KONEKSI - PERIKSA JARINGAN ANDA DAN COBA LAGI',
+      connectionError:
+        'KESALAHAN KONEKSI - PERIKSA JARINGAN ANDA DAN COBA LAGI',
       incorrectTryAgain: 'SALAH - COBA LAGI',
       attempt: 'PERCOBAAN',
       attempts: 'PERCOBAAN',
@@ -121,7 +242,8 @@ export const id = {
       loading: 'MEMUAT...',
       missionDebrief: 'DEBRIEF MISI',
       missionStillActive: 'MISI MASIH BERLANGSUNG',
-      debriefLockedBody: 'DEBRIEF TERBUKA SETELAH MISI BERAKHIR. FOTO DAN JAWABAN TEKA-TEKI TETAP TERSEGEL SELAMA PEMAIN MASIH DI LAPANGAN.',
+      debriefLockedBody:
+        'DEBRIEF TERBUKA SETELAH MISI BERAKHIR. FOTO DAN JAWABAN TEKA-TEKI TETAP TERSEGEL SELAMA PEMAIN MASIH DI LAPANGAN.',
       backToOperatives: 'KEMBALI KE PEMAIN',
       finalRiddle: 'TEKA-TEKI TERAKHIR',
       missionSuccess: 'MISI BERHASIL',
@@ -153,7 +275,8 @@ export const id = {
       avg: 'RATA-RATA',
       fastest: 'TERCEPAT',
       slowest: 'TERLAMA',
-      untimedNote: 'BEBERAPA RONDE TIDAK MEMILIKI DATA WAKTU DAN DIKECUALIKAN DARI RATA-RATA.',
+      untimedNote:
+        'BEBERAPA RONDE TIDAK MEMILIKI DATA WAKTU DAN DIKECUALIKAN DARI RATA-RATA.',
       roundTiming: 'WAKTU_RONDE',
       noRoundsOnRecord: 'TIDAK ADA RONDE TERCATAT',
       round: 'RONDE {n}',
@@ -164,7 +287,8 @@ export const id = {
       attemptsCount: '{n} PERCOBAAN',
       photoArchive: 'ARSIP_FOTO',
       photoArchivePurged: 'ARSIP FOTO DIHAPUS',
-      photoArchivePurgedDetail: 'GAMBAR DISIMPAN SELAMA 6 JAM SETELAH MISI, LALU DIHAPUS OTOMATIS.\nSEMUA STATISTIK MISI DI ATAS TETAP TERCATAT.',
+      photoArchivePurgedDetail:
+        'GAMBAR DISIMPAN SELAMA 6 JAM SETELAH MISI, LALU DIHAPUS OTOMATIS.\nSEMUA STATISTIK MISI DI ATAS TETAP TERCATAT.',
       noPhotosOnRecord: 'TIDAK ADA FOTO TERCATAT',
       noCapturesSubmitted: 'TIDAK ADA TANGKAPAN YANG DIKIRIM SELAMA MISI INI.',
       outcome: 'HASIL',
@@ -251,22 +375,26 @@ export const id = {
       roundTimer: 'Pengatur waktu ronde',
       expired: 'Habis',
       awaitingHost: 'MENUNGGU HOST',
-      awaitingHostBody: 'Tunggu sementara host menyiapkan permainan. Tetap siaga — segera dimulai.',
+      awaitingHostBody:
+        'Tunggu sementara host menyiapkan permainan. Tetap siaga — segera dimulai.',
       standby: 'Siaga',
       gameInSession: 'PERMAINAN BERLANGSUNG',
-      gameInSessionBody: 'Sebuah ronde sedang berlangsung. Kembali ke pemindai untuk menyelesaikan misimu.',
+      gameInSessionBody:
+        'Sebuah ronde sedang berlangsung. Kembali ke pemindai untuk menyelesaikan misimu.',
       active: 'Aktif',
       playerDefault: 'PEMAIN',
       awaitingGuidance: 'MENUNGGU ARAHAN',
     },
     riddle: {
       errCameraSecure: 'Kamera memerlukan koneksi aman (HTTPS).',
-      errCameraPermission: 'Izin kamera ditolak - periksa pengaturan browser Anda.',
+      errCameraPermission:
+        'Izin kamera ditolak - periksa pengaturan browser Anda.',
       errCameraNotFound: 'Tidak ada kamera yang ditemukan di perangkat ini.',
       errCameraUnavailable: 'Akses kamera ditolak atau tidak tersedia.',
       errProcessPhoto: 'Tidak dapat memproses foto — silakan coba lagi.',
       errConnection: 'Kesalahan koneksi — silakan coba lagi.',
-      errSubmissionNotSaved: 'Kesalahan koneksi — kiriman Anda tidak tersimpan. Silakan coba lagi.',
+      errSubmissionNotSaved:
+        'Kesalahan koneksi — kiriman Anda tidak tersimpan. Silakan coba lagi.',
       loadingRound: 'Memuat ronde...',
       capturedAlt: 'tertangkap',
       couldntVerify: 'Tidak Dapat Diverifikasi',
@@ -294,8 +422,10 @@ export const id = {
       wrongObjectDetected: 'OBJEK SALAH TERDETEKSI',
       roundSkipped: 'DILEWATI!',
       letterForfeited: 'HURUF HANGUS',
-      correctBody: 'Anda telah mendapatkan huruf yang terungkap. Gunakan untuk membantu menyusun kode akhir.',
-      incorrectBody: 'Anda gagal mendapatkan huruf yang terungkap untuk ronde ini.',
+      correctBody:
+        'Anda telah mendapatkan huruf yang terungkap. Gunakan untuk membantu menyusun kode akhir.',
+      incorrectBody:
+        'Anda gagal mendapatkan huruf yang terungkap untuk ronde ini.',
       retryOrSkipBody:
         'Pindai lagi, atau lewati ronde untuk lanjut tanpa hurufnya.',
       retry: 'Coba Lagi',
@@ -367,9 +497,12 @@ export const id = {
       keepAtLeastOne: 'Simpan setidaknya satu detail di kartu.',
       shareTitle: 'Debrief misi EscapeSnap saya',
       statusSent: 'Debrief terkirim melewati perimeter.',
-      statusStatsShared: 'Statistik misi dibagikan. Simpan kartu untuk berbagi gambar.',
-      statusSavedCopied: 'Kartu disimpan dan keterangan disalin — lampirkan di mana saja.',
-      statusShareBlocked: 'Berbagi diblokir. Coba Simpan gambar atau Salin statistik.',
+      statusStatsShared:
+        'Statistik misi dibagikan. Simpan kartu untuk berbagi gambar.',
+      statusSavedCopied:
+        'Kartu disimpan dan keterangan disalin — lampirkan di mana saja.',
+      statusShareBlocked:
+        'Berbagi diblokir. Coba Simpan gambar atau Salin statistik.',
       statusCardSaved: 'Kartu {format} disimpan sebagai PNG.',
       statusCreateImageFailed: 'Tidak dapat membuat gambar di perangkat ini.',
       statusCaptionCopied: 'Keterangan berbagi disalin.',
@@ -377,10 +510,12 @@ export const id = {
       shareLabOnline: 'LAB_BAGIKAN // ONLINE',
       headlineLine1: 'Bangun',
       headlineLine2: 'debriefmu.',
-      subheadline: 'Pilih apa yang keluar dari misi, bentuk kartunya, lalu bagikan sebagai gambar nyata.',
+      subheadline:
+        'Pilih apa yang keluar dari misi, bentuk kartunya, lalu bagikan sebagai gambar nyata.',
       step1Title: '01 // INTEL UNTUK DISERTAKAN',
       activeCount: '{n}/5 AKTIF',
-      privacyShield: 'PERISAI PRIVASI: KODE GABUNG, JAWABAN TEKA-TEKI, DAN HURUF YANG BELUM DIPULIHKAN TIDAK PERNAH DIEKSPOR.',
+      privacyShield:
+        'PERISAI PRIVASI: KODE GABUNG, JAWABAN TEKA-TEKI, DAN HURUF YANG BELUM DIPULIHKAN TIDAK PERNAH DIEKSPOR.',
       step2Title: '02 // SALURAN VISUAL',
       cardStyleLabel: 'GAYA KARTU',
       outputFormatLabel: 'FORMAT KELUARAN',
@@ -406,18 +541,24 @@ export const id = {
     },
     tutorial: {
       step1Title: 'BACA TEKA-TEKI',
-      step1Description: 'Setiap ronde memberi Anda teka-teki yang menggambarkan objek yang perlu Anda temukan.',
+      step1Description:
+        'Setiap ronde memberi Anda teka-teki yang menggambarkan objek yang perlu Anda temukan.',
       step2Title: 'TEMUKAN OBJEK',
-      step2Description: 'Cari tahu jawaban teka-teki dan temukan objek yang cocok di dunia nyata.',
+      step2Description:
+        'Cari tahu jawaban teka-teki dan temukan objek yang cocok di dunia nyata.',
       step3Title: 'AMBIL FOTO',
-      step3Description: 'Gunakan pemindai untuk mengambil foto objek sebelum waktu habis.',
+      step3Description:
+        'Gunakan pemindai untuk mengambil foto objek sebelum waktu habis.',
       step4Title: 'KUMPULKAN HURUF',
-      step4Description: 'Jawaban benar mengungkap huruf. Simpan huruf yang Anda kumpulkan selama setiap ronde.',
+      step4Description:
+        'Jawaban benar mengungkap huruf. Simpan huruf yang Anda kumpulkan selama setiap ronde.',
       step5Title: 'KABUR',
-      step5Description: 'Selesaikan semua ronde dan gunakan huruf yang Anda kumpulkan untuk membantu memecahkan teka-teki terakhir.',
+      step5Description:
+        'Selesaikan semua ronde dan gunakan huruf yang Anda kumpulkan untuk membantu memecahkan teka-teki terakhir.',
       missionBriefing: 'Pengarahan Misi',
       howToPlay: 'CARA BERMAIN',
-      objectiveHint: 'Selesaikan setiap objektif sebelum waktu permainan mencapai nol.',
+      objectiveHint:
+        'Selesaikan setiap objektif sebelum waktu permainan mencapai nol.',
       back: 'Kembali',
       startMission: 'Mulai Misi',
       next: 'Lanjut',

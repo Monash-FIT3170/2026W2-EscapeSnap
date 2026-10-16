@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Players } from './PlayersCollection';
 import { Games } from '../games/GamesCollection';
 import {
+  PRESENCE_GRACE_MS,
   advanceIfRoundSettled,
   resolvePendingRounds,
 } from '../rounds/roundProgression';
@@ -47,6 +48,19 @@ async function markDisconnected(playerId, connectionId) {
   );
   if (!marked) return;
 
+  // After the grace period the team stops waiting on this player (see
+  // advanceIfRoundSettled), so re-check whether their round can now move on.
+  Meteor.setTimeout(async () => {
+    try {
+      const player = await Players.findOneAsync(playerId);
+      const game = player && (await Games.findOneAsync(player.gameId));
+      if (game) await advanceIfRoundSettled(game._id, game.currentRound);
+    } catch (err) {
+      console.error('[presence] grace re-check failed:', err);
+    }
+  }, PRESENCE_GRACE_MS + 1000);
+
+  // After the reconnect window the player can no longer rejoin.
   Meteor.setTimeout(async () => {
     try {
       const player = await Players.findOneAsync({

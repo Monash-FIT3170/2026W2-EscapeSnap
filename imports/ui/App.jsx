@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route, useParams } from 'react-router';
+import {
+  Routes,
+  Route,
+  useLocation,
+  useNavigate,
+  useParams,
+} from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Games } from '../api/games/GamesCollection';
@@ -47,11 +53,18 @@ const RECONNECT_ERRORS = {
 };
 
 function PlayerFlow({ initialCode = '' }) {
-  const [screen, setScreen] = useState(() => (readSession() ? 'resuming' : 'home'));
-  const [playerName, setPlayerName] = useState('');
-  const [gameCode, setGameCode] = useState('');
-  const [playerId, setPlayerId] = useState(null);
-  const [gameId, setGameId] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Set when the player joined from the landing page's keypad.
+  const joined = location.state?.joined;
+  const [screen, setScreen] = useState(() => {
+    if (joined) return 'lobby';
+    return readSession() ? 'resuming' : 'home';
+  });
+  const [playerName, setPlayerName] = useState(joined?.playerName ?? '');
+  const [gameCode, setGameCode] = useState(joined?.gameCode ?? '');
+  const [playerId, setPlayerId] = useState(joined?.playerId ?? null);
+  const [gameId, setGameId] = useState(joined?.gameId ?? null);
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinError, setJoinError] = useState('');
   const t = useT();
@@ -62,13 +75,15 @@ function PlayerFlow({ initialCode = '' }) {
     Meteor.subscribe('players.inGame', gameId);
     // Also what keeps the server's view of this player's connection current.
     // It errors once the reconnect window has closed on them.
-    Meteor.subscribe('player.self', playerId, {
-      onStop(err) {
-        if (!err) return;
-        handleExitToHome();
-        setJoinError(t(errorKey(err, RECONNECT_ERRORS)));
-      },
-    });
+    if (playerId) {
+      Meteor.subscribe('player.self', playerId, {
+        onStop(err) {
+          if (!err) return;
+          handleExitToHome();
+          setJoinError(t(errorKey(err, RECONNECT_ERRORS)));
+        },
+      });
+    }
     return {
       game: Games.findOne(gameId),
       playerCount: Players.find({ gameId }).count(),
@@ -86,6 +101,13 @@ function PlayerFlow({ initialCode = '' }) {
   }, [game?.status, screen]);
 
   useEffect(() => {
+    if (joined) {
+      // Save a keypad join like any other, then drop it from the router state
+      // so a refresh resumes through players.rejoin below instead.
+      writeSession(joined.playerId);
+      navigate(location.pathname, { replace: true, state: null });
+      return;
+    }
     const savedPlayerId = readSession();
     if (!savedPlayerId) return;
     Meteor.callAsync('players.rejoin', savedPlayerId)

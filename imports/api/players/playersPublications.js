@@ -8,7 +8,8 @@ Meteor.publish('players.inGame', function (gameId) {
 });
 
 // Mobile player uses this to subscribe to their own data only. It also tracks
-// which connection the player is on, so a dropped player can reconnect.
+// which connection the player is on (see presence.js), so the team stops
+// waiting on a dropped player and the player can reconnect.
 Meteor.publish('player.self', async function (playerId) {
   await findReconnectablePlayer(playerId);
   if (this.connection) await attachPlayer(playerId, this.connection);
