@@ -235,6 +235,71 @@ if (Meteor.isServer) {
     });
   });
 
+  describe('players.leave', function () {
+    let gameId;
+    let joinCode;
+    let ada;
+    let grace;
+
+    beforeEach(async function () {
+      await Games.removeAsync({});
+      await Players.removeAsync({});
+      await Rounds.removeAsync({});
+
+      gameId = await Meteor.callAsync('games.create', {
+        groupName: 'Team Rocket',
+        capacity: 2,
+      });
+      ({ joinCode } = await Games.findOneAsync(gameId));
+      ada = (await Meteor.callAsync('players.join', joinCode, 'Ada')).playerId;
+      grace = (await Meteor.callAsync('players.join', joinCode, 'Grace'))
+        .playerId;
+    });
+
+    it('frees the lobby slot straight away', async function () {
+      await Meteor.callAsync('players.leave', ada);
+
+      assert.isUndefined(await Players.findOneAsync(ada));
+      // The lobby was full; someone else can now take the slot.
+      const { playerId } = await Meteor.callAsync(
+        'players.join',
+        joinCode,
+        'Linus'
+      );
+      assert.isString(playerId);
+    });
+
+    it('frees the slot of a player still bound to a connection', async function () {
+      await Players.updateAsync(ada, { $set: { connectionId: 'live' } });
+
+      await Meteor.callAsync('players.leave', ada);
+
+      assert.isUndefined(await Players.findOneAsync(ada));
+    });
+
+    it('forfeits a player who leaves as the game starts', async function () {
+      await Meteor.callAsync('games.start', gameId);
+
+      await Meteor.callAsync('players.leave', ada);
+
+      const adaRounds = await Rounds.find({ playerId: ada }).fetchAsync();
+      assert.isTrue(adaRounds.every((r) => r.status === 'wrong'));
+      const graceRound = await Rounds.findOneAsync({
+        playerId: grace,
+        roundNumber: 1,
+      });
+      await Meteor.callAsync('rounds.skip', graceRound._id);
+      assert.equal((await Games.findOneAsync(gameId)).currentRound, 2);
+    });
+
+    it('ignores ids that are not a player', async function () {
+      await Meteor.callAsync('players.leave', 'nope');
+      await Meteor.callAsync('players.leave', { $ne: null });
+
+      assert.equal(await Players.find({ gameId }).countAsync(), 2);
+    });
+  });
+
   // Real DDP connections back to this server, so a dropped socket goes
   // through the same path a phone losing signal does.
   describe('player.self presence', function () {

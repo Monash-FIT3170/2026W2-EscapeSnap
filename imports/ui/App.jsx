@@ -163,6 +163,16 @@ function PlayerFlow({ initialCode = '' }) {
     setScreen('home');
   };
 
+  // Pressing exit in the lobby: tell the server so the slot is freed, then go
+  // home straight away. If the call fails the player is still home, and the
+  // slot frees itself once the reconnect window runs out after they close the tab.
+  const handleLeave = () => {
+    Meteor.callAsync('players.leave', playerId).catch((err) =>
+      console.error('[players.leave] failed:', err.reason || err.message)
+    );
+    handleExitToHome();
+  };
+
   if (screen === 'resuming') {
     return (
       <div className="flex min-h-[100dvh] items-center justify-center bg-[#0e0e0e] px-5">
@@ -194,7 +204,7 @@ function PlayerFlow({ initialCode = '' }) {
         inSession={game?.status === 'in_progress'}
         gameStartedAt={game?.startedAt ? new Date(game.startedAt).getTime() : null}
         roundDuration={game ? Math.round(gameBudgetMs(game) / 1000) : 30 * 60}
-        onExit={game?.status === 'in_progress' ? () => setScreen('dashboard') : handleExitToHome}
+        onExit={game?.status === 'in_progress' ? () => setScreen('dashboard') : handleLeave}
       />
     );
   }

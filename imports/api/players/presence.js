@@ -16,7 +16,10 @@ export function reconnectExpired(player, now = Date.now()) {
   );
 }
 
-async function expirePlayer(player) {
+// Takes a player out of their game, for good: a lobby frees their slot, a
+// game in progress forfeits their remaining rounds so the team never waits
+// on them. Used when the reconnect window runs out and when they leave.
+export async function dropPlayer(player) {
   const game = await Games.findOneAsync(player.gameId);
   if (game?.status === 'lobby') {
     await Players.removeAsync({
@@ -35,7 +38,7 @@ export async function findReconnectablePlayer(playerId) {
     typeof playerId === 'string' && (await Players.findOneAsync(playerId));
   if (!player) throw new Meteor.Error('not-found', 'Player not found');
   if (reconnectExpired(player)) {
-    await expirePlayer(player);
+    await dropPlayer(player);
     throw new Meteor.Error('expired', 'Reconnect window has closed');
   }
   return player;
@@ -68,7 +71,7 @@ async function markDisconnected(playerId, connectionId) {
         connectionId,
         disconnectedAt: { $exists: true },
       });
-      if (player) await expirePlayer(player);
+      if (player) await dropPlayer(player);
     } catch (err) {
       console.error('[presence] expiry failed:', err);
     }

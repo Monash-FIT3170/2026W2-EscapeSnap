@@ -1,7 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { Players } from './PlayersCollection';
 import { Games } from '../games/GamesCollection';
-import { findReconnectablePlayer } from './presence';
+import { dropPlayer, findReconnectablePlayer } from './presence';
 
 Meteor.methods({
   async 'players.join'(joinCode, playerName) {
@@ -36,5 +36,14 @@ Meteor.methods({
       gameCode: game.joinCode,
       status: game.status,
     };
+  },
+
+  // The player pressed exit. Without this they'd stay in the game with their
+  // tab still open, so the team would keep waiting on them every round.
+  async 'players.leave'(playerId) {
+    const player =
+      typeof playerId === 'string' && (await Players.findOneAsync(playerId));
+    if (!player) return;
+    await dropPlayer(player);
   },
 });
