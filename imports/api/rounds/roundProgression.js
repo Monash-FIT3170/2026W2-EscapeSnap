@@ -1,6 +1,7 @@
 import { Games } from '../games/GamesCollection';
 import { Players } from '../players/PlayersCollection';
 import { Rounds } from './RoundsCollection';
+import { logGameEvent } from '../events/gameEventLog';
 
 export const PRESENCE_GRACE_MS = 60 * 1000;
 
@@ -49,6 +50,11 @@ export async function advanceGameRound(
     { $set: { startedAt: nextRoundStartedAt } },
     { multi: true }
   );
+  await logGameEvent({
+    gameId,
+    type: 'roundStarted',
+    roundNumber: expectedRound + 1,
+  });
 
   return true;
 }

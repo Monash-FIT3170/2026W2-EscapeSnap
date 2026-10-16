@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { Players } from './PlayersCollection';
 import { Games } from '../games/GamesCollection';
+import { logGameEvent } from '../events/gameEventLog';
 import {
   dropPlayer,
   findOwnedPlayer,
@@ -25,6 +26,7 @@ Meteor.methods({
       revealedLetters: [],
       sessionTokenHash: tokenHash,
     });
+    await logGameEvent({ gameId: game._id, type: 'playerJoined', playerId });
     // The token is the player's proof of who they are from here on: rejoin,
     // player.self and leave all ask for it.
     return { playerId, gameId: game._id, sessionToken: token };
