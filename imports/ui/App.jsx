@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route, useParams } from 'react-router';
+import {
+  Routes,
+  Route,
+  useLocation,
+  useNavigate,
+  useParams,
+} from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Games } from '../api/games/GamesCollection';
@@ -20,11 +26,14 @@ import { errorKey } from '../languages/errors';
 import Leaderboard from './host/pages/leaderboard/Leaderboard';
 
 function PlayerFlow({ initialCode = '' }) {
-  const [screen, setScreen] = useState('home');
-  const [playerName, setPlayerName] = useState('');
-  const [gameCode, setGameCode] = useState('');
-  const [playerId, setPlayerId] = useState(null);
-  const [gameId, setGameId] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const joined = location.state?.joined;
+  const [screen, setScreen] = useState(joined ? 'lobby' : 'home');
+  const [playerName, setPlayerName] = useState(joined?.playerName ?? '');
+  const [gameCode, setGameCode] = useState(joined?.gameCode ?? '');
+  const [playerId, setPlayerId] = useState(joined?.playerId ?? null);
+  const [gameId, setGameId] = useState(joined?.gameId ?? null);
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinError, setJoinError] = useState('');
   const t = useT();
@@ -71,6 +80,9 @@ function PlayerFlow({ initialCode = '' }) {
   };
 
   const handleExitToHome = () => {
+    if (location.state?.joined) {
+      navigate(location.pathname, { replace: true, state: null });
+    }
     setPlayerName('');
     setGameCode('');
     setPlayerId(null);

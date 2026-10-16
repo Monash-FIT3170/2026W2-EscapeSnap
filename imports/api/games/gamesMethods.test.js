@@ -4,7 +4,7 @@ import { Games } from './GamesCollection';
 import { Players } from '../players/PlayersCollection';
 import { Rounds } from '../rounds/RoundsCollection';
 import { advanceIfRoundSettled } from '../rounds/roundProgression';
-import './gamesMethods';
+import { joinCodeSource } from './gamesMethods';
 import '../rounds/roundsMethods';
 
 if (Meteor.isServer) {
@@ -24,6 +24,50 @@ if (Meteor.isServer) {
         assert.match(game.joinCode, /^\d{4}$/);
         assert.equal(game.currentRound, 1);
         assert.isNull(game.startedAt);
+      });
+
+      it('never reuses a join code an open lobby already has', async function () {
+        // Raw insert: only the fields the code lookup reads, so skip the schema.
+        await Games.rawCollection().insertOne({ _id: 'open-lobby', joinCode: '1000', status: 'lobby' });
+        // First draw collides with the open lobby (1000), second is free (5500).
+        const draws = ['1000', '5500'];
+        const realNext = joinCodeSource.next;
+        joinCodeSource.next = () => draws.shift() ?? realNext();
+        try {
+          const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
+          const game = await Games.findOneAsync(gameId);
+          assert.equal(game.joinCode, '5500');
+        } finally {
+          joinCodeSource.next = realNext;
+        }
+      });
+
+      it('gives games created at the same moment different join codes', async function () {
+        // server/main.js creates this index at startup, which tests don't run.
+        await Games.createIndexAsync(
+          { joinCode: 1, status: 1 },
+          {
+            name: 'unique_open_lobby_joinCode',
+            unique: true,
+            partialFilterExpression: { status: 'lobby' },
+          }
+        );
+        // Both games draw 1000 first; whichever loses must move to 5500.
+        const draws = ['1000', '1000', '5500'];
+        const realNext = joinCodeSource.next;
+        joinCodeSource.next = () => draws.shift() ?? realNext();
+        try {
+          const ids = await Promise.all([
+            Meteor.callAsync('games.create', { groupName: 'Team Rocket' }),
+            Meteor.callAsync('games.create', { groupName: 'Team Aqua' }),
+          ]);
+          const codes = await Promise.all(
+            ids.map(async (id) => (await Games.findOneAsync(id)).joinCode)
+          );
+          assert.sameMembers(codes, ['1000', '5500']);
+        } finally {
+          joinCodeSource.next = realNext;
+        }
       });
 
       it('applies the documented defaults when called with no options', async function () {
