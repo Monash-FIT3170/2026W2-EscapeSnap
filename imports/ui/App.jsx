@@ -25,21 +25,33 @@ import { useT } from '../languages/LanguageProvider';
 import { errorKey } from '../languages/errors';
 import Leaderboard from './host/pages/leaderboard/Leaderboard';
 
-// The playerId from players.join, kept so a refresh or a closed tab can rejoin.
-const SESSION_KEY = 'escapesnap.playerId';
+// The playerId and session token from players.join, kept so a refresh or a
+// closed tab can rejoin. The token is what proves the player is who they say.
+const SESSION_KEY = 'escapesnap.session';
+// Held only a playerId, which can no longer rejoin on its own.
+const OLD_SESSION_KEY = 'escapesnap.playerId';
 
 function readSession() {
   try {
-    return window.localStorage.getItem(SESSION_KEY);
+    window.localStorage.removeItem(OLD_SESSION_KEY);
+    const session = JSON.parse(window.localStorage.getItem(SESSION_KEY));
+    return session?.playerId && session?.sessionToken ? session : null;
   } catch {
-    return null; // storage blocked — reconnect just isn't available
+    return null; // storage blocked or unreadable — reconnect just isn't available
   }
 }
 
-function writeSession(playerId) {
+function writeSession(session) {
   try {
-    if (playerId) window.localStorage.setItem(SESSION_KEY, playerId);
-    else window.localStorage.removeItem(SESSION_KEY);
+    if (session) {
+      const { playerId, sessionToken } = session;
+      window.localStorage.setItem(
+        SESSION_KEY,
+        JSON.stringify({ playerId, sessionToken })
+      );
+    } else {
+      window.localStorage.removeItem(SESSION_KEY);
+    }
   } catch {
     // Not persisting only costs the ability to reconnect.
   }
@@ -65,6 +77,9 @@ function PlayerFlow({ initialCode = '' }) {
   const [gameCode, setGameCode] = useState(joined?.gameCode ?? '');
   const [playerId, setPlayerId] = useState(joined?.playerId ?? null);
   const [gameId, setGameId] = useState(joined?.gameId ?? null);
+  const [sessionToken, setSessionToken] = useState(
+    joined?.sessionToken ?? null
+  );
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinError, setJoinError] = useState('');
   const t = useT();
@@ -75,8 +90,8 @@ function PlayerFlow({ initialCode = '' }) {
     Meteor.subscribe('players.inGame', gameId);
     // Also what keeps the server's view of this player's connection current.
     // It errors once the reconnect window has closed on them.
-    if (playerId) {
-      Meteor.subscribe('player.self', playerId, {
+    if (playerId && sessionToken) {
+      Meteor.subscribe('player.self', playerId, sessionToken, {
         onStop(err) {
           if (!err) return;
           handleExitToHome();
@@ -88,7 +103,7 @@ function PlayerFlow({ initialCode = '' }) {
       game: Games.findOne(gameId),
       playerCount: Players.find({ gameId }).count(),
     };
-  }, [gameId, playerId]);
+  }, [gameId, playerId, sessionToken]);
 
   // Fire the auto-advance once per join. Without the guard, returning to the
   // lobby mid-game bounces you straight back out again.
@@ -104,17 +119,18 @@ function PlayerFlow({ initialCode = '' }) {
     if (joined) {
       // Save a keypad join like any other, then drop it from the router state
       // so a refresh resumes through players.rejoin below instead.
-      writeSession(joined.playerId);
+      writeSession(joined);
       navigate(location.pathname, { replace: true, state: null });
       return;
     }
-    const savedPlayerId = readSession();
-    if (!savedPlayerId) return;
-    Meteor.callAsync('players.rejoin', savedPlayerId)
+    const saved = readSession();
+    if (!saved) return;
+    Meteor.callAsync('players.rejoin', saved.playerId, saved.sessionToken)
       .then((session) => {
         setPlayerName(session.playerName);
         setGameCode(session.gameCode);
         setPlayerId(session.playerId);
+        setSessionToken(saved.sessionToken);
         setGameId(session.gameId);
         // Straight back to where they were, minus the tutorial already seen.
         const inGame = session.status === 'in_progress';
@@ -136,12 +152,13 @@ function PlayerFlow({ initialCode = '' }) {
     setJoinLoading(true);
     setJoinError('');
     try {
-      const { playerId: pid, gameId: gid } = await Meteor.callAsync('players.join', code, name);
-      writeSession(pid);
+      const session = await Meteor.callAsync('players.join', code, name);
+      writeSession(session);
       setPlayerName(name);
       setGameCode(code);
-      setPlayerId(pid);
-      setGameId(gid);
+      setPlayerId(session.playerId);
+      setSessionToken(session.sessionToken);
+      setGameId(session.gameId);
       autoAdvancedRef.current = false;
       setScreen('lobby');
     } catch (err) {
@@ -158,6 +175,7 @@ function PlayerFlow({ initialCode = '' }) {
     setPlayerName('');
     setGameCode('');
     setPlayerId(null);
+    setSessionToken(null);
     setGameId(null);
     setJoinError('');
     setScreen('home');
@@ -167,7 +185,7 @@ function PlayerFlow({ initialCode = '' }) {
   // home straight away. If the call fails the player is still home, and the
   // slot frees itself once the reconnect window runs out after they close the tab.
   const handleLeave = () => {
-    Meteor.callAsync('players.leave', playerId).catch((err) =>
+    Meteor.callAsync('players.leave', playerId, sessionToken).catch((err) =>
       console.error('[players.leave] failed:', err.reason || err.message)
     );
     handleExitToHome();

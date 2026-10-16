@@ -38,6 +38,33 @@ if (Meteor.isServer) {
       assert.deepEqual(player.revealedLetters, []);
     });
 
+    it('hands the joining player a session token and stores only its hash', async function () {
+      const ada = await Meteor.callAsync('players.join', joinCode, 'Ada');
+      const grace = await Meteor.callAsync('players.join', joinCode, 'Grace');
+
+      assert.isString(ada.sessionToken);
+      assert.isAtLeast(ada.sessionToken.length, 40);
+      assert.notEqual(ada.sessionToken, grace.sessionToken);
+      const stored = await Players.findOneAsync(ada.playerId);
+      assert.isString(stored.sessionTokenHash);
+      assert.notEqual(stored.sessionTokenHash, ada.sessionToken);
+    });
+
+    it('never publishes the token hash or connection to the game', async function () {
+      await Meteor.callAsync('players.join', joinCode, 'Ada');
+      await Players.updateAsync({}, { $set: { connectionId: 'c1' } });
+
+      const cursor = Meteor.server.publish_handlers['players.inGame'].call(
+        {},
+        gameId
+      );
+      const [published] = await cursor.fetchAsync();
+
+      assert.equal(published.name, 'Ada');
+      assert.notProperty(published, 'sessionTokenHash');
+      assert.notProperty(published, 'connectionId');
+    });
+
     it('trims surrounding whitespace from the player name', async function () {
       const { playerId } = await Meteor.callAsync(
         'players.join',
@@ -121,6 +148,28 @@ if (Meteor.isServer) {
       }
     });
   });
+  // Teammates see each other's player ids in the lobby, so every test below
+  // also checks that an id without its own session token gets nowhere.
+  async function joinTwo() {
+    const gameId = await Meteor.callAsync('games.create', {
+      groupName: 'Team Rocket',
+      capacity: 2,
+    });
+    const { joinCode } = await Games.findOneAsync(gameId);
+    const ada = await Meteor.callAsync('players.join', joinCode, 'Ada');
+    const grace = await Meteor.callAsync('players.join', joinCode, 'Grace');
+    return { gameId, joinCode, ada, grace };
+  }
+
+  async function expectError(promise, code) {
+    try {
+      await promise;
+      assert.fail(`expected a ${code} error`);
+    } catch (error) {
+      assert.equal(error.error, code);
+    }
+  }
+
   describe('players.rejoin', function () {
     let gameId;
     let ada;
@@ -136,102 +185,144 @@ if (Meteor.isServer) {
       });
     }
 
-    async function expectRejoinError(playerId, code) {
-      try {
-        await Meteor.callAsync('players.rejoin', playerId);
-        assert.fail('expected players.rejoin to throw');
-      } catch (error) {
-        assert.equal(error.error, code);
-      }
-    }
+    const rejoin = (playerId, sessionToken) =>
+      Meteor.callAsync('players.rejoin', playerId, sessionToken);
 
     beforeEach(async function () {
       await Games.removeAsync({});
       await Players.removeAsync({});
       await Rounds.removeAsync({});
-
-      gameId = await Meteor.callAsync('games.create', {
-        groupName: 'Team Rocket',
-        capacity: 2,
-      });
-      const { joinCode } = await Games.findOneAsync(gameId);
-      ada = (await Meteor.callAsync('players.join', joinCode, 'Ada')).playerId;
-      grace = (await Meteor.callAsync('players.join', joinCode, 'Grace'))
-        .playerId;
+      ({ gameId, ada, grace } = await joinTwo());
     });
 
     it('restores a player who dropped inside the window', async function () {
-      await droppedAgo(ada, RECONNECT_WINDOW_MS - 10_000);
+      await droppedAgo(ada.playerId, RECONNECT_WINDOW_MS - 10_000);
 
-      const session = await Meteor.callAsync('players.rejoin', ada);
+      const session = await rejoin(ada.playerId, ada.sessionToken);
 
       assert.deepInclude(session, {
-        playerId: ada,
+        playerId: ada.playerId,
         gameId,
         playerName: 'Ada',
         status: 'lobby',
       });
     });
 
+    it('refuses an id without its own session token', async function () {
+      await expectError(rejoin(ada.playerId), 'not-found');
+      await expectError(rejoin(ada.playerId, 'guess'), 'not-found');
+      // Grace knows Ada's id and has a real token, just not Ada's.
+      await expectError(rejoin(ada.playerId, grace.sessionToken), 'not-found');
+    });
+
     it('rejects ids that are not a player', async function () {
-      await expectRejoinError('nope', 'not-found');
-      await expectRejoinError({ $ne: null }, 'not-found');
+      await expectError(rejoin('nope', ada.sessionToken), 'not-found');
+      await expectError(rejoin({ $ne: null }, ada.sessionToken), 'not-found');
     });
 
     it('frees the lobby slot once the window has closed', async function () {
-      await droppedAgo(ada, RECONNECT_WINDOW_MS);
+      await droppedAgo(ada.playerId, RECONNECT_WINDOW_MS);
 
-      await expectRejoinError(ada, 'expired');
-      assert.isUndefined(await Players.findOneAsync(ada));
+      await expectError(rejoin(ada.playerId, ada.sessionToken), 'expired');
+      assert.isUndefined(await Players.findOneAsync(ada.playerId));
+    });
+
+    it('does not let a wrong token trigger the expiry', async function () {
+      await droppedAgo(ada.playerId, RECONNECT_WINDOW_MS);
+
+      await expectError(rejoin(ada.playerId, grace.sessionToken), 'not-found');
+      assert.exists(await Players.findOneAsync(ada.playerId));
     });
 
     it('forfeits an expired player so the team can still advance', async function () {
       await Meteor.callAsync('games.start', gameId);
-      await droppedAgo(ada, RECONNECT_WINDOW_MS);
+      await droppedAgo(ada.playerId, RECONNECT_WINDOW_MS);
 
-      await expectRejoinError(ada, 'expired');
+      await expectError(rejoin(ada.playerId, ada.sessionToken), 'expired');
 
-      const adaRounds = await Rounds.find({ playerId: ada }).fetchAsync();
+      const adaRounds = await Rounds.find({
+        playerId: ada.playerId,
+      }).fetchAsync();
       assert.isTrue(adaRounds.every((r) => r.status === 'wrong'));
       assert.deepEqual(
-        (await Players.findOneAsync(ada)).revealedLetters,
+        (await Players.findOneAsync(ada.playerId)).revealedLetters,
         adaRounds.map(() => '?')
       );
 
       const graceRound = await Rounds.findOneAsync({
-        playerId: grace,
+        playerId: grace.playerId,
         roundNumber: 1,
       });
       await Meteor.callAsync('rounds.skip', graceRound._id);
       assert.equal((await Games.findOneAsync(gameId)).currentRound, 2);
     });
 
-    it('ignores a close from a connection the player already replaced', async function () {
-      const publish = Meteor.server.publish_handlers['player.self'];
-      const connect = (id) => {
-        const conn = { id, onClose: (cb) => (conn.close = cb) };
-        return conn;
-      };
-      const settle = () => new Promise((resolve) => setTimeout(resolve, 50));
-
-      const first = connect('first');
-      await publish.call({ connection: first }, ada);
-      const second = connect('second');
-      await publish.call({ connection: second }, ada);
-
-      first.close(); // the old socket is only noticed after the player is back
-      await settle();
-      assert.isUndefined((await Players.findOneAsync(ada)).disconnectedAt);
-
-      second.close();
-      await settle();
-      assert.instanceOf((await Players.findOneAsync(ada)).disconnectedAt, Date);
-    });
-
     it('refuses a game that has already ended', async function () {
       await Games.updateAsync(gameId, { $set: { status: 'won' } });
 
-      await expectRejoinError(ada, 'invalid-state');
+      await expectError(
+        rejoin(ada.playerId, ada.sessionToken),
+        'invalid-state'
+      );
+    });
+  });
+
+  describe('player.self', function () {
+    let ada;
+    let grace;
+
+    const publish = Meteor.server.publish_handlers['player.self'];
+    const fakeConnection = (id) => {
+      const conn = { id, onClose: (cb) => (conn.close = cb) };
+      return conn;
+    };
+    const settle = () => new Promise((resolve) => setTimeout(resolve, 50));
+
+    beforeEach(async function () {
+      await Games.removeAsync({});
+      await Players.removeAsync({});
+      ({ ada, grace } = await joinTwo());
+    });
+
+    it('ignores a close from a connection the player already replaced', async function () {
+      const first = fakeConnection('first');
+      await publish.call({ connection: first }, ada.playerId, ada.sessionToken);
+      const second = fakeConnection('second');
+      await publish.call(
+        { connection: second },
+        ada.playerId,
+        ada.sessionToken
+      );
+
+      first.close(); // the old socket is only noticed after the player is back
+      await settle();
+      const player = () => Players.findOneAsync(ada.playerId);
+      assert.isUndefined((await player()).disconnectedAt);
+
+      second.close();
+      await settle();
+      assert.instanceOf((await player()).disconnectedAt, Date);
+    });
+
+    it("won't bind a player to someone else's connection", async function () {
+      const own = fakeConnection('ada-conn');
+      await publish.call({ connection: own }, ada.playerId, ada.sessionToken);
+
+      // Grace subscribes with Ada's id, then drops, hoping to mark Ada offline.
+      const intruder = fakeConnection('grace-conn');
+      await expectError(
+        publish.call(
+          { connection: intruder },
+          ada.playerId,
+          grace.sessionToken
+        ),
+        'not-found'
+      );
+      assert.notExists(intruder.close);
+
+      const player = await Players.findOneAsync(ada.playerId);
+      assert.equal(player.connectionId, 'ada-conn');
+      assert.notExists(player.disconnectedAt);
     });
   });
 
@@ -241,46 +332,20 @@ if (Meteor.isServer) {
     let ada;
     let grace;
 
-    // Calls the method as a client on the given connection would.
-    const leaveAs = (playerId, connectionId) =>
-      Meteor.server.method_handlers['players.leave'].call(
-        { connection: connectionId ? { id: connectionId } : null },
-        playerId
-      );
-
-    async function expectRefused(playerId, connectionId) {
-      try {
-        await leaveAs(playerId, connectionId);
-        assert.fail('expected players.leave to throw');
-      } catch (error) {
-        assert.equal(error.error, 'not-authorized');
-      }
-    }
+    const leave = (playerId, sessionToken) =>
+      Meteor.callAsync('players.leave', playerId, sessionToken);
 
     beforeEach(async function () {
       await Games.removeAsync({});
       await Players.removeAsync({});
       await Rounds.removeAsync({});
-
-      gameId = await Meteor.callAsync('games.create', {
-        groupName: 'Team Rocket',
-        capacity: 2,
-      });
-      ({ joinCode } = await Games.findOneAsync(gameId));
-      ada = (await Meteor.callAsync('players.join', joinCode, 'Ada')).playerId;
-      grace = (await Meteor.callAsync('players.join', joinCode, 'Grace'))
-        .playerId;
-      // What subscribing to player.self does for each of them.
-      await Players.updateAsync(ada, { $set: { connectionId: 'ada-conn' } });
-      await Players.updateAsync(grace, {
-        $set: { connectionId: 'grace-conn' },
-      });
+      ({ gameId, joinCode, ada, grace } = await joinTwo());
     });
 
     it('frees the lobby slot straight away', async function () {
-      await leaveAs(ada, 'ada-conn');
+      await leave(ada.playerId, ada.sessionToken);
 
-      assert.isUndefined(await Players.findOneAsync(ada));
+      assert.isUndefined(await Players.findOneAsync(ada.playerId));
       // The lobby was full; someone else can now take the slot.
       const { playerId } = await Meteor.callAsync(
         'players.join',
@@ -290,32 +355,44 @@ if (Meteor.isServer) {
       assert.isString(playerId);
     });
 
+    it('frees the slot of a player bound to a connection', async function () {
+      await Players.updateAsync(ada.playerId, {
+        $set: { connectionId: 'ada-conn' },
+      });
+
+      await leave(ada.playerId, ada.sessionToken);
+
+      assert.isUndefined(await Players.findOneAsync(ada.playerId));
+    });
+
     it('forfeits a player who leaves as the game starts', async function () {
       await Meteor.callAsync('games.start', gameId);
 
-      await leaveAs(ada, 'ada-conn');
+      await leave(ada.playerId, ada.sessionToken);
 
-      const adaRounds = await Rounds.find({ playerId: ada }).fetchAsync();
+      const adaRounds = await Rounds.find({
+        playerId: ada.playerId,
+      }).fetchAsync();
       assert.isTrue(adaRounds.every((r) => r.status === 'wrong'));
       const graceRound = await Rounds.findOneAsync({
-        playerId: grace,
+        playerId: grace.playerId,
         roundNumber: 1,
       });
       await Meteor.callAsync('rounds.skip', graceRound._id);
       assert.equal((await Games.findOneAsync(gameId)).currentRound, 2);
     });
 
-    it('refuses to remove a player from another connection', async function () {
+    it("refuses to remove a player without that player's token", async function () {
       // Grace can see Ada's id in the lobby, but can't make her leave.
-      await expectRefused(ada, 'grace-conn');
-      await expectRefused(ada, null);
+      await expectError(leave(ada.playerId, grace.sessionToken), 'not-found');
+      await expectError(leave(ada.playerId), 'not-found');
 
-      assert.exists(await Players.findOneAsync(ada));
+      assert.exists(await Players.findOneAsync(ada.playerId));
     });
 
     it('refuses ids that are not a player', async function () {
-      await expectRefused('nope', 'ada-conn');
-      await expectRefused({ $ne: null }, 'ada-conn');
+      await expectError(leave('nope', ada.sessionToken), 'not-found');
+      await expectError(leave({ $ne: null }, ada.sessionToken), 'not-found');
 
       assert.equal(await Players.find({ gameId }).countAsync(), 2);
     });
@@ -327,6 +404,7 @@ if (Meteor.isServer) {
     this.timeout(10000);
 
     let playerId;
+    let sessionToken;
     const clients = [];
 
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -343,19 +421,16 @@ if (Meteor.isServer) {
     function connect() {
       const client = DDP.connect(Meteor.absoluteUrl());
       clients.push(client);
-      client.subscribe('player.self', playerId);
+      client.subscribe('player.self', playerId, sessionToken);
       return client;
     }
 
     beforeEach(async function () {
       await Games.removeAsync({});
       await Players.removeAsync({});
-      const gameId = await Meteor.callAsync('games.create', {
-        groupName: 'Team Rocket',
-        capacity: 2,
-      });
-      const { joinCode } = await Games.findOneAsync(gameId);
-      ({ playerId } = await Meteor.callAsync('players.join', joinCode, 'Ada'));
+      ({
+        ada: { playerId, sessionToken },
+      } = await joinTwo());
     });
 
     afterEach(function () {

@@ -17,7 +17,7 @@ import { reducedMotion } from '../../components/landing/motion';
 // file from the bundle.
 import './landingPage.css';
 
-// Resolves to { playerId, gameId }, or throws 'not-found' / 'full'.
+// Resolves to { playerId, gameId, sessionToken }, or throws 'not-found' / 'full'.
 const joinGame = (name, code) => Meteor.callAsync('players.join', code, name);
 
 // The landing page is "the room": every control is a prop in it. Each section
