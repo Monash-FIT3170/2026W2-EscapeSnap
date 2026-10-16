@@ -8,10 +8,13 @@ import '../imports/api/rounds/roundsPublications';
 import '../imports/api/achievements/achievementsPublications';
 import '/imports/api/rounds/RoundSessions';
 import '../imports/api/submissions/submissionsPublications';
+import '../imports/api/events/gameEventsPublications';
 import { Games } from '../imports/api/games/GamesCollection';
 import { Rounds } from '../imports/api/rounds/RoundsCollection';
 import { Submissions, photoExpiryFrom } from '../imports/api/submissions/SubmissionsCollection';
 import { GameResults } from '../imports/api/achievements/GameResultsCollection';
+import { GameEvents } from '../imports/api/events/GameEventsCollection';
+import { logGameEvent } from '../imports/api/events/gameEventLog';
 import { normalizeAnswerMode } from '../imports/lib/answerModes';
 import {
   buildClassifyPrompt,
@@ -39,6 +42,14 @@ const CLASSIFY_MODELS = modelCandidates(
 // over that so a slow-but-working call isn't killed mid-flight.
 const GEMINI_TIMEOUT_MS = 20_000;
 
+// Playwright starts the app with E2E_FAKE_CLASSIFY=pass|fail so the E2E tests
+// can play a whole game: the test browser's fake camera shows a test pattern
+// Gemini could never match. Ignored in production builds, so a stray env var
+// can't switch off real photo checks on the deployed app.
+const E2E_FAKE_CLASSIFY = Meteor.isProduction
+  ? null
+  : process.env.E2E_FAKE_CLASSIFY;
+
 // Meteor's DDP (WebSocket) endpoint accepts connections from any origin by
 // default - there's no traditional CORS surface here (no REST endpoints),
 // but the same "only our frontend may talk to the backend" concern applies
@@ -60,10 +71,29 @@ Meteor.onConnection((connection) => {
 Meteor.startup(async () => {
   console.log('[EscapeSnap] server ready');
   await Games.createIndexAsync({ joinCode: 1 });
+  // No two open lobbies may share a join code (games.create retries on a
+  // clash). Older databases can already hold duplicate open lobbies, which
+  // makes this fail; games.create's free-code check still applies then.
+  try {
+    await Games.createIndexAsync(
+      { joinCode: 1, status: 1 },
+      {
+        name: 'unique_open_lobby_joinCode',
+        unique: true,
+        partialFilterExpression: { status: 'lobby' },
+      }
+    );
+  } catch (err) {
+    console.error(
+      '[EscapeSnap] could not create unique join-code index:',
+      err.message
+    );
+  }
   await Games.createIndexAsync({ status: 1 });
   await Rounds.createIndexAsync({ gameId: 1, roundNumber: 1 });
   await Rounds.createIndexAsync({ playerId: 1, roundNumber: 1 });
   await GameResults.createIndexAsync({ gameId: 1, playerId: 1 }, { unique: true });
+  await GameEvents.createIndexAsync({ gameId: 1, createdAt: -1 });
 
   // TTL index: Mongo drops each submission once its own expiresAt passes,
   // which photoExpiryFrom sets to createdAt + PHOTO_TTL_MS (6 hours). The
@@ -111,11 +141,24 @@ Meteor.methods({
       }
     }
 
+    // A pass is logged by rounds.submit once the round settles, so only the
+    // misses are logged here.
+    if (result.outcome === 'fail') {
+      await logPhotoRejected(roundId);
+    }
+
     return result;
   },
 });
 
 async function classifyWithGemini(imageBase64, targetObject, answerMode) {
+  if (E2E_FAKE_CLASSIFY === 'pass' || E2E_FAKE_CLASSIFY === 'fail') {
+    return {
+      outcome: E2E_FAKE_CLASSIFY,
+      explanation: `E2E fake classification for "${targetObject}".`,
+    };
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     console.error('[Gemini] GEMINI_API_KEY is not set');
@@ -163,6 +206,20 @@ async function classifyWithGemini(imageBase64, targetObject, answerMode) {
       explanation: 'Could not verify photo — try again.',
     };
   }
+}
+
+async function logPhotoRejected(roundId) {
+  if (!roundId) return;
+  const round = await Rounds.findOneAsync(roundId, {
+    fields: { gameId: 1, playerId: 1, roundNumber: 1 },
+  });
+  if (!round) return;
+  await logGameEvent({
+    gameId: round.gameId,
+    type: 'photoRejected',
+    playerId: round.playerId,
+    roundNumber: round.roundNumber,
+  });
 }
 
 // The capture is downscaled on the client before upload (see

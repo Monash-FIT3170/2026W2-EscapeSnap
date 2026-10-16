@@ -5,17 +5,19 @@ import { useTracker } from 'meteor/react-meteor-data';
 import { Games } from '../../../../api/games/GamesCollection';
 import { Rounds } from '../../../../api/rounds/RoundsCollection';
 import { Players } from '../../../../api/players/PlayersCollection';
+import { GameEvents } from '../../../../api/events/GameEventsCollection';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
 import { remainingGameMs } from '/imports/lib/gameClock';
 import { useT } from '../../../../languages/LanguageProvider';
 import { useGameUiTheme } from '../../../shared/components/theme/UiThemeProvider';
 
-const MOCK_EVENTS = [
-  { time: '14:22:10', message: 'DYLAN HAS COMPLETED THE PUZZLE', highlight: true },
-  { time: '14:18:05', message: 'SEBASTIAN HAS UPLOADED AN INCORRECT ANSWER', highlight: false },
-  { time: '14:15:33', message: 'KAYVIS HAS UPLOADED AN INCORRECT ANSWER', highlight: false },
-  { time: '14:10:12', message: 'CASIE HAS COMPLETED THE PUZZLE', highlight: false },
-];
+// Event types drawn in the accent colour — the moments the host most wants to spot.
+const HIGHLIGHTED_EVENTS = ['roundSolved', 'gameWon'];
+
+const formatClock = (date) =>
+  [date.getHours(), date.getMinutes(), date.getSeconds()]
+    .map((n) => String(n).padStart(2, '0'))
+    .join(':');
 
 
 const CheckIcon = () => (
@@ -30,21 +32,76 @@ const CrossIcon = () => (
   </svg>
 );
 
+const FORCE_CONFIRM_MS = 5000;
+
+const ForceAdvanceButton = ({ gameId, pendingCount }) => {
+  const t = useT();
+  const [armed, setArmed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    if (!armed) return;
+    const timer = setTimeout(() => setArmed(false), FORCE_CONFIRM_MS);
+    return () => clearTimeout(timer);
+  }, [armed]);
+
+  const advance = async () => {
+    setBusy(true);
+    setFailed(false);
+    try {
+      await Meteor.callAsync('games.advanceRound', gameId);
+    } catch (err) {
+      console.error('[games.advanceRound] failed:', err.reason || err.message);
+      setFailed(true);
+    } finally {
+      setBusy(false);
+      setArmed(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-3">
+      {failed && (
+        <span style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-incorrect))' }}>{t('host.progress.forceAdvanceFailed')}</span>
+      )}
+      <button
+        type="button"
+        disabled={busy}
+        onClick={armed ? advance : () => setArmed(true)}
+        style={{
+          minHeight: 44, padding: '0 16px', fontSize: 10, fontWeight: 700, letterSpacing: '1px',
+          color: armed ? 'rgb(var(--es-on-brand))' : 'rgb(var(--es-ink))', background: armed ? 'rgb(var(--es-brand))' : 'transparent', border: '1px solid rgb(var(--es-brand))',
+          cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.5 : 1,
+        }}
+      >
+        {busy
+          ? t('host.progress.forceAdvancing')
+          : armed
+            ? t('host.progress.forceAdvanceConfirm', { n: pendingCount })
+            : t('host.progress.forceAdvance')}
+      </button>
+    </div>
+  );
+};
+
 const ProgressPage = () => {
   const { gameId } = useParams();
   useGameUiTheme(gameId);
   const t = useT();
   const [timeLeft, setTimeLeft] = useState(null);
 
-  const { game, rounds, players, loading } = useTracker(() => {
+  const { game, rounds, players, events, loading } = useTracker(() => {
     const gameSub = Meteor.subscribe('games.current', gameId);
     const roundsSub = Meteor.subscribe('rounds.forGame', gameId);
     const playersSub = Meteor.subscribe('players.inGame', gameId);
+    const eventsSub = Meteor.subscribe('gameEvents.forGame', gameId);
     return {
-      loading: !gameSub.ready() || !roundsSub.ready() || !playersSub.ready(),
+      loading: !gameSub.ready() || !roundsSub.ready() || !playersSub.ready() || !eventsSub.ready(),
       game: Games.findOne(gameId),
       rounds: Rounds.find({ gameId }).fetch(),
       players: Players.find({ gameId }, { sort: { joinedAt: 1 } }).fetch(),
+      events: GameEvents.find({ gameId }, { sort: { createdAt: -1 } }).fetch(),
     };
   }, [gameId]);
 
@@ -89,6 +146,7 @@ const ProgressPage = () => {
   const totalRoundDocs = rounds.length;
   const solvedRounds = rounds.filter(r => r.status === 'correct').length;
   const teamProgress = totalRoundDocs > 0 ? Math.round((solvedRounds / totalRoundDocs) * 100) : 0;
+  const pendingThisRound = rounds.filter(r => r.roundNumber === game.currentRound && r.status === 'pending').length;
 
   return (
     <SidebarLayout gameId={gameId} activePage="progress">
@@ -172,6 +230,9 @@ const ProgressPage = () => {
                 <span style={{ fontSize: 10, color: 'rgb(var(--es-muted))' }}>{t('host.progress.incorrect')}</span>
               </div>
               <span style={{ fontSize: 10, color: 'rgb(var(--es-muted))' }}>{t('host.progress.pending')}</span>
+              {game.status === 'in_progress' && pendingThisRound > 0 && (
+                <ForceAdvanceButton gameId={gameId} pendingCount={pendingThisRound} />
+              )}
             </div>
           </div>
 
@@ -204,9 +265,12 @@ const ProgressPage = () => {
             const hasAnyWrong = playerRounds.some(r => r.status === 'wrong' || r.status === 'timeout');
             const allDone = playerRounds.filter(r => r.status !== 'pending').length === game.totalRounds;
             const allCorrect = playerRounds.every(r => r.status === 'correct');
+            const offline = !!player.disconnectedAt;
 
             let statusLabel, statusBg, statusColor;
-            if (allDone && allCorrect) {
+            if (offline) {
+              statusLabel = t('host.progress.offline'); statusBg = 'transparent'; statusColor = 'rgb(var(--es-muted))';
+            } else if (allDone && allCorrect) {
               statusLabel = t('host.progress.completed'); statusBg = 'rgb(var(--es-line))'; statusColor = 'rgb(var(--es-ink))';
             } else if (hasAnyWrong) {
               statusLabel = t('host.progress.needsHelp'); statusBg = 'rgb(var(--es-brand))'; statusColor = 'rgb(var(--es-on-brand))';
@@ -216,7 +280,7 @@ const ProgressPage = () => {
 
             return (
               <div key={player._id} className="flex items-center px-6 py-4" style={{ borderTop: i > 0 ? '1px solid rgb(var(--es-line))' : 'none' }}>
-                <div style={{ width: 160, fontWeight: 700, fontSize: 12, color: 'rgb(var(--es-ink))' }}>
+                <div style={{ width: 160, fontWeight: 700, fontSize: 12, color: offline ? 'rgb(var(--es-muted))' : 'rgb(var(--es-ink))' }}>
                   {player.name.toUpperCase()}
                 </div>
 
@@ -244,7 +308,7 @@ const ProgressPage = () => {
                 })}
 
                 <div style={{ width: 120, display: 'flex', justifyContent: 'flex-end' }}>
-                  <span style={{ fontSize: 9, padding: '2px 8px', background: statusBg, color: statusColor }}>
+                  <span style={{ fontSize: 9, padding: '2px 8px', background: statusBg, color: statusColor, border: `1px solid ${offline ? 'rgb(var(--es-muted))' : statusBg}` }}>
                     {statusLabel}
                   </span>
                 </div>
@@ -259,13 +323,25 @@ const ProgressPage = () => {
             <div style={{ width: 4, height: 16, background: 'rgb(var(--es-brand))' }} />
             <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: 'rgb(var(--es-ink))' }}>{t('host.progress.eventLog')}</span>
           </div>
+          {events.length === 0 && (
+            <div style={{ color: '#555', fontSize: 11, letterSpacing: '1px' }}>
+              {t('host.progress.noEvents')}
+            </div>
+          )}
           <div className="flex flex-col gap-4">
-            {MOCK_EVENTS.map((event, i) => (
-              <div key={i} className="flex items-start gap-4 pl-3 py-1" style={{ borderLeft: `1px solid ${event.highlight ? 'rgb(var(--es-brand))' : 'rgb(var(--es-line) / 0.6)'}` }}>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgb(var(--es-muted))', whiteSpace: 'nowrap' }}>[ {event.time} ]</span>
-                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: event.highlight ? 'rgb(var(--es-ink))' : 'rgb(var(--es-muted))' }}>{event.message}</span>
-              </div>
-            ))}
+            {events.map((event) => {
+              const highlight = HIGHLIGHTED_EVENTS.includes(event.type);
+              const message = t(`host.progress.events.${event.type}`, {
+                name: event.playerName?.toUpperCase() ?? '',
+                n: event.roundNumber,
+              });
+              return (
+                <div key={event._id} className="flex items-start gap-4 pl-3 py-1" style={{ borderLeft: `1px solid ${highlight ? 'rgb(var(--es-brand))' : 'rgb(var(--es-line) / 0.6)'}` }}>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgb(var(--es-muted))', whiteSpace: 'nowrap' }}>[ {formatClock(event.createdAt)} ]</span>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: highlight ? 'rgb(var(--es-ink))' : 'rgb(var(--es-muted))' }}>{message}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
