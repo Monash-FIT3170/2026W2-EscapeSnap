@@ -2,7 +2,12 @@ import { Meteor } from 'meteor/meteor';
 import { Players } from './PlayersCollection';
 import { Games } from '../games/GamesCollection';
 import { logGameEvent } from '../events/gameEventLog';
-import { dropPlayer, findReconnectablePlayer } from './presence';
+import {
+  dropPlayer,
+  findOwnedPlayer,
+  findReconnectablePlayer,
+  newSessionToken,
+} from './presence';
 
 Meteor.methods({
   async 'players.join'(joinCode, playerName) {
@@ -13,18 +18,22 @@ Meteor.methods({
     if (playerCount >= game.capacity)
       throw new Meteor.Error('full', 'Game is full');
 
+    const { token, tokenHash } = newSessionToken();
     const playerId = await Players.insertAsync({
       gameId: game._id,
       name: playerName.trim(),
       joinedAt: new Date(),
       revealedLetters: [],
+      sessionTokenHash: tokenHash,
     });
     await logGameEvent({ gameId: game._id, type: 'playerJoined', playerId });
-    return { playerId, gameId: game._id };
+    // The token is the player's proof of who they are from here on: rejoin,
+    // player.self and leave all ask for it.
+    return { playerId, gameId: game._id, sessionToken: token };
   },
 
-  async 'players.rejoin'(playerId) {
-    const player = await findReconnectablePlayer(playerId);
+  async 'players.rejoin'(playerId, sessionToken) {
+    const player = await findReconnectablePlayer(playerId, sessionToken);
     const game = await Games.findOneAsync({
       _id: player.gameId,
       status: { $in: ['lobby', 'in_progress'] },
@@ -42,15 +51,8 @@ Meteor.methods({
 
   // The player pressed exit. Without this they'd stay in the game with their
   // tab still open, so the team would keep waiting on them every round.
-  // Teammates can see each other's ids, so only the connection the player is
-  // playing on (bound by the player.self subscription) may make them leave.
-  async 'players.leave'(playerId) {
-    const connectionId = this.connection?.id;
-    const player =
-      typeof playerId === 'string' &&
-      connectionId &&
-      (await Players.findOneAsync({ _id: playerId, connectionId }));
-    if (!player) throw new Meteor.Error('not-authorized', 'Not your player');
+  async 'players.leave'(playerId, sessionToken) {
+    const player = await findOwnedPlayer(playerId, sessionToken);
     await dropPlayer(player);
   },
 });

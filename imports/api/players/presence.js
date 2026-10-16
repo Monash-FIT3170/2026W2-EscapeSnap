@@ -1,3 +1,4 @@
+import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 import { Meteor } from 'meteor/meteor';
 import { Players } from './PlayersCollection';
 import { Games } from '../games/GamesCollection';
@@ -33,10 +34,32 @@ export async function dropPlayer(player) {
   }
 }
 
-export async function findReconnectablePlayer(playerId) {
+const hashToken = (token) => createHash('sha256').update(token).digest('hex');
+
+// A new session secret for a joining player: the token goes back to that
+// player only, and just its hash is stored.
+export function newSessionToken() {
+  const token = randomBytes(32).toString('base64url');
+  return { token, tokenHash: hashToken(token) };
+}
+
+// The player, if `sessionToken` is the one they were given at join. A wrong
+// token looks exactly like a missing player, so ids can't be probed.
+export async function findOwnedPlayer(playerId, sessionToken) {
   const player =
-    typeof playerId === 'string' && (await Players.findOneAsync(playerId));
-  if (!player) throw new Meteor.Error('not-found', 'Player not found');
+    typeof playerId === 'string' &&
+    typeof sessionToken === 'string' &&
+    (await Players.findOneAsync(playerId));
+  const expected = player?.sessionTokenHash;
+  const given = expected && Buffer.from(hashToken(sessionToken));
+  if (!given || !timingSafeEqual(given, Buffer.from(expected))) {
+    throw new Meteor.Error('not-found', 'Player not found');
+  }
+  return player;
+}
+
+export async function findReconnectablePlayer(playerId, sessionToken) {
+  const player = await findOwnedPlayer(playerId, sessionToken);
   if (reconnectExpired(player)) {
     await dropPlayer(player);
     throw new Meteor.Error('expired', 'Reconnect window has closed');
