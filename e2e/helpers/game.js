@@ -93,16 +93,32 @@ export async function startGame(hostPage, browser, { capacity = 2 } = {}) {
 export async function takePhoto(page, roundNumber) {
   await expect(page.getByText(`ROUND_${roundNumber}`)).toBeVisible();
 
-  // The shutter does nothing until the camera has delivered a frame.
-  const video = page.locator('video');
-  await expect
-    .poll(() => video.evaluate((el) => el.videoWidth))
-    .toBeGreaterThan(0);
+  await waitForCamera(page);
 
   await page.getByRole('button', { name: 'Capture photo' }).click();
   await expectRoundSettled(page, roundNumber);
   // A rejected photo stays on an INCORRECT! screen until retried or skipped.
   await expect(page.getByText('INCORRECT!')).toBeHidden();
+}
+
+// The shutter does nothing until the camera has delivered a frame. Under heavy
+// load, Chrome's fake webcam occasionally never answers a camera request (no
+// stream, no error), so if nothing arrives, flip to the Letters tab and back,
+// which restarts the camera the same way a player would.
+async function waitForCamera(page, attempts = 3) {
+  const video = page.locator('video');
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await expect
+        .poll(() => video.evaluate((el) => el.videoWidth), { timeout: 10_000 })
+        .toBeGreaterThan(0);
+      return;
+    } catch (err) {
+      if (attempt === attempts) throw err;
+      await page.getByRole('button', { name: 'Letters' }).click();
+      await page.getByRole('button', { name: 'Scanner' }).click();
+    }
+  }
 }
 
 // Gives up on the round (two taps, like a real player) and forfeits its letter.
