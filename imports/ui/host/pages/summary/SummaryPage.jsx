@@ -85,7 +85,7 @@ const Shell = ({ gameId, children }) => {
   const t = useT();
   return (
     <SidebarLayout gameId={gameId} activePage="summary">
-      <RoomBar home={null}>
+      <RoomBar>
         <span className="font-display text-base tracking-[0.04em] text-muted">{t('host.summary.missionDebrief')}</span>
       </RoomBar>
       {children}

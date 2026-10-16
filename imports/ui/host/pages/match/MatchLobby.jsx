@@ -118,7 +118,7 @@ const MatchLobby = () => {
 
   return (
     <div className="es-room flex flex-col">
-      <RoomBar home={null}>
+      <RoomBar>
         <span className="hidden font-display text-base tracking-[0.04em] text-muted sm:inline">{t('host.match.eyebrow')}</span>
         <LanguagePicker chipClassName="es-chip" />
       </RoomBar>

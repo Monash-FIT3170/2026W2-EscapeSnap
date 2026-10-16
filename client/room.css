@@ -137,6 +137,14 @@ body:not(:has(.lp))::after {
   text-decoration: none;
   color: rgb(var(--es-ink));
 }
+a.es-brand:hover {
+  opacity: 0.8;
+}
+a.es-brand:focus-visible {
+  outline: 2px solid rgb(var(--es-brand-bright));
+  outline-offset: 4px;
+  border-radius: 2px;
+}
 .es-brand-snap {
   color: rgb(var(--es-brand-bright));
 }

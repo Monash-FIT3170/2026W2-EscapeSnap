@@ -383,7 +383,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
     >
       <header className="es-bar sticky top-0 z-20">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4">
-          <Brand to={null} className="text-xl" />
+          <Brand className="text-xl" />
           <span className="font-display text-sm tracking-[0.03em] text-muted">
             {t('mobile.share.shareLabOnline')}
           </span>

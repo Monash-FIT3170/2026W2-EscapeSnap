@@ -1,9 +1,12 @@
 import React from 'react';
+import { Link, useInRouterContext } from 'react-router-dom';
 
 // The ESCAPESNAP mark from the landing page's top bar, with its recording
-// light. Links home unless `to` is null (mid-game, where leaving by accident
-// would hurt). A plain link, so it also works outside the router (tests).
+// light. Always links back to the home page. Inside the router it navigates
+// client-side; outside it (tests) it falls back to a plain link.
 export function Brand({ to = '/', className = '', label = 'EscapeSnap' }) {
+  const inRouter = useInRouterContext();
+  const props = { className: `es-brand ${className}`, 'aria-label': label };
   const mark = (
     <>
       <span className="es-rec-dot" aria-hidden="true" />
@@ -12,15 +15,12 @@ export function Brand({ to = '/', className = '', label = 'EscapeSnap' }) {
       </span>
     </>
   );
-  if (to === null) {
-    return (
-      <span className={`es-brand ${className}`} aria-label={label}>
-        {mark}
-      </span>
-    );
-  }
-  return (
-    <a href={to} className={`es-brand ${className}`} aria-label={label}>
+  return inRouter ? (
+    <Link to={to} {...props}>
+      {mark}
+    </Link>
+  ) : (
+    <a href={to} {...props}>
       {mark}
     </a>
   );

@@ -180,7 +180,7 @@ const ProgressPage = () => {
   // The room's clock reads like the keypad's display; the rest sit beside it.
   return (
     <SidebarLayout gameId={gameId} activePage="progress">
-      <RoomBar home={null} />
+      <RoomBar />
 
       <div className="flex flex-1 flex-col gap-8 px-6 py-8 lg:px-10">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)]">

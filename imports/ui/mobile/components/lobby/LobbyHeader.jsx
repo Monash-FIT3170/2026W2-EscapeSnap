@@ -12,7 +12,7 @@ export function LobbyHeader({ unitLabel, onExit }) {
   return (
     <header className="flex items-center justify-between gap-3">
       <div className="flex min-w-0 flex-col">
-        <Brand to={null} className="!min-h-0 text-[1.3rem]" />
+        <Brand className="!min-h-0 text-[1.3rem]" />
         <span className="es-label mt-1 truncate">{unitLabel}</span>
       </div>
 

@@ -60,7 +60,7 @@ const FinalRiddlePage = () => {
   // case file on the left, the lock (letters and answer) on a plate beside it.
   return (
     <SidebarLayout gameId={gameId} activePage="final-riddle">
-      <RoomBar home={null} />
+      <RoomBar />
 
       <div className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 items-start gap-10 px-6 py-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:px-10">
         <div className="flex flex-col gap-8">

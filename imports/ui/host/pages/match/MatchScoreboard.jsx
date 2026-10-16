@@ -37,7 +37,7 @@ const MatchScoreboard = () => {
 
   return (
     <div className="es-room flex flex-col">
-      <RoomBar home={null}>
+      <RoomBar>
         <span className="font-display text-base tracking-[0.04em] text-muted">{t('host.match.scoreboard')}</span>
       </RoomBar>
 
