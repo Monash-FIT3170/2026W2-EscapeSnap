@@ -1,7 +1,7 @@
 // Meteor's JSX transform still requires React in module scope.
 // eslint-disable-next-line no-unused-vars
 import React from 'react';
-import { COLORS } from '../../theme';
+import { COLORS } from '../../../shared/theme';
 import { useT } from '../../../../languages/LanguageProvider';
 
 const SIZE = 48;
@@ -18,7 +18,7 @@ export function RoundTimer({ timeLeft, totalTime }) {
   // The last minute is the one worth reacting to on a game-length clock.
   const isLow = !isExpired && timeLeft <= 60;
 
-  const color = isExpired ? COLORS.dim : isLow ? COLORS.incorrect : COLORS.text;
+  const color = isExpired ? COLORS.dim : isLow ? COLORS.incorrect : COLORS.ink;
   const mm = String(Math.floor(Math.max(0, timeLeft) / 60)).padStart(2, '0');
   const ss = String(Math.max(0, timeLeft) % 60).padStart(2, '0');
 
@@ -36,18 +36,20 @@ export function RoundTimer({ timeLeft, totalTime }) {
             : t('mobile.roundTimer.secondsRemainingAria', { n: timeLeft })
         }
       >
-        <circle cx={VIEW / 2} cy={VIEW / 2} r={RADIUS} fill="none" stroke={COLORS.border} strokeWidth={STROKE} />
+        <circle cx={VIEW / 2} cy={VIEW / 2} r={RADIUS} fill="none" strokeWidth={STROKE} style={{ stroke: COLORS.line }} />
         <circle
           cx={VIEW / 2}
           cy={VIEW / 2}
           r={RADIUS}
           fill="none"
-          stroke={isExpired ? COLORS.dim : COLORS.accent}
           strokeWidth={STROKE}
           strokeDasharray={CIRCUMFERENCE}
           strokeDashoffset={CIRCUMFERENCE * (1 - fraction)}
           strokeLinecap="round"
-          style={{ transition: 'stroke-dashoffset 0.9s linear, stroke 0.3s' }}
+          style={{
+            stroke: isExpired ? COLORS.dim : COLORS.brand,
+            transition: 'stroke-dashoffset 0.9s linear, stroke 0.3s',
+          }}
         />
       </svg>
 

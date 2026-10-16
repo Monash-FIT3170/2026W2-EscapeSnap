@@ -6,7 +6,7 @@ import { FINAL_RIDDLE } from '../../lib/finalRiddle';
 import {
   endGame,
   ensureRiddlesReady,
-  generateJoinCode,
+  insertGameWithJoinCode,
   pregenerateRiddlesOnce,
   startGame,
 } from '../games/gameLifecycle';
@@ -90,8 +90,7 @@ export async function createLocalMatch({
   const gameIds = [];
   for (const groupName of names) {
     gameIds.push(
-      await Games.insertAsync({
-        joinCode: await generateJoinCode(),
+      await insertGameWithJoinCode({
         groupName,
         status: 'lobby',
         currentRound: 1,

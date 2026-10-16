@@ -5,17 +5,18 @@ import GameNotFound from '/imports/ui/shared/components/GameNotFound.jsx';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
 import PhotoGallery from '/imports/ui/host/components/summary/PhotoGallery.jsx';
 import { useT } from '../../../../languages/LanguageProvider';
+import { useGameUiTheme } from '../../../shared/components/theme/UiThemeProvider';
 
-const BG = '#131313';
-const PANEL = '#1c1b1b';
-const INNER = '#0e0e0e';
-const BORDER = '#353534';
-const ACCENT = '#8b0000';
-const TEXT = '#e5e2e1';
-const MUTED = '#aa8984';
-const DIM = '#555';
-const CORRECT = '#4ade80';
-const INCORRECT = '#ef4444';
+const BG = 'rgb(var(--es-ground))';
+const PANEL = 'rgb(var(--es-panel))';
+const INNER = 'rgb(var(--es-ground))';
+const BORDER = 'rgb(var(--es-line))';
+const ACCENT = 'rgb(var(--es-brand))';
+const TEXT = 'rgb(var(--es-ink))';
+const MUTED = 'rgb(var(--es-muted))';
+const DIM = 'rgb(var(--es-dim))';
+const CORRECT = 'rgb(var(--es-correct))';
+const INCORRECT = 'rgb(var(--es-incorrect))';
 
 const DASH = '—';
 
@@ -94,7 +95,7 @@ const Shell = ({ gameId, children }) => {
   return (
     <SidebarLayout gameId={gameId} activePage="summary">
       <header className="flex items-center justify-between px-6 py-4" style={{ background: BG, borderBottom: `2px solid ${PANEL}` }}>
-        <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: TEXT }}>ESCAPESNAP</span>
+        <span className="font-display text-lg font-black tracking-wide text-brand">ESCAPESNAP</span>
         <span style={{ fontSize: 10, letterSpacing: '1px', color: MUTED }}>{t('host.summary.missionDebrief')}</span>
       </header>
       {children}
@@ -104,6 +105,7 @@ const Shell = ({ gameId, children }) => {
 
 const SummaryPage = () => {
   const { gameId } = useParams();
+  useGameUiTheme(gameId);
   const navigate = useNavigate();
   const t = useT();
   const { loading, gameFound, ended, outcome, team, players, photos } = useGameSummary(gameId);
@@ -135,10 +137,10 @@ const SummaryPage = () => {
             <button
               onClick={() => navigate(`/game/${gameId}/progress`)}
               style={{
-                background: ACCENT, color: TEXT, fontSize: 12, fontWeight: 700,
+                background: ACCENT, color: 'rgb(var(--es-on-brand))', fontSize: 12, fontWeight: 700,
                 letterSpacing: '1.5px', padding: '14px 32px', border: 'none', cursor: 'pointer',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = '#a50000')}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgb(var(--es-brand-bright))')}
               onMouseLeave={(e) => (e.currentTarget.style.background = ACCENT)}
             >
               {t('host.summary.backToOperatives')}

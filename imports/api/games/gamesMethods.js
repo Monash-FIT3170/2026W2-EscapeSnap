@@ -1,17 +1,21 @@
 import { Meteor } from 'meteor/meteor';
 import { Games } from './GamesCollection';
 import { Players } from '../players/PlayersCollection';
-import { Rounds } from '../rounds/RoundsCollection';
 import { RoundSessions } from '/imports/api/rounds/RoundSessions';
 import { HARDCODED_RIDDLES } from '/imports/lib/riddles';
 import { FINAL_RIDDLE } from '../../lib/finalRiddle';
+import { UI_THEMES, DEFAULT_UI_THEME } from '../../lib/uiThemes';
 import { DEFAULT_ANSWER_MODE } from '../../lib/answerModes';
 import { CUSTOM_THEME, normalizeCustomTheme } from '../../lib/customTheme';
-import { advanceGameRound } from '../rounds/roundProgression';
+import {
+  advanceGameRound,
+  resolvePendingRounds,
+} from '../rounds/roundProgression';
+import { logGameEvent } from '../events/gameEventLog';
 import {
   endGame,
   ensureRiddlesReady,
-  generateJoinCode,
+  insertGameWithJoinCode,
   pregenerateRiddlesOnce,
   startGame,
 } from './gameLifecycle';
@@ -23,31 +27,8 @@ const ROUND_DURATION_MS = 60 * 1000;
 const MAX_FINAL_ATTEMPTS = 3;
 const PLAY_MODES = ['solo', 'online'];
 
-// Mark every still-pending round matching `selector` as wrong.
-// The status is part of the update selector, so a round can only make the
-// pending -> wrong transition once and can never push a duplicate '?'.
-async function resolvePendingRounds(selector) {
-  const pending = await Rounds.find({
-    ...selector,
-    status: 'pending',
-  }).fetchAsync();
-  let resolved = 0;
-
-  for (const round of pending) {
-    const updated = await Rounds.updateAsync(
-      { _id: round._id, status: 'pending' },
-      { $set: { status: 'wrong', submittedAt: new Date() } }
-    );
-    if (updated === 1) {
-      await Players.updateAsync(round.playerId, {
-        $push: { revealedLetters: '?' },
-      });
-      resolved++;
-    }
-  }
-
-  return resolved;
-}
+// Tests reach the join-code source through this module.
+export { joinCodeSource } from './gameLifecycle';
 
 Meteor.methods({
   async 'games.create'({
@@ -57,6 +38,7 @@ Meteor.methods({
     capacity = 4,
     difficulty = 'medium',
     theme = 'classroom',
+    uiTheme = DEFAULT_UI_THEME,
     mode = DEFAULT_ANSWER_MODE,
     customTheme,
     playMode = 'solo',
@@ -77,10 +59,7 @@ Meteor.methods({
         'Custom theme text is required'
       );
     }
-    const joinCode = await generateJoinCode();
-
-    const gameId = await Games.insertAsync({
-      joinCode,
+    const gameId = await insertGameWithJoinCode({
       groupName: groupName.trim(),
       status: 'lobby',
       currentRound: 1,
@@ -89,6 +68,7 @@ Meteor.methods({
       capacity,
       difficulty,
       theme,
+      uiTheme,
       ...(cleanCustomTheme && { customTheme: cleanCustomTheme }),
       mode,
       playMode,
@@ -110,6 +90,21 @@ Meteor.methods({
     });
 
     return gameId;
+  },
+
+  // Callable by the host and by any player: the skin is shared by the whole
+  // game, so whoever changes it changes it for everyone.
+  async 'games.setUiTheme'(gameId, uiTheme) {
+    // A non-string id would be read as a Mongo selector and could match
+    // some other game.
+    if (typeof gameId !== 'string') {
+      throw new Meteor.Error('not-found', 'Game not found');
+    }
+    if (!UI_THEMES.includes(uiTheme)) {
+      throw new Meteor.Error('invalid-ui-theme', 'Unknown UI theme');
+    }
+    const updated = await Games.updateAsync(gameId, { $set: { uiTheme } });
+    if (!updated) throw new Meteor.Error('not-found', 'Game not found');
   },
 
   async 'games.start'(gameId) {
@@ -171,7 +166,8 @@ Meteor.methods({
   async 'games.advanceRound'(gameId) {
     const game = await Games.findOneAsync(gameId);
     if (!game) throw new Meteor.Error('not-found', 'Game not found');
-    if (game.currentRound >= game.totalRounds) return;
+    if (game.status !== 'in_progress')
+      throw new Meteor.Error('invalid-state', 'Game is not in progress');
 
     await resolvePendingRounds({ gameId, roundNumber: game.currentRound });
 
@@ -224,6 +220,7 @@ Meteor.methods({
       await Games.updateAsync(gameId, {
         $set: { finalRiddleAttempts: attempts },
       });
+      await logGameEvent({ gameId, type: 'finalAnswerWrong' });
     }
 
     return {

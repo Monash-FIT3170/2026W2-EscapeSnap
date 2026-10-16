@@ -4,9 +4,9 @@ import { useT } from '../../../languages/LanguageProvider';
 
 const HamburgerIcon = () => (
   <svg width="18" height="14" viewBox="0 0 18 14" fill="none" style={{ flexShrink: 0 }}>
-    <line x1="0" y1="1" x2="18" y2="1" stroke="#aa8984" strokeWidth="1.5" strokeLinecap="round" />
-    <line x1="0" y1="7" x2="18" y2="7" stroke="#aa8984" strokeWidth="1.5" strokeLinecap="round" />
-    <line x1="0" y1="13" x2="18" y2="13" stroke="#aa8984" strokeWidth="1.5" strokeLinecap="round" />
+    <line x1="0" y1="1" x2="18" y2="1" style={{ stroke: 'rgb(var(--es-muted))' }} strokeWidth="1.5" strokeLinecap="round" />
+    <line x1="0" y1="7" x2="18" y2="7" style={{ stroke: 'rgb(var(--es-muted))' }} strokeWidth="1.5" strokeLinecap="round" />
+    <line x1="0" y1="13" x2="18" y2="13" style={{ stroke: 'rgb(var(--es-muted))' }} strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );
 
@@ -57,8 +57,8 @@ const Sidebar = ({ gameId, activePage, expanded, onToggle }) => {
     <aside style={{
       width: expanded ? 200 : 60,
       minHeight: '100vh',
-      background: '#0e0e0e',
-      borderRight: '1px solid #1c1b1b',
+      background: 'rgb(var(--es-ground))',
+      borderRight: '1px solid rgb(var(--es-panel))',
       display: 'flex',
       flexDirection: 'column',
       transition: 'width 0.25s ease',
@@ -66,7 +66,7 @@ const Sidebar = ({ gameId, activePage, expanded, onToggle }) => {
       flexShrink: 0,
     }}>
       <div style={{
-        borderBottom: '1px solid #1c1b1b',
+        borderBottom: '1px solid rgb(var(--es-panel))',
         display: 'flex',
         alignItems: 'center',
         justifyContent: expanded ? 'space-between' : 'center',
@@ -74,8 +74,8 @@ const Sidebar = ({ gameId, activePage, expanded, onToggle }) => {
       }}>
         {expanded && (
           <div>
-            <div style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: '#e5e2e1', whiteSpace: 'nowrap' }}>{t('host.sidebar.game')}</div>
-            <div style={{ fontWeight: 500, fontSize: 10, letterSpacing: '0.5px', color: '#8b0000', marginTop: 2, whiteSpace: 'nowrap' }}>{subtitle}</div>
+            <div style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: 'rgb(var(--es-ink))', whiteSpace: 'nowrap' }}>{t('host.sidebar.game')}</div>
+            <div style={{ fontWeight: 500, fontSize: 10, letterSpacing: '0.5px', color: 'rgb(var(--es-brand))', marginTop: 2, whiteSpace: 'nowrap' }}>{subtitle}</div>
           </div>
         )}
         <button
@@ -102,8 +102,8 @@ const Sidebar = ({ gameId, activePage, expanded, onToggle }) => {
                 gap: expanded ? 16 : 0,
                 justifyContent: expanded ? 'flex-start' : 'center',
                 padding: expanded ? '16px 24px' : '16px 0',
-                background: active ? '#1c1b1b' : 'transparent',
-                borderLeft: active ? '2px solid #8b0000' : '2px solid transparent',
+                background: active ? 'rgb(var(--es-panel))' : 'transparent',
+                borderLeft: active ? '2px solid rgb(var(--es-brand))' : '2px solid transparent',
                 cursor: 'pointer',
                 opacity: active ? 1 : 0.7,
                 width: '100%',
@@ -111,9 +111,9 @@ const Sidebar = ({ gameId, activePage, expanded, onToggle }) => {
                 transition: 'background 0.15s',
               }}
             >
-              <Icon color={active ? '#e5e2e1' : '#aa8984'} />
+              <Icon color={active ? 'rgb(var(--es-ink))' : 'rgb(var(--es-muted))'} />
               {expanded && (
-                <span style={{ fontSize: 16, fontWeight: 500, letterSpacing: '0.8px', color: active ? '#e5e2e1' : '#aa8984', whiteSpace: 'nowrap' }}>
+                <span style={{ fontSize: 16, fontWeight: 500, letterSpacing: '0.8px', color: active ? 'rgb(var(--es-ink))' : 'rgb(var(--es-muted))', whiteSpace: 'nowrap' }}>
                   {label}
                 </span>
               )}
@@ -129,7 +129,7 @@ const SidebarLayout = ({ gameId, activePage, children }) => {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
   return (
-    <main className="flex min-h-screen" style={{ background: '#131313', color: '#e5e2e1', fontFamily: "'Space Grotesk', Helvetica, sans-serif" }}>
+    <main className="flex min-h-screen" style={{ background: 'rgb(var(--es-ground))', color: 'rgb(var(--es-ink))', fontFamily: "'Space Grotesk', Helvetica, sans-serif" }}>
       <Sidebar
         gameId={gameId}
         activePage={activePage}

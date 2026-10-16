@@ -24,9 +24,10 @@ Players.attachSchema(new SimpleSchema({
     type: String,
     allowedValues: [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''), '?'],
   },
-  // Secret handed to the joining phone so it can reconnect as this player.
-  // Never published.
-  sessionToken: {
+  // SHA-256 of the secret players.join hands to the joining phone (see
+  // presence.js). Teammates can see a player's _id, so the _id alone never
+  // proves who you are. Never published.
+  sessionTokenHash: {
     type: String,
     optional: true,
   },

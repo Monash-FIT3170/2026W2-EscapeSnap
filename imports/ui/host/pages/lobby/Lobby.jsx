@@ -6,7 +6,9 @@ import { QRCodeSVG } from 'qrcode.react';
 import { Games } from '../../../../api/games/GamesCollection';
 import { Players } from '../../../../api/players/PlayersCollection';
 import { useT } from '../../../../languages/LanguageProvider';
+import { useGameUiTheme } from '../../../shared/components/theme/UiThemeProvider';
 import { LanguagePicker } from '../../../../languages/LanguagePicker';
+import { ThemePicker } from '../../../shared/components/theme/ThemePicker';
 import { errorKey } from '../../../../languages/errors';
 import { SEARCH_TTL_MS } from '/imports/lib/teamStatus';
 import { formatClock } from '../../components/match/TeamScoreCard';
@@ -16,29 +18,29 @@ const PlayerCard = ({ player }) => {
   return (
     <div
       className="flex items-center gap-4 p-4"
-      style={{ background: '#0e0e0e', border: '1px solid #1c1b1b' }}
+      style={{ background: 'rgb(var(--es-ground))', border: '1px solid rgb(var(--es-panel))' }}
     >
       <div
         className="flex items-center justify-center flex-shrink-0"
         style={{
           width: 64, height: 64,
-          background: '#1c1b1b',
-          border: '1px solid #2a2a2a',
+          background: 'rgb(var(--es-panel))',
+          border: '1px solid rgb(var(--es-line))',
           fontSize: 20,
           fontWeight: 700,
-          color: '#e5e2e1',
+          color: 'rgb(var(--es-ink))',
           letterSpacing: '1px',
         }}
       >
         {initials}
       </div>
       <div>
-        <p style={{ fontWeight: 700, fontSize: 16, letterSpacing: '1.5px', color: '#e5e2e1' }}>
+        <p style={{ fontWeight: 700, fontSize: 16, letterSpacing: '1.5px', color: 'rgb(var(--es-ink))' }}>
           {player.name?.toUpperCase()}
         </p>
         <div className="flex gap-1 mt-2">
-          <div style={{ width: 24, height: 3, background: '#8b0000' }} />
-          <div style={{ width: 12, height: 3, background: '#3a0000' }} />
+          <div style={{ width: 24, height: 3, background: 'rgb(var(--es-brand))' }} />
+          <div style={{ width: 12, height: 3, background: 'rgb(var(--es-brand) / 0.4)' }} />
         </div>
       </div>
     </div>
@@ -51,10 +53,10 @@ const EmptySlot = () => {
   <div
     className="flex items-center justify-center"
     style={{
-      background: '#0a0a0a',
-      border: '1px dashed #1c1b1b',
+      background: 'rgb(var(--es-ground))',
+      border: '1px dashed rgb(var(--es-panel))',
       minHeight: 88,
-      color: '#2a2a2a',
+      color: 'rgb(var(--es-line))',
       fontSize: 11,
       letterSpacing: '1.5px',
     }}
@@ -103,8 +105,8 @@ const OnlineMatchmaking = ({ game, lobbyFull, remainingSlots }) => {
   const buttonStyle = (enabled) => ({
     width: '100%',
     padding: '18px',
-    background: enabled ? '#8b0000' : '#1c1b1b',
-    color: enabled ? '#e5e2e1' : '#555',
+    background: enabled ? 'rgb(var(--es-brand))' : 'rgb(var(--es-panel))',
+    color: enabled ? 'rgb(var(--es-on-brand))' : 'rgb(var(--es-dim))',
     fontWeight: 700,
     fontSize: 14,
     letterSpacing: '2px',
@@ -114,24 +116,24 @@ const OnlineMatchmaking = ({ game, lobbyFull, remainingSlots }) => {
 
   return (
     <div className="flex flex-col gap-3">
-      {error && <p style={{ fontSize: 11, color: '#8b0000', letterSpacing: '1px' }}>!! {error}</p>}
+      {error && <p style={{ fontSize: 11, color: 'rgb(var(--es-brand))', letterSpacing: '1px' }}>!! {error}</p>}
       {expired && !pending && (
-        <p style={{ fontSize: 11, color: '#aa8984', letterSpacing: '1px' }}>{t('host.lobby.searchExpired')}</p>
+        <p style={{ fontSize: 11, color: 'rgb(var(--es-muted))', letterSpacing: '1px' }}>{t('host.lobby.searchExpired')}</p>
       )}
       {searching ? (
         <div className="flex items-center gap-3">
-          <div className="flex-1 text-center py-4" style={{ border: '1px solid #8b0000', background: '#1c0000' }}>
-            <p className="animate-pulse" style={{ fontSize: 12, letterSpacing: '1.5px', color: '#e5e2e1' }}>
+          <div className="flex-1 text-center py-4" style={{ border: '1px solid rgb(var(--es-brand))', background: 'rgb(var(--es-brand) / 0.12)' }}>
+            <p className="animate-pulse" style={{ fontSize: 12, letterSpacing: '1.5px', color: 'rgb(var(--es-ink))' }}>
               {t('host.lobby.searching')}
             </p>
-            <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984', marginTop: 4 }}>
+            <p style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-muted))', marginTop: 4 }}>
               {t('host.lobby.searchingFor', { time: formatClock(since ? Math.max(0, now - since) : 0) })}
             </p>
           </div>
           {since !== null && (
             <button
               onClick={handleCancel}
-              style={{ padding: '18px 24px', background: 'transparent', color: '#aa8984', border: '1px solid #353534', fontSize: 11, letterSpacing: '1.5px', cursor: 'pointer' }}
+              style={{ padding: '18px 24px', background: 'transparent', color: 'rgb(var(--es-muted))', border: '1px solid rgb(var(--es-line))', fontSize: 11, letterSpacing: '1.5px', cursor: 'pointer' }}
             >
               {t('host.lobby.cancelSearch')}
             </button>
@@ -150,6 +152,7 @@ const OnlineMatchmaking = ({ game, lobbyFull, remainingSlots }) => {
 
 const Lobby = () => {
   const { gameId } = useParams();
+  useGameUiTheme(gameId);
   const navigate = useNavigate();
   const t = useT();
   const [starting, setStarting] = useState(false);
@@ -191,16 +194,16 @@ const Lobby = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0e0e0e' }}>
-        <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>{t('host.lobby.loading')}</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'rgb(var(--es-ground))' }}>
+        <p style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-muted))' }}>{t('host.lobby.loading')}</p>
       </div>
     );
   }
 
   if (!game) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0e0e0e' }}>
-        <p style={{ fontSize: 10, letterSpacing: '1px', color: '#8b0000' }}>{t('host.lobby.gameNotFound')}</p>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'rgb(var(--es-ground))' }}>
+        <p style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-brand))' }}>{t('host.lobby.gameNotFound')}</p>
       </div>
     );
   }
@@ -215,20 +218,21 @@ const Lobby = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#0e0e0e', color: '#e5e2e1' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: 'rgb(var(--es-ground))', color: 'rgb(var(--es-ink))' }}>
 
       {/* Navbar */}
       <header
         className="flex items-center justify-between px-8 py-4"
-        style={{ borderBottom: '1px solid #1c1b1b' }}
+        style={{ borderBottom: '1px solid rgb(var(--es-panel))' }}
       >
-        <span style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: '#e5e2e1' }}>
+        <span className="font-display text-lg font-black tracking-wide text-brand">
           ESCAPESNAP
         </span>
         <div className="flex items-center gap-4">
-          <span style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>
+          <span style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-muted))' }}>
             {t('host.lobby.navTag')}
           </span>
+          <ThemePicker />
           <LanguagePicker />
         </div>
       </header>
@@ -238,14 +242,14 @@ const Lobby = () => {
         {/* Left sidebar */}
         <div
           className="flex flex-col gap-6 p-8"
-          style={{ width: 300, minWidth: 300, borderRight: '1px solid #1c1b1b' }}
+          style={{ width: 300, minWidth: 300, borderRight: '1px solid rgb(var(--es-panel))' }}
         >
           {/* Join code */}
           <div>
-            <p style={{ fontSize: 9, letterSpacing: '1.5px', color: '#aa8984', marginBottom: 4 }}>
+            <p style={{ fontSize: 9, letterSpacing: '1.5px', color: 'rgb(var(--es-muted))', marginBottom: 4 }}>
               {t('host.lobby.accessAuthorization')}
             </p>
-            <p style={{ fontSize: 9, letterSpacing: '1px', color: '#555', marginBottom: 8 }}>
+            <p style={{ fontSize: 9, letterSpacing: '1px', color: 'rgb(var(--es-dim))', marginBottom: 8 }}>
               {t('host.lobby.gameCode')}
             </p>
             <p
@@ -255,14 +259,14 @@ const Lobby = () => {
                 fontWeight: 700,
                 letterSpacing: '4px',
                 lineHeight: 1,
-                color: '#e5e2e1',
+                color: 'rgb(var(--es-ink))',
                 cursor: 'text',
                 userSelect: 'all',
               }}
             >
               {game.joinCode || '----'}
             </p>
-            <p style={{ fontSize: 9, color: '#555', marginTop: 10, lineHeight: 1.5 }}>
+            <p style={{ fontSize: 9, color: 'rgb(var(--es-dim))', marginTop: 10, lineHeight: 1.5 }}>
               {t('host.lobby.shareHint')}
             </p>
           </div>
@@ -270,44 +274,44 @@ const Lobby = () => {
           {/* QR join */}
           <div
             className="flex flex-col items-center p-4"
-            style={{ background: '#1c1b1b', border: '1px solid #2a2a2a' }}
+            style={{ background: 'rgb(var(--es-panel))', border: '1px solid rgb(var(--es-line))' }}
           >
-            <p style={{ fontSize: 9, letterSpacing: '1.5px', color: '#aa8984', marginBottom: 12, alignSelf: 'flex-start' }}>
+            <p style={{ fontSize: 9, letterSpacing: '1.5px', color: 'rgb(var(--es-muted))', marginBottom: 12, alignSelf: 'flex-start' }}>
               {t('host.lobby.scanToDeploy')}
             </p>
-            <div style={{ background: '#e5e2e1', padding: 10, lineHeight: 0 }}>
+            <div style={{ background: 'rgb(var(--es-ink))', padding: 10, lineHeight: 0 }}>
               <QRCodeSVG value={joinUrl} size={140} bgColor="#e5e2e1" fgColor="#0e0e0e" level="M" />
             </div>
-            <p style={{ fontSize: 9, color: '#555', marginTop: 10, textAlign: 'center', lineHeight: 1.5, wordBreak: 'break-all' }}>
+            <p style={{ fontSize: 9, color: 'rgb(var(--es-dim))', marginTop: 10, textAlign: 'center', lineHeight: 1.5, wordBreak: 'break-all' }}>
               {joinUrl}
             </p>
-            <p style={{ fontSize: 9, color: '#555', marginTop: 4, textAlign: 'center', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 9, color: 'rgb(var(--es-dim))', marginTop: 4, textAlign: 'center', lineHeight: 1.5 }}>
               {t('host.lobby.distributeHint')}
             </p>
           </div>
 
           {/* Difficulty */}
           <div>
-            <p style={{ fontSize: 9, letterSpacing: '1.5px', color: '#aa8984', marginBottom: 8 }}>
+            <p style={{ fontSize: 9, letterSpacing: '1.5px', color: 'rgb(var(--es-muted))', marginBottom: 8 }}>
               {t('host.lobby.gameDifficulty')}
             </p>
             {['easy', 'medium', 'hard'].map(d => (
               <div
                 key={d}
                 className="flex items-center justify-between px-4 py-3 mb-2"
-                style={{ border: game.difficulty === d ? '1px solid #8b0000' : '1px solid #1c1b1b' }}
+                style={{ border: game.difficulty === d ? '1px solid rgb(var(--es-brand))' : '1px solid rgb(var(--es-panel))' }}
               >
-                <span style={{ fontSize: 11, letterSpacing: '1px', color: game.difficulty === d ? '#e5e2e1' : '#555' }}>
+                <span style={{ fontSize: 11, letterSpacing: '1px', color: game.difficulty === d ? 'rgb(var(--es-ink))' : 'rgb(var(--es-dim))' }}>
                   {`${t(`difficulty.${d}`)}: ${t(`difficulty.${d}Sub`)}`}
                 </span>
                 <div style={{
                   width: 16, height: 16, borderRadius: '50%',
-                  border: `2px solid ${game.difficulty === d ? '#8b0000' : '#333'}`,
-                  background: game.difficulty === d ? '#8b0000' : 'transparent',
+                  border: `2px solid ${game.difficulty === d ? 'rgb(var(--es-brand))' : 'rgb(var(--es-dim))'}`,
+                  background: game.difficulty === d ? 'rgb(var(--es-brand))' : 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                 }}>
                   {game.difficulty === d && (
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#e5e2e1' }} />
+                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgb(var(--es-on-brand))' }} />
                   )}
                 </div>
               </div>
@@ -321,20 +325,20 @@ const Lobby = () => {
           {/* Header row */}
           <div className="flex items-center justify-between">
             <div>
-              <p style={{ fontSize: 10, letterSpacing: '1.5px', color: '#8b0000', marginBottom: 4 }}>
+              <p style={{ fontSize: 10, letterSpacing: '1.5px', color: 'rgb(var(--es-brand))', marginBottom: 4 }}>
                 {game.groupName?.toUpperCase()}
               </p>
-              <h1 style={{ fontWeight: 700, fontSize: 28, letterSpacing: '2px', color: '#e5e2e1' }}>
+              <h1 style={{ fontWeight: 700, fontSize: 28, letterSpacing: '2px', color: 'rgb(var(--es-ink))' }}>
                 {t('host.lobby.title')}
               </h1>
               {game.playMode === 'online' && (
-                <p style={{ fontSize: 10, letterSpacing: '1.5px', color: '#aa8984', marginTop: 2 }}>
+                <p style={{ fontSize: 10, letterSpacing: '1.5px', color: 'rgb(var(--es-muted))', marginTop: 2 }}>
                   {t('host.lobby.onlineVersus')}
                 </p>
               )}
               <div className="flex items-center gap-2 mt-1">
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#8b0000' }} />
-                <p style={{ fontSize: 10, letterSpacing: '1px', color: '#aa8984' }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgb(var(--es-brand))' }} />
+                <p style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-muted))' }}>
                   {t('host.lobby.awaitingStart')}
                 </p>
               </div>
@@ -344,19 +348,19 @@ const Lobby = () => {
                     width: 8,
                     height: 8,
                     borderRadius: '50%',
-                    background: game.riddlesReady ? '#2e7d32' : '#3a2a00',
+                    background: game.riddlesReady ? 'rgb(var(--es-correct))' : 'rgb(var(--es-dim))',
                   }}
                 />
-                <p style={{ fontSize: 10, letterSpacing: '1px', color: game.riddlesReady ? '#7ac47f' : '#8a7a55' }}>
+                <p style={{ fontSize: 10, letterSpacing: '1px', color: game.riddlesReady ? 'rgb(var(--es-correct))' : 'rgb(var(--es-muted))' }}>
                   {game.riddlesReady ? 'RIDDLES READY' : 'GENERATING RIDDLES...'}
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <p style={{ fontSize: 9, letterSpacing: '1px', color: '#aa8984' }}>{t('host.lobby.capacity')}</p>
-              <p style={{ fontSize: 28, fontWeight: 700, letterSpacing: '2px', color: '#e5e2e1' }}>
+              <p style={{ fontSize: 9, letterSpacing: '1px', color: 'rgb(var(--es-muted))' }}>{t('host.lobby.capacity')}</p>
+              <p style={{ fontSize: 28, fontWeight: 700, letterSpacing: '2px', color: 'rgb(var(--es-ink))' }}>
                 {String(players.length).padStart(2, '0')} /{' '}
-                <span style={{ color: '#555' }}>{String(capacity).padStart(2, '0')}</span>
+                <span style={{ color: 'rgb(var(--es-dim))' }}>{String(capacity).padStart(2, '0')}</span>
               </p>
             </div>
           </div>
@@ -373,7 +377,7 @@ const Lobby = () => {
           </div>
 
           {error && (
-            <p style={{ fontSize: 11, color: '#8b0000', letterSpacing: '1px' }}>!! {error}</p>
+            <p style={{ fontSize: 11, color: 'rgb(var(--es-brand))', letterSpacing: '1px' }}>!! {error}</p>
           )}
 
           {/* Start button */}
@@ -386,9 +390,9 @@ const Lobby = () => {
           ) : gameStarted ? (
             <div
               className="text-center py-4"
-              style={{ border: '1px solid #8b0000', background: '#1c0000' }}
+              style={{ border: '1px solid rgb(var(--es-brand))', background: 'rgb(var(--es-brand) / 0.2)' }}
             >
-              <p style={{ fontSize: 12, letterSpacing: '1.5px', color: '#aa8984' }}>
+              <p style={{ fontSize: 12, letterSpacing: '1.5px', color: 'rgb(var(--es-muted))' }}>
                 {t('host.lobby.missionActive')}
               </p>
             </div>
@@ -399,8 +403,8 @@ const Lobby = () => {
               style={{
                 width: '100%',
                 padding: '18px',
-                background: starting ? '#3a0000' : lobbyFull ? '#8b0000' : '#1c1b1b',
-                color: starting || !lobbyFull ? '#555' : '#e5e2e1',
+                background: starting ? 'rgb(var(--es-brand) / 0.4)' : lobbyFull ? 'rgb(var(--es-brand))' : 'rgb(var(--es-panel))',
+                color: starting || !lobbyFull ? 'rgb(var(--es-dim))' : 'rgb(var(--es-ink))',
                 fontWeight: 700,
                 fontSize: 14,
                 letterSpacing: '2px',
@@ -408,8 +412,8 @@ const Lobby = () => {
                 transition: 'background 0.15s',
                 border: 'none',
               }}
-              onMouseEnter={e => { if (!starting && lobbyFull) e.currentTarget.style.background = '#a50000'; }}
-              onMouseLeave={e => { if (!starting && lobbyFull) e.currentTarget.style.background = '#8b0000'; }}
+              onMouseEnter={e => { if (!starting && lobbyFull) e.currentTarget.style.background = 'rgb(var(--es-brand-bright))'; }}
+              onMouseLeave={e => { if (!starting && lobbyFull) e.currentTarget.style.background = 'rgb(var(--es-brand))'; }}
             >
               {starting
                 ? 'DEPLOYING AGENTS...'

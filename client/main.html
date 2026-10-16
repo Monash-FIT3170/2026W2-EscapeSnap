@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Oswald:wght@500;600;700&family=Rock+Salt&family=Share+Tech+Mono&family=Special+Elite&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -15,6 +15,23 @@
           fontFamily: {
             mono: ['"Share Tech Mono"', 'monospace'],
             display: ['Orbitron', 'sans-serif'],
+          },
+          // App palette. Values are the --es-* custom properties in
+          // client/main.css, so a theme only has to redefine those.
+          colors: {
+            ground: 'rgb(var(--es-ground) / <alpha-value>)',
+            panel: 'rgb(var(--es-panel) / <alpha-value>)',
+            line: 'rgb(var(--es-line) / <alpha-value>)',
+            ink: 'rgb(var(--es-ink) / <alpha-value>)',
+            muted: 'rgb(var(--es-muted) / <alpha-value>)',
+            dim: 'rgb(var(--es-dim) / <alpha-value>)',
+            brand: {
+              DEFAULT: 'rgb(var(--es-brand) / <alpha-value>)',
+              bright: 'rgb(var(--es-brand-bright) / <alpha-value>)',
+            },
+            'on-brand': 'rgb(var(--es-on-brand) / <alpha-value>)',
+            correct: 'rgb(var(--es-correct) / <alpha-value>)',
+            incorrect: 'rgb(var(--es-incorrect) / <alpha-value>)',
           }
         }
       }

@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route, useParams } from 'react-router';
+import {
+  Routes,
+  Route,
+  useLocation,
+  useNavigate,
+  useParams,
+} from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Games } from '../api/games/GamesCollection';
@@ -8,6 +14,7 @@ import { PlayerHome } from './mobile/pages/PlayerHome';
 import { PlayerLobby } from './mobile/pages/lobby/PlayerLobby';
 import { PlayerDashboard } from './mobile/pages/PlayerDashboard';
 import { HelpTutorial } from './mobile/components/gameplay/HelpTutorial';
+import { useGameUiTheme } from './shared/components/theme/UiThemeProvider';
 import CreateGame from './host/pages/create-game/CreateGame';
 import Lobby from './host/pages/lobby/Lobby';
 import ProgressPage from './host/pages/progress/ProgressPage';
@@ -81,20 +88,36 @@ function resumableSession(initialCode) {
 const SESSION_ERRORS = { 'not-found': 'errors.sessionEnded' };
 
 function PlayerFlow({ initialCode = '' }) {
-  const [session, setSession] = useState(() => resumableSession(initialCode));
-  const [autoResume] = useState(
-    () => !!session && isTabActive(session.playerId)
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Set when the player joined from the landing page's keypad: straight to
+  // the lobby, with the session players.join handed back.
+  const joined = location.state?.joined;
+  const [session, setSession] = useState(() =>
+    joined
+      ? {
+          playerId: joined.playerId,
+          sessionToken: joined.sessionToken,
+          gameCode: joined.gameCode,
+        }
+      : resumableSession(initialCode)
   );
-  const [screen, setScreen] = useState(autoResume ? 'resuming' : 'home');
+  const [autoResume] = useState(
+    () => !joined && !!session && isTabActive(session.playerId)
+  );
+  const [screen, setScreen] = useState(
+    joined ? 'lobby' : autoResume ? 'resuming' : 'home'
+  );
   // The still-running game this phone belongs to, offered on the join menu.
   const [rejoinOffer, setRejoinOffer] = useState(null);
-  const [playerName, setPlayerName] = useState('');
-  const [gameCode, setGameCode] = useState('');
-  const [playerId, setPlayerId] = useState(null);
-  const [gameId, setGameId] = useState(null);
+  const [playerName, setPlayerName] = useState(joined?.playerName ?? '');
+  const [gameCode, setGameCode] = useState(joined?.gameCode ?? '');
+  const [playerId, setPlayerId] = useState(joined?.playerId ?? null);
+  const [gameId, setGameId] = useState(joined?.gameId ?? null);
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinError, setJoinError] = useState('');
   const t = useT();
+  useGameUiTheme(gameId);
 
   const sessionToken = session?.sessionToken;
   const { game, playerCount } = useTracker(() => {
@@ -144,6 +167,13 @@ function PlayerFlow({ initialCode = '' }) {
 
   // Mount only: a saved session is checked once, when the page loads.
   useEffect(() => {
+    if (joined) {
+      // Save a keypad join like any other, then drop it from the router state
+      // so a refresh resumes through players.rejoin instead.
+      writeSession(session);
+      navigate(location.pathname, { replace: true, state: null });
+      return;
+    }
     if (!session) return;
     Meteor.callAsync('players.rejoin', session.playerId, session.sessionToken)
       .then((rejoined) => {
@@ -185,9 +215,9 @@ function PlayerFlow({ initialCode = '' }) {
         gameId: gid,
         sessionToken: token,
       } = await Meteor.callAsync('players.join', code, name);
-      const joined = { playerId: pid, sessionToken: token, gameCode: code };
-      writeSession(joined);
-      setSession(joined);
+      const fresh = { playerId: pid, sessionToken: token, gameCode: code };
+      writeSession(fresh);
+      setSession(fresh);
       setPlayerName(name);
       setGameCode(code);
       setPlayerId(pid);
@@ -226,10 +256,10 @@ function PlayerFlow({ initialCode = '' }) {
 
   if (screen === 'resuming') {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-[#0e0e0e] px-5">
+      <div className="flex min-h-[100dvh] items-center justify-center bg-ground px-5">
         <p
           role="status"
-          className="pulse-text font-mono text-xs uppercase tracking-[0.25em] text-[#aa8984]"
+          className="pulse-text font-mono text-xs uppercase tracking-[0.25em] text-muted"
         >
           {t('mobile.home.reconnecting')}
         </p>

@@ -4,6 +4,7 @@ import { getFallbackFinalRiddle } from '../../lib/finalRiddle';
 import { RIDDLE_BANK } from '../../lib/riddleBank';
 import { THEME_OBJECT_POOLS } from '../../lib/cocoClasses';
 import { finalizeGameResults } from '../achievements/achievementService';
+import { logGameEvent } from '../events/gameEventLog';
 import {
   generateFinalRiddle,
   generateRoundRiddles,
@@ -32,17 +33,42 @@ function clampFinalAnswerLength(needed) {
 // starting with the offline fallback riddles instead of blocking the host.
 const PREWARM_WAIT_MS = 10 * 1000;
 
-// players.join looks a game up by code among lobby games, so a code only has
-// to be unique among those. A match creates two lobbies in the same instant,
-// which makes a collision far more likely than it was for solo games.
-export async function generateJoinCode() {
+function randomJoinCode() {
+  return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+// Where new join codes come from. Tests swap `next` for a fixed sequence
+// rather than stubbing the global Math.random, which background riddle
+// generation also draws from.
+export const joinCodeSource = { next: randomJoinCode };
+
+// players.join looks a game up by code among open lobbies, so two open
+// lobbies sharing a code would send players to whichever one Mongo returns
+// first. Pick a code no open lobby is using; abandoned lobbies never close,
+// and a match creates two lobbies in the same instant.
+async function generateJoinCode() {
   for (let attempt = 0; attempt < 20; attempt++) {
-    const code = String(Math.floor(1000 + Math.random() * 9000));
-    const taken = await Games.findOneAsync(
-      { joinCode: code, status: 'lobby' },
+    const joinCode = joinCodeSource.next();
+    const inUse = await Games.findOneAsync(
+      { joinCode, status: 'lobby' },
       { fields: { _id: 1 } }
     );
-    if (!taken) return code;
+    if (!inUse) return joinCode;
+  }
+  throw new Meteor.Error('no-join-code', 'Could not allocate a join code');
+}
+
+// The check in generateJoinCode can't stop two games created at the same
+// moment from picking the same free code. The unique open-lobby index
+// (server/main.js) rejects the second insert, so draw a new code and retry.
+export async function insertGameWithJoinCode(game) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const joinCode = await generateJoinCode();
+    try {
+      return await Games.insertAsync({ ...game, joinCode });
+    } catch (err) {
+      if (err?.code !== 11000) throw err;
+    }
   }
   throw new Meteor.Error('no-join-code', 'Could not allocate a join code');
 }
@@ -211,6 +237,7 @@ export async function startGame(gameId, startedAt = new Date()) {
   await Games.updateAsync(gameId, {
     $set: { status: 'in_progress', startedAt },
   });
+  await logGameEvent({ gameId, type: 'gameStarted' });
 }
 
 // Moves a live game to its final outcome and writes the per-player results.
@@ -223,5 +250,7 @@ export async function endGame(gameId, outcome, endedAt = new Date(), extra = {})
   );
   if (updated === 0) return false;
   await finalizeGameResults(gameId, outcome, endedAt);
+  // Logged here so every way a game ends shows in the host's event log.
+  await logGameEvent({ gameId, type: outcome === 'won' ? 'gameWon' : 'gameLost' });
   return true;
 }

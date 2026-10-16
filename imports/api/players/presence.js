@@ -1,5 +1,5 @@
 import { Meteor } from 'meteor/meteor';
-import { randomBytes } from 'crypto';
+import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 import { Players } from './PlayersCollection';
 import { Games } from '../games/GamesCollection';
 import { Rounds } from '../rounds/RoundsCollection';
@@ -23,18 +23,28 @@ import {
 export const RECONNECT_WINDOW_MS = 2 * 60 * 1000;
 const SWEEP_INTERVAL_MS = 15 * 1000;
 
+const hashToken = (token) => createHash('sha256').update(token).digest('hex');
+
+// A new session secret for a joining player: the token goes back to that
+// player only, and just its hash is stored.
 export function newSessionToken() {
-  return randomBytes(24).toString('hex');
+  const token = randomBytes(32).toString('base64url');
+  return { token, tokenHash: hashToken(token) };
 }
 
 // Anyone in the game can see a teammate's _id, so the id alone must never be
-// enough to act as that player — the secret token handed out at join is.
+// enough to act as that player — the secret token handed out at join is. A
+// wrong token looks exactly like a missing player, so ids can't be probed.
 export async function findOwnedPlayer(playerId, sessionToken) {
   const player =
     typeof playerId === 'string' &&
     typeof sessionToken === 'string' &&
-    (await Players.findOneAsync({ _id: playerId, sessionToken }));
-  if (!player) throw new Meteor.Error('not-found', 'Player not found');
+    (await Players.findOneAsync(playerId));
+  const expected = player?.sessionTokenHash;
+  const given = expected && Buffer.from(hashToken(sessionToken));
+  if (!given || !timingSafeEqual(given, Buffer.from(expected))) {
+    throw new Meteor.Error('not-found', 'Player not found');
+  }
   return player;
 }
 

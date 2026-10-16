@@ -102,7 +102,7 @@ if (Meteor.isServer) {
 
       const ada = await Players.findOneAsync(sessions.Ada.playerId);
       assert.instanceOf(ada.leftAt, Date);
-      assert.isUndefined(ada.sessionToken);
+      assert.isUndefined(ada.sessionTokenHash);
       // The old token no longer works, so reconnecting can't undo the kick.
       await expectError(
         Meteor.callAsync(

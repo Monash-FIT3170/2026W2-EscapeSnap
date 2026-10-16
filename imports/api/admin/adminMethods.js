@@ -27,7 +27,7 @@ function disconnect(connectionId) {
 // Removes a player for good. Clearing the token is what makes it stick: a
 // plain leave can be undone by reconnecting, a kick can't.
 export async function kickPlayer(player) {
-  await Players.updateAsync(player._id, { $unset: { sessionToken: '' } });
+  await Players.updateAsync(player._id, { $unset: { sessionTokenHash: '' } });
   await playerLeft(player);
   disconnect(player.connectionId);
 }

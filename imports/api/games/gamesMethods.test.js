@@ -3,7 +3,8 @@ import { assert } from 'chai';
 import { Games } from './GamesCollection';
 import { Players } from '../players/PlayersCollection';
 import { Rounds } from '../rounds/RoundsCollection';
-import './gamesMethods';
+import { advanceIfRoundSettled } from '../rounds/roundProgression';
+import { joinCodeSource } from './gamesMethods';
 import '../rounds/roundsMethods';
 
 if (Meteor.isServer) {
@@ -23,6 +24,50 @@ if (Meteor.isServer) {
         assert.match(game.joinCode, /^\d{4}$/);
         assert.equal(game.currentRound, 1);
         assert.isNull(game.startedAt);
+      });
+
+      it('never reuses a join code an open lobby already has', async function () {
+        // Raw insert: only the fields the code lookup reads, so skip the schema.
+        await Games.rawCollection().insertOne({ _id: 'open-lobby', joinCode: '1000', status: 'lobby' });
+        // First draw collides with the open lobby (1000), second is free (5500).
+        const draws = ['1000', '5500'];
+        const realNext = joinCodeSource.next;
+        joinCodeSource.next = () => draws.shift() ?? realNext();
+        try {
+          const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
+          const game = await Games.findOneAsync(gameId);
+          assert.equal(game.joinCode, '5500');
+        } finally {
+          joinCodeSource.next = realNext;
+        }
+      });
+
+      it('gives games created at the same moment different join codes', async function () {
+        // server/main.js creates this index at startup, which tests don't run.
+        await Games.createIndexAsync(
+          { joinCode: 1, status: 1 },
+          {
+            name: 'unique_open_lobby_joinCode',
+            unique: true,
+            partialFilterExpression: { status: 'lobby' },
+          }
+        );
+        // Both games draw 1000 first; whichever loses must move to 5500.
+        const draws = ['1000', '1000', '5500'];
+        const realNext = joinCodeSource.next;
+        joinCodeSource.next = () => draws.shift() ?? realNext();
+        try {
+          const ids = await Promise.all([
+            Meteor.callAsync('games.create', { groupName: 'Team Rocket' }),
+            Meteor.callAsync('games.create', { groupName: 'Team Aqua' }),
+          ]);
+          const codes = await Promise.all(
+            ids.map(async (id) => (await Games.findOneAsync(id)).joinCode)
+          );
+          assert.sameMembers(codes, ['1000', '5500']);
+        } finally {
+          joinCodeSource.next = realNext;
+        }
       });
 
       it('applies the documented defaults when called with no options', async function () {
@@ -145,6 +190,68 @@ if (Meteor.isServer) {
       });
     });
 
+    describe('games.setUiTheme', function () {
+      it('starts a game in the default UI theme', async function () {
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
+        const game = await Games.findOneAsync(gameId);
+
+        assert.equal(game.uiTheme, 'dossier');
+      });
+
+      it('starts a game in the UI theme passed to games.create', async function () {
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket', uiTheme: 'daylight' });
+        const game = await Games.findOneAsync(gameId);
+
+        assert.equal(game.uiTheme, 'daylight');
+      });
+
+      it('saves the chosen UI theme on the game', async function () {
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
+
+        await Meteor.callAsync('games.setUiTheme', gameId, 'terminal');
+        const game = await Games.findOneAsync(gameId);
+
+        assert.equal(game.uiTheme, 'terminal');
+      });
+
+      it('rejects a UI theme outside the allowed values', async function () {
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
+
+        try {
+          await Meteor.callAsync('games.setUiTheme', gameId, 'neon');
+          assert.fail('expected games.setUiTheme to throw');
+        } catch (error) {
+          assert.equal(error.error, 'invalid-ui-theme');
+        }
+      });
+
+      it('refuses a game id that is not a string', async function () {
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
+
+        try {
+          // A selector instead of an id would otherwise match this game.
+          await Meteor.callAsync(
+            'games.setUiTheme',
+            { status: 'lobby' },
+            'terminal'
+          );
+          assert.fail('expected games.setUiTheme to throw');
+        } catch (error) {
+          assert.equal(error.error, 'not-found');
+        }
+        assert.equal((await Games.findOneAsync(gameId)).uiTheme, 'dossier');
+      });
+
+      it('throws not-found for a game that does not exist', async function () {
+        try {
+          await Meteor.callAsync('games.setUiTheme', 'no-such-game-id', 'terminal');
+          assert.fail('expected games.setUiTheme to throw');
+        } catch (error) {
+          assert.equal(error.error, 'not-found');
+        }
+      });
+    });
+
     describe('games.start', function () {
       it('does not start until every configured player slot is filled', async function () {
         const gameId = await Meteor.callAsync('games.create', {
@@ -215,6 +322,74 @@ if (Meteor.isServer) {
         const rounds = await Rounds.find({ gameId }).fetchAsync();
         assert.lengthOf(rounds, 6, '3 rounds x 2 players');
         assert.isTrue(rounds.every((round) => round.status === 'pending'));
+      });
+    });
+
+    describe('round progression', function () {
+      async function startTwoPlayerGame() {
+        const gameId = await Meteor.callAsync('games.create', {
+          groupName: 'Team Rocket',
+          totalRounds: 2,
+          capacity: 2,
+        });
+        const { joinCode } = await Games.findOneAsync(gameId);
+        const ada = await Meteor.callAsync('players.join', joinCode, 'Ada');
+        const grace = await Meteor.callAsync('players.join', joinCode, 'Grace');
+        await Meteor.callAsync('games.start', gameId);
+        return { gameId, adaId: ada.playerId, graceId: grace.playerId };
+      }
+
+      async function skip(gameId, playerId) {
+        const { currentRound } = await Games.findOneAsync(gameId);
+        const round = await Rounds.findOneAsync({
+          playerId,
+          roundNumber: currentRound,
+        });
+        await Meteor.callAsync('rounds.skip', round._id);
+      }
+
+      it('leaves a lobby game on round 1', async function () {
+        const gameId = await Meteor.callAsync('games.create', {
+          groupName: 'Team Rocket',
+        });
+
+        assert.isFalse(await advanceIfRoundSettled(gameId, 1));
+        assert.equal((await Games.findOneAsync(gameId)).currentRound, 1);
+      });
+
+      // A dropped player's riddles move to teammates only once the reconnect
+      // window passes (presence.js); until then the team waits.
+      it('keeps waiting on a disconnected player inside the reconnect window', async function () {
+        const { gameId, adaId, graceId } = await startTwoPlayerGame();
+        await Players.updateAsync(graceId, {
+          $set: { disconnectedAt: new Date(Date.now() - 10 * 1000) },
+        });
+
+        await skip(gameId, adaId);
+
+        const graceRound = await Rounds.findOneAsync({
+          playerId: graceId,
+          roundNumber: 1,
+        });
+        assert.equal((await Games.findOneAsync(gameId)).currentRound, 1);
+        assert.equal(graceRound.status, 'pending');
+      });
+
+      it('games.advanceRound forfeits every pending round, including the last', async function () {
+        const { gameId, adaId, graceId } = await startTwoPlayerGame();
+
+        await Meteor.callAsync('games.advanceRound', gameId);
+        assert.equal((await Games.findOneAsync(gameId)).currentRound, 2);
+
+        await Meteor.callAsync('games.advanceRound', gameId);
+        const rounds = await Rounds.find({ gameId }).fetchAsync();
+        assert.isTrue(rounds.every((round) => round.status === 'wrong'));
+        for (const playerId of [adaId, graceId]) {
+          assert.deepEqual(
+            (await Players.findOneAsync(playerId)).revealedLetters,
+            ['?', '?']
+          );
+        }
       });
     });
 

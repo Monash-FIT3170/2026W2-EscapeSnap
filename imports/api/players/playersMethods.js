@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { Players } from './PlayersCollection';
 import { Games } from '../games/GamesCollection';
+import { logGameEvent } from '../events/gameEventLog';
 import { findOwnedPlayer, newSessionToken, playerLeft } from './presence';
 
 Meteor.methods({
@@ -12,18 +13,23 @@ Meteor.methods({
     if (playerCount >= game.capacity)
       throw new Meteor.Error('full', 'Game is full');
 
-    const sessionToken = newSessionToken();
+    const { token, tokenHash } = newSessionToken();
     const playerId = await Players.insertAsync({
       gameId: game._id,
       name: playerName.trim(),
       joinedAt: new Date(),
       revealedLetters: [],
-      sessionToken,
+      sessionTokenHash: tokenHash,
     });
-    return { playerId, gameId: game._id, sessionToken };
+    await logGameEvent({ gameId: game._id, type: 'playerJoined', playerId });
+    // The token is the player's proof of who they are from here on: rejoin,
+    // player.self and leave all ask for it.
+    return { playerId, gameId: game._id, sessionToken: token };
   },
 
-  // A refreshed or reopened phone picking its game back up.
+  // A refreshed or reopened phone picking its game back up. Mid-game this
+  // works even after the reconnect window: the player reclaims their riddles
+  // from teammates from the next round on (see presence.js).
   async 'players.rejoin'(playerId, sessionToken) {
     const player = await findOwnedPlayer(playerId, sessionToken);
     const game = await Games.findOneAsync({

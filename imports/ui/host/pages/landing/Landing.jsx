@@ -1,64 +1,81 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useT } from '../../../../languages/LanguageProvider';
-import { LanguagePicker } from '../../../../languages/LanguagePicker';
+import React, { useEffect, useRef } from 'react';
+import { Meteor } from 'meteor/meteor';
+import { useNavigate } from 'react-router-dom';
+import LandingNav from '../../components/landing/LandingNav';
+import HeroSection from '../../components/landing/HeroSection';
+import CautionTape from '../../components/landing/CautionTape';
+import EvidenceBoard from '../../components/landing/EvidenceBoard';
+import FinalRiddleDemo from '../../components/landing/FinalRiddleDemo';
+import VitalsSection from '../../components/landing/VitalsSection';
+import SetupRig from '../../components/landing/SetupRig';
+import ExitDoor from '../../components/landing/ExitDoor';
+import LandingFooter from '../../components/landing/LandingFooter';
+import { sound } from '../../components/landing/landingSound';
+import { reducedMotion } from '../../components/landing/motion';
+// Not "landing.css": on macOS's case-insensitive disk, Meteor resolves
+// App.jsx's import of ./landing/Landing to Landing.css first and drops this
+// file from the bundle.
+import './landingPage.css';
 
+// Resolves to { playerId, gameId, sessionToken }, or throws 'not-found' / 'full'.
+const joinGame = (name, code) => Meteor.callAsync('players.join', code, name);
+
+// The landing page is "the room": every control is a prop in it. Each section
+// owns its own motion and cleans it up; this page owns the scroll reveals and
+// the sound's lifetime. Styles live in landingPage.css, scoped under .lp.
 function Landing() {
-  const t = useT();
+  const rootRef = useRef(null);
+  const navigate = useNavigate();
+
+  // Scroll reveals: one observer adds .is-in to each [data-reveal] once.
+  useEffect(() => {
+    const els = rootRef.current.querySelectorAll('[data-reveal]');
+    if (reducedMotion()) {
+      els.forEach((el) => el.classList.add('is-in'));
+      return undefined;
+    }
+    const io = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('is-in');
+          io.unobserve(entry.target);
+        }),
+      { threshold: 0.2, rootMargin: '0px 0px -6% 0px' }
+    );
+    els.forEach((el) => io.observe(el));
+    // Smooth in-page links (#how, #final...) while this page is mounted.
+    const html = document.documentElement;
+    const before = html.style.scrollBehavior;
+    html.style.scrollBehavior = 'smooth';
+    return () => {
+      io.disconnect();
+      html.style.scrollBehavior = before;
+    };
+  }, []);
+
+  useEffect(() => () => sound.dispose(), []);
+
+  // A join made on the keypad goes straight to the lobby; PlayerFlow picks the
+  // session up from router state.
+  const onJoined = (session) =>
+    navigate('/player', { state: { joined: session } });
 
   return (
-    <div className="min-h-screen text-gray-100 flex flex-col" style={{ background: '#0e0e0e' }}>
-      <header className="px-8 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #1c1b1b' }}>
-        <span className="font-bold text-xl tracking-widest uppercase" style={{ color: '#e5e2e1' }}>
-          ESCAPESNAP
-        </span>
-        <LanguagePicker />
-      </header>
-
-      <main className="flex-1 flex items-center justify-center px-8 py-12">
-        <div className="w-full max-w-2xl text-center">
-          <p className="text-xs tracking-widest mb-3" style={{ color: '#8b0000' }}>
-            {t('landing.initiateProtocol')}
-          </p>
-          <h1 className="text-6xl font-bold tracking-widest uppercase mb-6" style={{ color: '#e5e2e1' }}>
-            ESCAPESNAP
-          </h1>
-          <p className="text-sm tracking-wide mb-12 max-w-md mx-auto leading-relaxed" style={{ color: '#aa8984' }}>
-            {t('landing.tagline')}
-          </p>
-
-          <div className="flex flex-col gap-4 w-full max-w-xs mx-auto">
-            <Link
-              to="/player"
-              className="block w-full py-4 text-center text-sm tracking-widest uppercase transition-colors cursor-pointer"
-              style={{ border: '1px solid #1c1b1b', color: '#e5e2e1', background: 'transparent' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = '#8b0000'}
-              onMouseLeave={e => e.currentTarget.style.borderColor = '#1c1b1b'}
-            >
-              {t('landing.joinAsPlayer')}
-            </Link>
-            <Link
-              to="/host"
-              className="block w-full py-4 text-center text-sm tracking-widest uppercase transition-colors cursor-pointer"
-              style={{ background: '#8b0000', color: '#e5e2e1' }}
-              onMouseEnter={e => e.currentTarget.style.background = '#a50000'}
-              onMouseLeave={e => e.currentTarget.style.background = '#8b0000'}
-            >
-              {t('landing.hostAGame')}
-            </Link>
-          </div>
-
-          <p className="text-xs tracking-widest mt-8" style={{ color: '#444' }}>
-            {t('landing.footerTag')}
-          </p>
-        </div>
+    <div className="lp" ref={rootRef}>
+      <div className="lp-grain" aria-hidden="true" />
+      <div className="lp-flashbang" id="lp-flashbang" aria-hidden="true" />
+      <LandingNav />
+      <main>
+        <HeroSection join={joinGame} onJoined={onJoined} />
+        <CautionTape />
+        <EvidenceBoard />
+        <FinalRiddleDemo />
+        <VitalsSection />
+        <SetupRig />
+        <ExitDoor />
       </main>
-
-      <footer className="px-8 py-4 text-center" style={{ borderTop: '1px solid #1c1b1b' }}>
-        <p className="text-xs tracking-widest" style={{ color: '#444' }}>
-          ESCAPESNAP
-        </p>
-      </footer>
+      <LandingFooter />
     </div>
   );
 }

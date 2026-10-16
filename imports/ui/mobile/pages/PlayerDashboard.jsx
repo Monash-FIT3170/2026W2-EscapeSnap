@@ -1,5 +1,5 @@
 // Meteor's JSX transform still requires React in module scope.
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Rounds } from '/imports/api/rounds/RoundsCollection';
@@ -10,6 +10,7 @@ import MobileDrawingPage from './gameplay/MobileDrawingPage';
 import { normalizeAnswerMode } from '/imports/lib/answerModes';
 import { MobileBottomNav } from '../components/navigation/MobileBottomNav';
 import { RoundTimer } from '../components/gameplay/RoundTimer';
+import { ThemePicker } from '../../shared/components/theme/ThemePicker';
 import { PlayerWinScreen } from './result/PlayerWinScreen';
 import { PlayerLoseScreen } from './result/PlayerLoseScreen';
 import { buildEndgameShareSnapshot } from '../components/result/shareSnapshot';
@@ -38,12 +39,12 @@ function LettersScreen({ revealedLetters, totalRounds }) {
     <section className="flex flex-col gap-5 pt-5">
       <div>
         <div className="flex items-center gap-3">
-          <span className="h-4 w-1 bg-[#8b0000]" />
-          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#aa8984]">
+          <span className="h-4 w-1 bg-brand" />
+          <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">
             {t('mobile.dashboard.lettersCollected')}
           </p>
         </div>
-        <h2 className="mt-2 font-mono text-lg font-bold tracking-[0.1em] text-[#e5e2e1]">
+        <h2 className="mt-2 font-mono text-lg font-bold tracking-[0.1em] text-ink">
           {t('mobile.dashboard.roundsComplete', {
             n: revealedLetters.filter((l) => l && l !== '?').length,
             total: totalRounds,
@@ -64,14 +65,14 @@ function LettersScreen({ revealedLetters, totalRounds }) {
               key={i}
               className={`min-w-0 border py-5 text-center ${
                 hasLetter
-                  ? 'border-[#8b0000] bg-[#1c1b1b]'
-                  : 'border-[#353534] bg-[#1c1b1b]'
+                  ? 'border-brand bg-panel'
+                  : 'border-line bg-panel'
               }`}
             >
-              <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.15em] text-[#aa8984]">
+              <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.15em] text-muted">
                 {t('mobile.dashboard.roundLabel', { n: i + 1 })}
               </p>
-              <p className={`font-display text-4xl font-black ${hasLetter ? 'text-[#e5e2e1]' : 'text-[#555]'}`}>
+              <p className={`font-display text-4xl font-black ${hasLetter ? 'text-ink' : 'text-dim'}`}>
                 {letter ?? '?'}
               </p>
             </div>
@@ -93,8 +94,8 @@ function SkipRoundButton({ armed, pending, onArm, onConfirm }) {
       onClick={armed ? onConfirm : onArm}
       className={`min-h-[52px] w-full border px-5 font-mono text-xs font-semibold uppercase tracking-[0.25em] transition disabled:cursor-not-allowed disabled:opacity-40 ${
         armed
-          ? 'border-[#ef4444] bg-[#1c1b1b] text-[#ef4444]'
-          : 'border-[#353534] bg-transparent text-[#aa8984] active:border-[#aa8984]'
+          ? 'border-incorrect bg-panel text-incorrect'
+          : 'border-line bg-transparent text-muted active:border-muted'
       }`}
     >
       {pending
@@ -118,8 +119,8 @@ function TeamWaitScreen({ ready, total, isFinalRound, holding }) {
   // so it would read 0 / N and look like a regression.
   if (holding) {
     return (
-      <div className="border border-[#353534] bg-[#1c1b1b] px-5 py-6 text-center">
-        <p className="pulse-text font-mono text-xs uppercase tracking-[0.25em] text-[#aa8984]">
+      <div className="border border-line bg-panel px-5 py-6 text-center">
+        <p className="pulse-text font-mono text-xs uppercase tracking-[0.25em] text-muted">
           {t('mobile.dashboard.nextRoundStarting')}
         </p>
       </div>
@@ -127,18 +128,18 @@ function TeamWaitScreen({ ready, total, isFinalRound, holding }) {
   }
 
   return (
-    <div className="border border-[#353534] bg-[#1c1b1b] px-5 py-6 text-center">
-      <p className="font-mono text-xs uppercase tracking-[0.25em] text-[#aa8984]">
+    <div className="border border-line bg-panel px-5 py-6 text-center">
+      <p className="font-mono text-xs uppercase tracking-[0.25em] text-muted">
         {finished
           ? t('mobile.dashboard.allRoundsCompleted')
           : t('mobile.dashboard.awaitingTeam')}
       </p>
       {!finished && total > 0 && (
-        <p className="mt-3 font-display text-3xl font-black text-[#e5e2e1]">
+        <p className="mt-3 font-display text-3xl font-black text-ink">
           {t('mobile.dashboard.operativesReady', { ready, total })}
         </p>
       )}
-      <p className="mt-3 font-mono text-xs leading-5 text-[#aa8984]">
+      <p className="mt-3 font-mono text-xs leading-5 text-muted">
         {finished
           ? t('mobile.dashboard.reportToTerminal')
           : t('mobile.dashboard.waitingBody')}
@@ -163,16 +164,16 @@ function RivalStrip({ rival, phase }) {
               total: rival.totalRounds,
             });
   return (
-    <div className="flex flex-shrink-0 items-center gap-3 border-b border-[#353534] bg-[#131313] px-4 py-2">
-      <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-[#8b0000]">
+    <div className="flex flex-shrink-0 items-center gap-3 border-b border-line bg-panel px-4 py-2">
+      <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-brand">
         {t('mobile.versus.vs')}
       </span>
-      <span className="min-w-0 flex-1 truncate font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-[#e5e2e1]">
+      <span className="min-w-0 flex-1 truncate font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-ink">
         {rival.groupName}
       </span>
       <span
         className={`font-mono text-[10px] uppercase tracking-[0.15em] ${
-          phase === 'final' || phase === 'escaped' ? 'text-[#fcd34d]' : 'text-[#aa8984]'
+          phase === 'final' || phase === 'escaped' ? 'text-brand' : 'text-muted'
         }`}
       >
         {label}
@@ -204,7 +205,7 @@ function ResultScreen({
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-6">
       <section className="flex flex-col gap-5 pt-5">
-        <h1 className="font-display text-5xl font-black leading-none text-[#8b0000]">
+        <h1 className="font-display text-5xl font-black leading-none text-brand">
           {answerCorrect
             ? t('mobile.dashboard.correctBang')
             : settled
@@ -215,28 +216,28 @@ function ResultScreen({
         {/* Only a settled round has actually banked (or forfeited) a letter —
             a failed scan can still be retried, so nothing is revealed yet. */}
         {banked && (
-          <div className="border border-[#353534] bg-[#1c1b1b] px-6 py-8 text-center">
-            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#aa8984]">
+          <div className="border border-line bg-panel px-6 py-8 text-center">
+            <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted">
               {t('mobile.dashboard.dataRecoveryActive')}
             </p>
-            <p className="mt-6 font-display text-7xl font-black leading-none text-[#e5e2e1]">
+            <p className="mt-6 font-display text-7xl font-black leading-none text-ink">
               {revealedLetter ?? '?'}
             </p>
-            <p className="mt-5 font-mono text-[11px] uppercase tracking-[0.3em] text-[#aa8984]">
+            <p className="mt-5 font-mono text-[11px] uppercase tracking-[0.3em] text-muted">
               {t('mobile.dashboard.letterRevealed')}
             </p>
           </div>
         )}
 
-        <div className="border-l-4 border-[#8b0000] bg-[#1c1b1b] px-5 py-5">
-          <h2 className="font-display text-lg font-bold tracking-[0.15em] text-[#e5e2e1]">
+        <div className="border-l-4 border-brand bg-panel px-5 py-5">
+          <h2 className="font-display text-lg font-bold tracking-[0.15em] text-ink">
             {answerCorrect
               ? t('mobile.dashboard.puzzleSolved')
               : settled
                 ? t('mobile.dashboard.letterForfeited')
                 : t('mobile.dashboard.wrongObjectDetected')}
           </h2>
-          <p className="mt-3 font-mono text-xs leading-5 text-[#aa8984]">
+          <p className="mt-3 font-mono text-xs leading-5 text-muted">
             {answerCorrect
               ? t('mobile.dashboard.correctBody')
               : settled
@@ -249,7 +250,7 @@ function ResultScreen({
           <button
             type="button"
             onClick={onNext}
-            className="min-h-[52px] w-full border border-[#8b0000] bg-[#8b0000] px-5 font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#e5e2e1] transition active:bg-[#a50000]"
+            className="min-h-[52px] w-full border border-brand bg-brand px-5 font-mono text-xs font-semibold uppercase tracking-[0.25em] text-on-brand transition active:bg-brand-bright"
           >
             {t('mobile.dashboard.nextRiddle')}
           </button>
@@ -267,7 +268,7 @@ function ResultScreen({
             <button
               type="button"
               onClick={onRetry}
-              className="min-h-[52px] w-full border border-[#8b0000] bg-[#8b0000] px-5 font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#e5e2e1] transition active:bg-[#a50000]"
+              className="min-h-[52px] w-full border border-brand bg-brand px-5 font-mono text-xs font-semibold uppercase tracking-[0.25em] text-on-brand transition active:bg-brand-bright"
             >
               {t('mobile.dashboard.retry')}
             </button>
@@ -601,11 +602,11 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   }
 
   return (
-    <div className="flex h-[100dvh] flex-col overflow-hidden bg-[#0e0e0e] text-[#e5e2e1]">
-      <header className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-[#353534] px-4 pt-[calc(0.5rem+env(safe-area-inset-top))] pb-2">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-ground text-ink">
+      <header className="flex flex-shrink-0 items-center justify-between gap-3 border-b border-line px-4 pt-[calc(0.5rem+env(safe-area-inset-top))] pb-2">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="h-4 w-1 flex-shrink-0 bg-[#8b0000]" />
-          <span className="truncate font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#e5e2e1]">
+          <span className="h-4 w-1 flex-shrink-0 bg-brand" />
+          <span className="truncate font-mono text-xs font-bold uppercase tracking-[0.2em] text-ink">
             {t('mobile.dashboard.roundHeader', { n: shownRound })}
           </span>
         </div>
@@ -614,10 +615,11 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
             timeLeft={timeLeft ?? totalGameSeconds}
             totalTime={totalGameSeconds}
           />
+          <ThemePicker compact />
           <button
             type="button"
             onClick={onExit}
-            className="min-h-[44px] border border-[#353534] px-3 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[#aa8984] transition active:border-[#aa8984]"
+            className="min-h-[44px] border border-line px-3 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-muted transition active:border-muted"
           >
             {t('mobile.dashboard.lobbyButton')}
           </button>
@@ -627,17 +629,17 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
       {rival && <RivalStrip rival={rival} phase={rivalPhase} />}
 
       {!showResult && activeTab === 'scanner' && (
-        <div className="flex flex-shrink-0 items-start gap-3 border-b border-[#353534] bg-[#1c1b1b] px-4 py-3">
-          <span className="flex-shrink-0 bg-[#8b0000] px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-[#e5e2e1]">
+        <div className="flex flex-shrink-0 items-start gap-3 border-b border-line bg-panel px-4 py-3">
+          <span className="flex-shrink-0 bg-brand px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-on-brand">
             {t('mobile.dashboard.roundBadge', { n: currentRound })}
           </span>
           <div className="min-w-0">
             {coveringFor && (
-              <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.2em] text-[#fcd34d]">
+              <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.2em] text-brand">
                 {t('mobile.dashboard.coveringFor', { name: coveringFor })}
               </p>
             )}
-            <p className="font-mono text-xs leading-5 text-[#e5e2e1]">
+            <p className="font-mono text-xs leading-5 text-ink">
               {round?.riddleText ?? t('mobile.dashboard.loadingRiddle')}
             </p>
           </div>
@@ -645,16 +647,16 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
       )}
 
       {!showResult && activeTab === 'scanner' && round?._id && (
-        <div className="flex-shrink-0 border-b border-[#353534] px-4 py-2">
+        <div className="flex-shrink-0 border-b border-line px-4 py-2">
           {hint ? (
-            <p className="font-mono text-xs leading-5 text-[#aa8984]">💡 {hint}</p>
+            <p className="font-mono text-xs leading-5 text-muted">💡 {hint}</p>
           ) : (
             <button
               type="button"
               disabled={hintLoading}
               onClick={hintArmed ? handleRevealHint : () => setHintArmed(true)}
               className={`min-h-[44px] font-mono text-[10px] uppercase tracking-[0.2em] transition disabled:opacity-40 ${
-                hintArmed ? 'text-[#ef4444]' : 'text-[#aa8984]'
+                hintArmed ? 'text-incorrect' : 'text-muted'
               }`}
             >
               💡{' '}
@@ -673,16 +675,16 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
       )}
 
       {!showResult && activeTab === 'scanner' && isExpired && (
-        <div className="flex-shrink-0 border-b border-[#353534] bg-[#1c1b1b] px-4 py-2 text-center">
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#ef4444]">
+        <div className="flex-shrink-0 border-b border-line bg-panel px-4 py-2 text-center">
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-incorrect">
             {t('mobile.dashboard.timeExpired')}
           </p>
         </div>
       )}
 
       {skipError && (
-        <div className="flex-shrink-0 border-b border-[#353534] bg-[#1c1b1b] px-4 py-2 text-center">
-          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#ef4444]">
+        <div className="flex-shrink-0 border-b border-line bg-panel px-4 py-2 text-center">
+          <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-incorrect">
             {t('mobile.dashboard.skipFailed')}
           </p>
         </div>
@@ -752,7 +754,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
                   />
                 )}
                 {round?._id && (
-                  <div className="flex-shrink-0 border-t border-[#353534] bg-[#0e0e0e] px-5 pb-4 pt-3">
+                  <div className="flex-shrink-0 border-t border-line bg-ground px-5 pb-4 pt-3">
                     <SkipRoundButton
                       armed={skipArmed}
                       pending={skipping}

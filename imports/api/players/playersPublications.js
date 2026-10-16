@@ -2,8 +2,9 @@ import { Meteor } from 'meteor/meteor';
 import { Players } from './PlayersCollection';
 import { attachPlayer, detachPlayer, findOwnedPlayer } from './presence';
 
-// The token is the only thing that proves who a phone is playing as.
-const HIDDEN_FIELDS = { sessionToken: 0, connectionId: 0 };
+// The session token's hash and the player's connection are the server's
+// business only.
+const HIDDEN_FIELDS = { sessionTokenHash: 0, connectionId: 0 };
 
 // Host uses this to see all players in the lobby and progress screen
 Meteor.publish('players.inGame', function (gameId) {
