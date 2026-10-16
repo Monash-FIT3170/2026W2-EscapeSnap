@@ -12,6 +12,7 @@ import '/imports/api/rounds/RoundSessions';
 import '../imports/api/submissions/submissionsPublications';
 import '../imports/api/admin/adminPublications';
 import '../imports/api/admin/adminMethods';
+import '../imports/api/admin/adminRateLimit';
 import '../imports/api/events/gameEventsPublications';
 import { Games } from '../imports/api/games/GamesCollection';
 import { Rounds } from '../imports/api/rounds/RoundsCollection';
