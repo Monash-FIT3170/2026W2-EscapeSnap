@@ -225,6 +225,23 @@ if (Meteor.isServer) {
         }
       });
 
+      it('refuses a game id that is not a string', async function () {
+        const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
+
+        try {
+          // A selector instead of an id would otherwise match this game.
+          await Meteor.callAsync(
+            'games.setUiTheme',
+            { status: 'lobby' },
+            'terminal'
+          );
+          assert.fail('expected games.setUiTheme to throw');
+        } catch (error) {
+          assert.equal(error.error, 'not-found');
+        }
+        assert.equal((await Games.findOneAsync(gameId)).uiTheme, 'dossier');
+      });
+
       it('throws not-found for a game that does not exist', async function () {
         try {
           await Meteor.callAsync('games.setUiTheme', 'no-such-game-id', 'terminal');

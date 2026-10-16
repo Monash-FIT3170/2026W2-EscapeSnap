@@ -264,6 +264,11 @@ Meteor.methods({
   // Callable by the host and by any player: the skin is shared by the whole
   // game, so whoever changes it changes it for everyone.
   async 'games.setUiTheme'(gameId, uiTheme) {
+    // A non-string id would be read as a Mongo selector and could match
+    // some other game.
+    if (typeof gameId !== 'string') {
+      throw new Meteor.Error('not-found', 'Game not found');
+    }
     if (!UI_THEMES.includes(uiTheme)) {
       throw new Meteor.Error('invalid-ui-theme', 'Unknown UI theme');
     }
