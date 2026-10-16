@@ -304,6 +304,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
 
   const {
     round,
+    taskIds,
     roundSettled,
     coveringFor,
     revealedLetters,
@@ -355,6 +356,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
         : null;
     return {
       round: shownTask,
+      taskIds: tasks.map((r) => r._id),
       roundSettled: !!shownTask && !nextTask,
       coveringFor: coveredPlayer?.name ?? null,
       revealedLetters: Players.findOne(playerId)?.revealedLetters ?? [],
@@ -393,9 +395,16 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   const revealedLetter = answered?.letter ?? null;
   const answerCorrect = answered?.correct ?? null;
   // The riddle just solved was settled and the next covered riddle took its
-  // place — the result stays up until the player moves on to it.
+  // place — the result stays up until the player moves on to it. Only a riddle
+  // from this round counts: the last player's submit can advance the round
+  // before its own result arrives, and that late result must not paint
+  // CORRECT! (with NEXT RIDDLE) over the next round's riddle.
   const handedOn =
-    !!answered?.correct && !!round && answered.roundId !== round._id && !roundSettled;
+    !!answered?.correct &&
+    !!round &&
+    answered.roundId !== round._id &&
+    taskIds.includes(answered.roundId) &&
+    !roundSettled;
 
   const totalRounds = game?.totalRounds ?? 1;
   // Old games have no `mode`; normalizeAnswerMode treats that as camera.
