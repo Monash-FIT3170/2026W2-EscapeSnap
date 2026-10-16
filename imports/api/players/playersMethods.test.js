@@ -241,6 +241,22 @@ if (Meteor.isServer) {
     let ada;
     let grace;
 
+    // Calls the method as a client on the given connection would.
+    const leaveAs = (playerId, connectionId) =>
+      Meteor.server.method_handlers['players.leave'].call(
+        { connection: connectionId ? { id: connectionId } : null },
+        playerId
+      );
+
+    async function expectRefused(playerId, connectionId) {
+      try {
+        await leaveAs(playerId, connectionId);
+        assert.fail('expected players.leave to throw');
+      } catch (error) {
+        assert.equal(error.error, 'not-authorized');
+      }
+    }
+
     beforeEach(async function () {
       await Games.removeAsync({});
       await Players.removeAsync({});
@@ -254,10 +270,15 @@ if (Meteor.isServer) {
       ada = (await Meteor.callAsync('players.join', joinCode, 'Ada')).playerId;
       grace = (await Meteor.callAsync('players.join', joinCode, 'Grace'))
         .playerId;
+      // What subscribing to player.self does for each of them.
+      await Players.updateAsync(ada, { $set: { connectionId: 'ada-conn' } });
+      await Players.updateAsync(grace, {
+        $set: { connectionId: 'grace-conn' },
+      });
     });
 
     it('frees the lobby slot straight away', async function () {
-      await Meteor.callAsync('players.leave', ada);
+      await leaveAs(ada, 'ada-conn');
 
       assert.isUndefined(await Players.findOneAsync(ada));
       // The lobby was full; someone else can now take the slot.
@@ -269,18 +290,10 @@ if (Meteor.isServer) {
       assert.isString(playerId);
     });
 
-    it('frees the slot of a player still bound to a connection', async function () {
-      await Players.updateAsync(ada, { $set: { connectionId: 'live' } });
-
-      await Meteor.callAsync('players.leave', ada);
-
-      assert.isUndefined(await Players.findOneAsync(ada));
-    });
-
     it('forfeits a player who leaves as the game starts', async function () {
       await Meteor.callAsync('games.start', gameId);
 
-      await Meteor.callAsync('players.leave', ada);
+      await leaveAs(ada, 'ada-conn');
 
       const adaRounds = await Rounds.find({ playerId: ada }).fetchAsync();
       assert.isTrue(adaRounds.every((r) => r.status === 'wrong'));
@@ -292,9 +305,17 @@ if (Meteor.isServer) {
       assert.equal((await Games.findOneAsync(gameId)).currentRound, 2);
     });
 
-    it('ignores ids that are not a player', async function () {
-      await Meteor.callAsync('players.leave', 'nope');
-      await Meteor.callAsync('players.leave', { $ne: null });
+    it('refuses to remove a player from another connection', async function () {
+      // Grace can see Ada's id in the lobby, but can't make her leave.
+      await expectRefused(ada, 'grace-conn');
+      await expectRefused(ada, null);
+
+      assert.exists(await Players.findOneAsync(ada));
+    });
+
+    it('refuses ids that are not a player', async function () {
+      await expectRefused('nope', 'ada-conn');
+      await expectRefused({ $ne: null }, 'ada-conn');
 
       assert.equal(await Players.find({ gameId }).countAsync(), 2);
     });
