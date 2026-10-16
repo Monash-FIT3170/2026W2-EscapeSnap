@@ -30,6 +30,8 @@ jobs:
        github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    outputs:
+      configured: ${{ steps.config.outputs.configured }}
     environment:
       name: staging
       url: https://${{ vars.GALAXY_APP_URL }}
@@ -48,9 +50,19 @@ jobs:
         with:
           ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
+      # Staging needs its own Galaxy app. Until one is set up (none of its
+      # settings exist), skip it so production still deploys; a half-done
+      # setup still fails below, so it can't be skipped by mistake.
       - name: Validate staging configuration
+        id: config
         shell: bash
         run: |
+          if [ -z "$GALAXY_APP_URL$GALAXY_SESSION$GEMINI_API_KEY$MONGO_URL" ]; then
+            echo "::notice::Staging is not set up, so it was skipped. Add its settings to the staging environment to turn it on (see README)."
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           if [ -z "$GALAXY_APP_URL" ]; then
             echo "::error::Set the GALAXY_APP_URL variable in the staging environment."
             exit 1
@@ -72,11 +84,14 @@ jobs:
           fi
 
           echo "Deploy target: $GALAXY_APP_URL"
+          echo "configured=true" >> "$GITHUB_OUTPUT"
 
       - name: Set up Meteor
+        if: steps.config.outputs.configured == 'true'
         uses: ./.github/actions/setup-meteor
 
       - name: Write staging credentials
+        if: steps.config.outputs.configured == 'true'
         shell: bash
         run: |
           umask 077
@@ -88,6 +103,7 @@ jobs:
             > "$RUNNER_TEMP/settings.json"
 
       - name: Deploy to staging
+        if: steps.config.outputs.configured == 'true'
         shell: bash
         env:
           METEOR_SESSION_FILE: ${{ runner.temp }}/meteor-session.json
@@ -96,11 +112,12 @@ jobs:
           meteor deploy "$GALAXY_APP_URL" --settings "$RUNNER_TEMP/settings.json" --deploy-polling-timeout 600000
 
       - name: Remove staging credentials
-        if: always()
+        if: always() && steps.config.outputs.configured == 'true'
         shell: bash
         run: rm -f "$RUNNER_TEMP/meteor-session.json" "$RUNNER_TEMP/settings.json"
 
       - name: Run staging smoke test
+        if: steps.config.outputs.configured == 'true'
         shell: bash
         run: |
           curl --fail --silent --show-error --location \
@@ -208,7 +225,7 @@ jobs:
     steps:
       - name: Summarize deployment results
         env:
-          STAGING_RESULT: ${{ needs.staging.result }}
+          STAGING_RESULT: ${{ needs.staging.outputs.configured == 'false' && 'skipped (not configured)' || needs.staging.result }}
           PRODUCTION_RESULT: ${{ needs.production.result }}
         run: |
           {
