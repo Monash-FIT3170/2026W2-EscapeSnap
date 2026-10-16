@@ -2,17 +2,19 @@
    opacity modifiers (bg-ground/95). Exposed as colour utilities in main.html. */
 :root,
 [data-ui-theme='dossier'] {
-  --es-ground: 14 14 14;
-  --es-panel: 28 27 27;
-  --es-line: 53 53 52;
-  --es-ink: 229 226 225;
-  --es-muted: 170 137 132;
-  --es-dim: 85 85 85;
-  --es-brand: 139 0 0;
-  --es-brand-bright: 165 0 0;
-  --es-on-brand: 229 226 225;
-  --es-correct: 74 222 128;
-  --es-incorrect: 239 68 68;
+  /* The landing page's dark room (landingPage.css): pitch, concrete,
+     the wall's surface, bone text and the alarm red. */
+  --es-ground: 0 0 0;
+  --es-panel: 22 18 15;
+  --es-line: 59 52 46;
+  --es-ink: 232 223 207;
+  --es-muted: 188 177 162;
+  --es-dim: 153 142 130;
+  --es-brand: 211 42 29;
+  --es-brand-bright: 255 74 50;
+  --es-on-brand: 255 247 238;
+  --es-correct: 91 227 138;
+  --es-incorrect: 255 90 70;
   /* Waiting or at risk: riddles still loading, a team on its final riddle. */
   --es-warn: 252 211 77;
 }

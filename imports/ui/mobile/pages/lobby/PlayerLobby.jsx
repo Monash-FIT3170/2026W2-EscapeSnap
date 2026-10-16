@@ -42,7 +42,7 @@ export function PlayerLobby({
   const isExpired = timeLeft <= 0;
 
   return (
-    <div className="flex h-[100dvh] flex-col overflow-hidden bg-ground text-ink">
+    <div className="es-room flex h-[100dvh] flex-col overflow-hidden">
       <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col px-5 pt-[calc(0.75rem+env(safe-area-inset-top))] pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
 
         <div className="flex-shrink-0">
@@ -60,28 +60,23 @@ export function PlayerLobby({
           />
         </div>
 
-        <div className="flex flex-shrink-0 flex-col gap-2">
-          <div className="flex items-center gap-3 border border-line bg-panel px-4 py-3">
-            <span className="h-2 w-2 flex-shrink-0 rounded-full bg-brand animate-pulse" />
-            <span className="flex-1 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
-              {t('mobile.lobby.playersInLobby')}
-            </span>
-            <span className="font-mono text-lg font-bold tabular-nums text-ink">{playerCount}</span>
-          </div>
-
-          {inSession && (
-            <div className="flex items-center gap-3 border border-line bg-panel px-4 py-3">
-              <span className={`h-2 w-2 flex-shrink-0 ${isExpired ? 'bg-dim' : 'bg-brand'}`} />
-              <span className="flex-1 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
-                {t('mobile.lobby.roundTimer')}
-              </span>
-              <span className={`font-mono text-lg font-bold tabular-nums ${
-                isExpired ? 'text-dim' : timeLeft <= 30 ? 'text-incorrect' : 'text-ink'
-              }`}>
-                {isExpired ? t('mobile.lobby.expired') : formatTime(timeLeft)}
-              </span>
+        <div className="flex flex-shrink-0 flex-col gap-3">
+          <div className="es-plate grid grid-cols-2 gap-px overflow-hidden p-0">
+            <div className={`flex flex-col gap-1 px-4 py-3 ${inSession ? '' : 'col-span-2'}`}>
+              <span className="es-label">{t('mobile.lobby.playersInLobby')}</span>
+              <span className="es-lcd-text text-3xl tabular-nums">{playerCount}</span>
             </div>
-          )}
+            {inSession && (
+              <div className="flex flex-col gap-1 border-l border-line px-4 py-3">
+                <span className="es-label">{t('mobile.lobby.roundTimer')}</span>
+                <span className={`text-3xl tabular-nums ${
+                  isExpired ? 'font-display font-semibold text-dim' : timeLeft <= 30 ? 'es-lcd-text animate-pulse' : 'es-lcd-text'
+                }`}>
+                  {isExpired ? t('mobile.lobby.expired') : formatTime(timeLeft)}
+                </span>
+              </div>
+            )}
+          </div>
 
           <AwaitingGameCard inSession={inSession} />
         </div>

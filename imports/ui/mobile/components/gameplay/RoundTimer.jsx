@@ -47,7 +47,7 @@ export function RoundTimer({ timeLeft, totalTime }) {
           strokeDashoffset={CIRCUMFERENCE * (1 - fraction)}
           strokeLinecap="round"
           style={{
-            stroke: isExpired ? COLORS.dim : COLORS.brand,
+            stroke: isExpired ? COLORS.dim : COLORS.brandBright,
             transition: 'stroke-dashoffset 0.9s linear, stroke 0.3s',
           }}
         />
@@ -55,13 +55,13 @@ export function RoundTimer({ timeLeft, totalTime }) {
 
       <span className="absolute select-none text-center leading-none" aria-hidden="true">
         {isExpired ? (
-          <span className="font-mono text-[7px] font-bold uppercase tracking-widest" style={{ color: COLORS.incorrect }}>
+          <span className="font-display text-[11px] font-bold uppercase tracking-[0.06em]" style={{ color: COLORS.incorrect }}>
             {t('mobile.roundTimer.timesUpLine1')}
             <br />
             {t('mobile.roundTimer.timesUpLine2')}
           </span>
         ) : (
-          <span className="font-mono text-[11px] font-bold tabular-nums" style={{ color }}>
+          <span className="font-display text-xs font-semibold tabular-nums" style={{ color }}>
             {mm}:{ss}
           </span>
         )}

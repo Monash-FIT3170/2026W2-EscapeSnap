@@ -1,0 +1,589 @@
+/* ==========================================================
+   The room: the landing page's look (landingPage.css), shared with every
+   other screen. Colours come from the --es-* tokens in main.css, so each UI
+   theme recolours these the way it recolours the landing page.
+
+   Classes are prefixed es-. The landing page keeps its own lp- styles; these
+   are the same props, built for screens that are mostly Tailwind.
+   ========================================================== */
+
+:root {
+  --es-f-ui: 'Oswald', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  --es-f-type: 'Special Elite', 'Courier New', Courier, monospace;
+  --es-f-hand: 'Rock Salt', 'Segoe Print', 'Bradley Hand', cursive;
+  /* Near-black red behind LCD screens, and the metal of the plates. */
+  --es-ember: color-mix(in srgb, rgb(var(--es-brand)) 16%, black);
+  --es-metal: rgb(var(--es-line));
+  --es-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.3 -.25'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --es-noise-worn: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 3.2 -.55'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Daylight's plates stay dark, like the landing page's devices. */
+[data-ui-theme='daylight'] {
+  --es-ember: #2e0c08;
+  --es-metal: #4a4139;
+}
+[data-ui-theme='contrast'] {
+  --es-ember: #1a1a1a;
+  --es-metal: #4d4d4d;
+}
+
+body {
+  font-family: var(--es-f-type);
+  color: rgb(var(--es-ink));
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Headings are Oswald everywhere, as on the landing page. */
+h1,
+h2,
+h3 {
+  font-family: var(--es-f-ui);
+  letter-spacing: -0.005em;
+}
+
+:focus-visible {
+  outline: 2px solid rgb(var(--es-ink));
+  outline-offset: 3px;
+}
+
+/* Film grain over every screen but the landing page, which runs its own. */
+body:not(:has(.lp))::after {
+  content: '';
+  position: fixed;
+  inset: -50%;
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: var(--es-noise);
+  background-size: 200px;
+  animation: es-grain 1s steps(6) infinite;
+}
+[data-ui-theme='daylight'] body:not(:has(.lp))::after {
+  opacity: 0.1;
+  filter: invert(1);
+}
+[data-ui-theme='contrast'] body:not(:has(.lp))::after {
+  display: none;
+}
+@keyframes es-grain {
+  0% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-4%, 3%);
+  }
+  40% {
+    transform: translate(3%, -5%);
+  }
+  60% {
+    transform: translate(-6%, -2%);
+  }
+  80% {
+    transform: translate(5%, 4%);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+/* A screen's backdrop: the dark room with a little light from above. */
+.es-room {
+  min-height: 100dvh;
+  color: rgb(var(--es-ink));
+  background:
+    radial-gradient(
+      70% 45% at 50% 0%,
+      color-mix(in srgb, rgb(var(--es-ink)) 6%, transparent),
+      transparent 70%
+    ),
+    rgb(var(--es-ground));
+}
+
+/* ---------- type ---------- */
+.es-title {
+  font-family: var(--es-f-ui);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+}
+/* A small label above a value or field: Oswald, sentence case. */
+.es-label {
+  font-family: var(--es-f-ui);
+  font-weight: 500;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  color: rgb(var(--es-muted));
+}
+.es-hand {
+  font-family: var(--es-f-hand);
+}
+
+/* ---------- brand mark ---------- */
+.es-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  font-family: var(--es-f-ui);
+  font-weight: 700;
+  font-size: 1.5rem;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  color: rgb(var(--es-ink));
+}
+.es-brand-snap {
+  color: rgb(var(--es-brand-bright));
+}
+.es-rec-dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgb(var(--es-brand-bright));
+  box-shadow: 0 0 10px rgb(var(--es-brand-bright));
+  animation: es-blink 1.6s steps(1) infinite;
+}
+@keyframes es-blink {
+  50% {
+    opacity: 0.15;
+  }
+}
+
+/* ---------- top bar ---------- */
+.es-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 64px;
+  padding: 0 clamp(16px, 4vw, 40px);
+  border-bottom: 1px solid color-mix(in srgb, var(--es-metal) 56%, black);
+  background: color-mix(in srgb, rgb(var(--es-ground)) 88%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+[data-ui-theme='daylight'] .es-bar {
+  border-bottom-color: rgb(var(--es-line));
+}
+
+/* ---------- buttons ---------- */
+.es-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 8px 30px;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  font-family: var(--es-f-ui);
+  font-weight: 600;
+  font-size: 1.2rem;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.08s;
+}
+.es-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.es-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.es-btn-sm {
+  min-height: 44px;
+  padding: 6px 18px;
+  font-size: 1.05rem;
+}
+.es-btn-primary {
+  background: rgb(var(--es-brand));
+  color: rgb(var(--es-on-brand));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 14px 32px -14px rgb(var(--es-brand) / 0.85);
+}
+.es-btn-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, rgb(var(--es-brand-bright)) 88%, black);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 16px 40px -10px rgb(var(--es-brand-bright) / 0.9);
+}
+.es-btn-ghost {
+  background: rgb(var(--es-ground) / 0.45);
+  color: rgb(var(--es-ink));
+  border-color: rgb(var(--es-ink) / 0.42);
+}
+.es-btn-ghost:hover:not(:disabled) {
+  border-color: rgb(var(--es-ink));
+  background: rgb(var(--es-ink) / 0.08);
+}
+.es-link {
+  font-family: var(--es-f-ui);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-decoration: underline;
+  text-decoration-color: rgb(var(--es-ink) / 0.35);
+  text-underline-offset: 6px;
+  transition: text-decoration-color 0.2s;
+  cursor: pointer;
+}
+.es-link:hover {
+  text-decoration-color: rgb(var(--es-ink));
+}
+
+/* A pill, like the landing page's top-bar controls. */
+.es-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--es-metal);
+  border-radius: 999px;
+  background: rgb(var(--es-ground) / 0.45);
+  font-family: var(--es-f-ui);
+  font-weight: 500;
+  font-size: 1rem;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  color: rgb(var(--es-ink));
+  transition: border-color 0.2s;
+}
+.es-chip:hover,
+.es-chip[aria-expanded='true'] {
+  border-color: rgb(var(--es-muted));
+}
+
+/* ---------- surfaces ---------- */
+/* A brushed metal plate, like the landing page's keypad. The main surface a
+   screen's controls sit on. */
+.es-plate {
+  position: relative;
+  border-radius: 14px;
+  color: rgb(var(--es-ink));
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 40%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.014) 0 1px,
+      transparent 1px 3px
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--es-metal) 62%, black),
+      color-mix(in srgb, var(--es-metal) 38%, black)
+    );
+  border: 1px solid color-mix(in srgb, var(--es-metal) 90%, rgb(var(--es-ink)));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.5),
+    0 40px 80px -30px rgba(0, 0, 0, 0.9);
+}
+/* Daylight's plates stay dark, so their text resets to the dark room's.
+   .es-dark does the same for any other device that stays dark (the host's
+   side rail). */
+[data-ui-theme='daylight'] .es-plate,
+[data-ui-theme='daylight'] .es-lcd,
+[data-ui-theme='daylight'] .es-dark {
+  --es-ink: 244 240 232;
+  --es-muted: 207 198 184;
+  --es-dim: 168 156 144;
+  --es-line: 74 65 57;
+  --es-panel: 40 34 30;
+  --es-ground: 26 22 19;
+  --es-brand-bright: 255 90 70;
+  --es-correct: 63 210 122;
+  color: rgb(var(--es-ink));
+}
+/* A quieter recessed panel: a row or card inside a plate, or on the floor. */
+.es-well {
+  border-radius: 8px;
+  background: color-mix(in srgb, rgb(var(--es-panel)) 80%, black);
+  border: 1px solid color-mix(in srgb, var(--es-metal) 70%, black);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.55);
+}
+[data-ui-theme='daylight'] .es-well {
+  background: rgb(var(--es-panel));
+  border-color: rgb(var(--es-line));
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* An LCD strip: game codes, timers, typed answers. */
+.es-lcd {
+  border-radius: 6px;
+  color: rgb(var(--es-brand-bright));
+  background: color-mix(in srgb, var(--es-ember) 26%, black);
+  box-shadow:
+    inset 0 2px 12px rgba(0, 0, 0, 0.9),
+    inset 0 0 0 1px var(--es-ember);
+}
+.es-lcd-text {
+  font-family: var(--es-f-ui);
+  font-weight: 600;
+  color: rgb(var(--es-brand-bright));
+  text-shadow: 0 0 14px rgb(var(--es-brand-bright) / 0.7);
+}
+/* A text field, styled as an LCD strip. */
+.es-field {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 6px;
+  font-family: var(--es-f-ui);
+  font-weight: 600;
+  font-size: 1.25rem;
+  letter-spacing: 0.04em;
+  color: rgb(var(--es-brand-bright));
+  caret-color: rgb(var(--es-brand-bright));
+  background: color-mix(in srgb, var(--es-ember) 26%, black);
+  box-shadow:
+    inset 0 2px 12px rgba(0, 0, 0, 0.9),
+    inset 0 0 0 1px var(--es-ember);
+}
+.es-field::placeholder {
+  font-family: var(--es-f-type);
+  font-weight: 400;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  color: rgb(var(--es-brand-bright) / 0.55);
+}
+.es-field:focus {
+  outline: none;
+  box-shadow:
+    inset 0 2px 12px rgba(0, 0, 0, 0.9),
+    inset 0 0 0 1px var(--es-ember),
+    0 0 0 2px rgb(var(--es-ink));
+}
+
+/* A status light. data-state: ready, busy, ok, off. */
+.es-led {
+  flex: none;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--es-ember) 85%, rgb(var(--es-brand-bright)));
+  box-shadow: inset 0 0 2px #000;
+}
+.es-led[data-state='ready'],
+.es-led[data-state='busy'] {
+  background: rgb(var(--es-brand-bright));
+  box-shadow: 0 0 10px rgb(var(--es-brand-bright));
+}
+.es-led[data-state='busy'] {
+  animation: es-blink 0.5s steps(1) infinite;
+}
+.es-led[data-state='ok'] {
+  background: rgb(var(--es-correct));
+  box-shadow: 0 0 12px rgb(var(--es-correct));
+}
+
+/* A keypad key, as on the landing page. For choices: aria-pressed='true'
+   pushes it in and lights it. */
+.es-key {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+  min-height: 54px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--es-metal) 96%, rgb(var(--es-ink)));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--es-metal) 95%, black),
+    color-mix(in srgb, var(--es-metal) 57%, black)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 3px 0 color-mix(in srgb, var(--es-metal) 15%, black),
+    0 5px 10px rgba(0, 0, 0, 0.45);
+  font-family: var(--es-f-ui);
+  font-weight: 600;
+  font-size: 1.1rem;
+  letter-spacing: 0.03em;
+  line-height: 1.1;
+  text-align: left;
+  color: rgb(var(--es-ink));
+  cursor: pointer;
+  transition:
+    transform 0.05s,
+    box-shadow 0.05s,
+    color 0.12s,
+    text-shadow 0.12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.es-key:active,
+.es-key[aria-pressed='true'] {
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 1px 0 color-mix(in srgb, var(--es-metal) 15%, black);
+  color: rgb(var(--es-brand-bright));
+  text-shadow: 0 0 10px rgb(var(--es-brand-bright) / 0.85);
+}
+/* The small print on a key. */
+.es-key-sub {
+  font-family: var(--es-f-type);
+  font-weight: 400;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  color: rgb(var(--es-muted));
+  text-shadow: none;
+}
+
+/* A slider, as a fader on the rig. */
+.es-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 28px;
+  background: transparent;
+  cursor: pointer;
+}
+.es-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--es-ember) 26%, black);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.9), inset 0 0 0 1px var(--es-ember);
+}
+.es-range::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--es-ember) 26%, black);
+}
+.es-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 28px;
+  margin-top: -11px;
+  border-radius: 3px;
+  border: 1px solid color-mix(in srgb, var(--es-metal) 90%, rgb(var(--es-ink)));
+  background:
+    linear-gradient(90deg, transparent 8px, rgb(var(--es-brand-bright)) 8px 10px, transparent 10px),
+    linear-gradient(180deg, color-mix(in srgb, var(--es-metal) 70%, white), color-mix(in srgb, var(--es-metal) 60%, black));
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.6);
+}
+.es-range::-moz-range-thumb {
+  width: 18px;
+  height: 28px;
+  border-radius: 3px;
+  border: 1px solid color-mix(in srgb, var(--es-metal) 90%, rgb(var(--es-ink)));
+  background:
+    linear-gradient(90deg, transparent 8px, rgb(var(--es-brand-bright)) 8px 10px, transparent 10px),
+    linear-gradient(180deg, color-mix(in srgb, var(--es-metal) 70%, white), color-mix(in srgb, var(--es-metal) 60%, black));
+}
+.es-range:focus-visible {
+  outline-offset: 2px;
+}
+
+/* Case-file paper, for the moments the game hands over a document: the
+   riddle, the debrief. Ink stays dark in every theme. */
+.es-paper {
+  position: relative;
+  color: #1e1915;
+  background:
+    radial-gradient(40% 30% at 10% 100%, rgba(90, 50, 20, 0.18), transparent 70%),
+    linear-gradient(170deg, rgba(255, 255, 255, 0.3), rgba(0, 0, 0, 0.05) 70%, rgba(90, 60, 20, 0.16)),
+    #dfd5c1;
+  box-shadow: 0 34px 60px -12px rgba(0, 0, 0, 0.85);
+}
+.es-paper :focus-visible {
+  outline-color: #1e1915;
+}
+/* A polaroid pinned to the evidence board: players' photos and ID cards. */
+.es-pola {
+  padding: 10px 10px 14px;
+  color: #1e1915;
+  transform: rotate(var(--rot, -2deg));
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.28), rgba(0, 0, 0, 0.04) 60%, rgba(90, 60, 20, 0.14)),
+    #dfd5c1;
+  box-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.25),
+    0 24px 40px -8px rgba(0, 0, 0, 0.8);
+}
+.es-pola-photo {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--es-metal) 18%, black);
+}
+/* Handwriting on the polaroid's border, in the red of the case files. */
+.es-pola-note {
+  font-family: var(--es-f-hand);
+  line-height: 1.2;
+  color: #a3150e;
+}
+/* A push pin holding a polaroid or a sheet of paper up. */
+.es-pin {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  z-index: 1;
+  width: 14px;
+  height: 14px;
+  margin-left: -7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ff8a7a, rgb(var(--es-brand)) 55%, #4a0805);
+  box-shadow: 0 3px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* A rubber stamp on the paper (or the floor). */
+.es-stamp {
+  display: inline-block;
+  padding: 5px 12px 3px;
+  border: 3px solid currentColor;
+  font-family: var(--es-f-ui);
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+  -webkit-mask-image: var(--es-noise-worn);
+  mask-image: var(--es-noise-worn);
+}
+
+/* Caution tape: the one loud strip a screen gets, used for alarms. */
+.es-tape {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  min-height: 44px;
+  padding: 0 16px;
+  overflow: hidden;
+  white-space: nowrap;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 30%, rgba(0, 0, 0, 0.18)),
+    rgb(var(--es-brand));
+  color: color-mix(in srgb, var(--es-ember) 40%, black);
+  font-family: var(--es-f-ui);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.6);
+}
+@media (prefers-reduced-motion: reduce) {
+  body::after,
+  .es-rec-dot,
+  .es-led {
+    animation: none !important;
+  }
+}

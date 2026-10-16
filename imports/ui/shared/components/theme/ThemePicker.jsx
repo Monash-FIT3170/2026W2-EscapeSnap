@@ -123,7 +123,7 @@ export function ThemePicker({
       ) : (
         <button
           {...triggerProps}
-          className="group absolute inset-0 z-50 flex items-center justify-center overflow-hidden rounded-full border border-slate-700 bg-slate-950 shadow-lg shadow-black/50 transition-colors duration-200 will-change-transform hover:border-brand focus:border-brand focus:outline-none"
+          className="group absolute inset-0 z-50 flex items-center justify-center overflow-hidden rounded-full border border-line bg-ground shadow-lg shadow-black/50 transition-colors duration-200 will-change-transform hover:border-brand focus:border-brand focus:outline-none"
         >
           <span
             aria-hidden="true"
@@ -163,10 +163,10 @@ export function ThemePicker({
               tabIndex={open ? 0 : -1}
               onClick={() => choose(key)}
               aria-label={t(`common.themes.${key}`)}
-              className={`relative flex h-full w-full items-center justify-center overflow-hidden rounded-full border bg-slate-950 shadow-lg shadow-black/50 transition-colors duration-200 will-change-transform focus:outline-none ${
+              className={`relative flex h-full w-full items-center justify-center overflow-hidden rounded-full border bg-ground shadow-lg shadow-black/50 transition-colors duration-200 will-change-transform focus:outline-none ${
                 flashing === key
                   ? 'border-ink'
-                  : 'border-slate-700 hover:border-brand focus:border-brand'
+                  : 'border-line hover:border-brand focus:border-brand'
               }`}
             >
               {/* The wave, in this theme's accent. Picking one drives it in. */}
@@ -187,10 +187,10 @@ export function ThemePicker({
                 is open — not on hover, which touch devices never deliver. */}
             <span
               aria-hidden="true"
-              className={`pointer-events-none absolute top-1/2 ${labelSide} -translate-y-1/2 overflow-hidden whitespace-nowrap rounded-full border bg-slate-950/95 px-3.5 py-1.5 font-mono text-xs tracking-wide transition-[opacity,border-color,color] duration-200 ${
+              className={`pointer-events-none absolute top-1/2 ${labelSide} -translate-y-1/2 overflow-hidden whitespace-nowrap rounded-full border bg-ground/95 px-3.5 py-1.5 font-display text-sm tracking-wide transition-[opacity,border-color,color] duration-200 ${
                 flashing === key
                   ? 'border-ink text-on-brand'
-                  : 'border-slate-800 text-white group-hover:border-brand group-hover:text-on-brand group-focus-within:border-brand group-focus-within:text-on-brand'
+                  : 'border-line text-ink group-hover:border-brand group-hover:text-on-brand group-focus-within:border-brand group-focus-within:text-on-brand'
               }`}
               style={{
                 opacity: open ? 1 : 0,

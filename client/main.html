@@ -5,16 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Oswald:wght@500;600;700&family=Rock+Salt&family=Share+Tech+Mono&family=Special+Elite&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Rock+Salt&family=Special+Elite&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
+          // The landing page's type: Oswald for headings, buttons and labels,
+          // the Special Elite typewriter for everything read (body copy, codes,
+          // timers), Rock Salt for the odd handwritten note.
           fontFamily: {
-            mono: ['"Share Tech Mono"', 'monospace'],
-            display: ['Orbitron', 'sans-serif'],
+            sans: ['"Special Elite"', '"Courier New"', 'Courier', 'monospace'],
+            mono: ['"Special Elite"', '"Courier New"', 'Courier', 'monospace'],
+            display: ['Oswald', '"Arial Narrow"', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+            hand: ['"Rock Salt"', '"Segoe Print"', 'cursive'],
           },
           // App palette. Values are the --es-* custom properties in
           // client/main.css, so a theme only has to redefine those.

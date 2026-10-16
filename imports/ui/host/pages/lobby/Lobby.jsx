@@ -12,37 +12,21 @@ import { ThemePicker } from '../../../shared/components/theme/ThemePicker';
 import { errorKey } from '../../../../languages/errors';
 import { SEARCH_TTL_MS } from '/imports/lib/teamStatus';
 import { formatClock } from '../../components/match/TeamScoreCard';
+import { RoomBar } from '/imports/ui/shared/components/room/RoomBar';
 
-const PlayerCard = ({ player }) => {
+// Each player who joins is pinned up as a polaroid, the way the landing
+// page's evidence board pins its photos; the tilt alternates down the row.
+const PlayerCard = ({ player, index }) => {
   const initials = player.name?.slice(0, 2).toUpperCase() || '??';
   return (
-    <div
-      className="flex items-center gap-4 p-4"
-      style={{ background: 'rgb(var(--es-ground))', border: '1px solid rgb(var(--es-panel))' }}
-    >
-      <div
-        className="flex items-center justify-center flex-shrink-0"
-        style={{
-          width: 64, height: 64,
-          background: 'rgb(var(--es-panel))',
-          border: '1px solid rgb(var(--es-line))',
-          fontSize: 20,
-          fontWeight: 700,
-          color: 'rgb(var(--es-ink))',
-          letterSpacing: '1px',
-        }}
-      >
-        {initials}
+    <div className="es-pola relative" style={{ '--rot': `${index % 2 ? 1.6 : -1.8}deg` }}>
+      <span className="es-pin" aria-hidden="true" />
+      <div className="es-pola-photo flex aspect-[4/3] items-center justify-center">
+        <span className="font-display text-5xl font-bold tracking-[0.04em] text-[#e8dfcf]/80">
+          {initials}
+        </span>
       </div>
-      <div>
-        <p style={{ fontWeight: 700, fontSize: 16, letterSpacing: '1.5px', color: 'rgb(var(--es-ink))' }}>
-          {player.name?.toUpperCase()}
-        </p>
-        <div className="flex gap-1 mt-2">
-          <div style={{ width: 24, height: 3, background: 'rgb(var(--es-brand))' }} />
-          <div style={{ width: 12, height: 3, background: 'rgb(var(--es-brand) / 0.4)' }} />
-        </div>
-      </div>
+      <p className="es-pola-note mt-3 truncate px-1 text-base">{player.name?.toUpperCase()}</p>
     </div>
   );
 };
@@ -50,19 +34,9 @@ const PlayerCard = ({ player }) => {
 const EmptySlot = () => {
   const t = useT();
   return (
-  <div
-    className="flex items-center justify-center"
-    style={{
-      background: 'rgb(var(--es-ground))',
-      border: '1px dashed rgb(var(--es-panel))',
-      minHeight: 88,
-      color: 'rgb(var(--es-line))',
-      fontSize: 11,
-      letterSpacing: '1.5px',
-    }}
-  >
-    {t('host.lobby.awaitingOperative')}
-  </div>
+    <div className="flex min-h-[180px] items-center justify-center rounded-sm border-2 border-dashed border-line/70 px-4 text-center font-display text-base tracking-[0.04em] text-dim">
+      {t('host.lobby.awaitingOperative')}
+    </div>
   );
 };
 
@@ -102,45 +76,26 @@ const OnlineMatchmaking = ({ game, lobbyFull, remainingSlots }) => {
     Meteor.callAsync('matches.cancelSearch', game._id).catch((err) => setError(t(errorKey(err))));
   };
 
-  const buttonStyle = (enabled) => ({
-    width: '100%',
-    padding: '18px',
-    background: enabled ? 'rgb(var(--es-brand))' : 'rgb(var(--es-panel))',
-    color: enabled ? 'rgb(var(--es-on-brand))' : 'rgb(var(--es-dim))',
-    fontWeight: 700,
-    fontSize: 14,
-    letterSpacing: '2px',
-    cursor: enabled ? 'pointer' : 'not-allowed',
-    border: 'none',
-  });
-
   return (
     <div className="flex flex-col gap-3">
-      {error && <p style={{ fontSize: 11, color: 'rgb(var(--es-brand))', letterSpacing: '1px' }}>!! {error}</p>}
-      {expired && !pending && (
-        <p style={{ fontSize: 11, color: 'rgb(var(--es-muted))', letterSpacing: '1px' }}>{t('host.lobby.searchExpired')}</p>
-      )}
+      {error && <p role="alert" className="font-display text-base text-brand-bright">⚠ {error}</p>}
+      {expired && !pending && <p className="text-sm text-muted">{t('host.lobby.searchExpired')}</p>}
       {searching ? (
-        <div className="flex items-center gap-3">
-          <div className="flex-1 text-center py-4" style={{ border: '1px solid rgb(var(--es-brand))', background: 'rgb(var(--es-brand) / 0.12)' }}>
-            <p className="animate-pulse" style={{ fontSize: 12, letterSpacing: '1.5px', color: 'rgb(var(--es-ink))' }}>
-              {t('host.lobby.searching')}
-            </p>
-            <p style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-muted))', marginTop: 4 }}>
+        <div className="flex items-stretch gap-3">
+          <div className="es-lcd flex-1 px-4 py-3 text-center">
+            <p className="es-lcd-text animate-pulse text-lg">{t('host.lobby.searching')}</p>
+            <p className="mt-1 text-sm text-brand-bright/70">
               {t('host.lobby.searchingFor', { time: formatClock(since ? Math.max(0, now - since) : 0) })}
             </p>
           </div>
           {since !== null && (
-            <button
-              onClick={handleCancel}
-              style={{ padding: '18px 24px', background: 'transparent', color: 'rgb(var(--es-muted))', border: '1px solid rgb(var(--es-line))', fontSize: 11, letterSpacing: '1.5px', cursor: 'pointer' }}
-            >
+            <button type="button" onClick={handleCancel} className="es-btn es-btn-ghost">
               {t('host.lobby.cancelSearch')}
             </button>
           )}
         </div>
       ) : (
-        <button onClick={handleFind} disabled={!lobbyFull} style={buttonStyle(lobbyFull)}>
+        <button type="button" onClick={handleFind} disabled={!lobbyFull} className="es-btn es-btn-primary w-full">
           {lobbyFull
             ? t('host.lobby.findOpponent')
             : t('host.lobby.awaitingMore', { n: remainingSlots })}
@@ -194,16 +149,16 @@ const Lobby = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'rgb(var(--es-ground))' }}>
-        <p style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-muted))' }}>{t('host.lobby.loading')}</p>
+      <div className="es-room flex items-center justify-center">
+        <p className="pulse-text font-display text-lg text-muted">{t('host.lobby.loading')}</p>
       </div>
     );
   }
 
   if (!game) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'rgb(var(--es-ground))' }}>
-        <p style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-brand))' }}>{t('host.lobby.gameNotFound')}</p>
+      <div className="es-room flex items-center justify-center">
+        <p className="font-display text-lg text-brand-bright">{t('host.lobby.gameNotFound')}</p>
       </div>
     );
   }
@@ -217,213 +172,109 @@ const Lobby = () => {
     ...Array(Math.max(0, capacity - players.length)).fill(null),
   ];
 
+  const remaining = capacity - players.length;
+  const code = game.joinCode || '----';
+
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'rgb(var(--es-ground))', color: 'rgb(var(--es-ink))' }}>
-
-      {/* Navbar */}
-      <header
-        className="flex items-center justify-between px-8 py-4"
-        style={{ borderBottom: '1px solid rgb(var(--es-panel))' }}
-      >
-        <span className="font-display text-lg font-black tracking-wide text-brand">
-          ESCAPESNAP
+    <div className="es-room flex flex-col">
+      <RoomBar home={null}>
+        <span className="hidden font-display text-base tracking-[0.04em] text-muted sm:inline">
+          {t('host.lobby.navTag')}
         </span>
-        <div className="flex items-center gap-4">
-          <span style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-muted))' }}>
-            {t('host.lobby.navTag')}
-          </span>
-          <ThemePicker />
-          <LanguagePicker />
-        </div>
-      </header>
+        <ThemePicker chipClassName="es-chip" />
+        <LanguagePicker chipClassName="es-chip" />
+      </RoomBar>
 
-      <main className="flex-1 flex">
-
-        {/* Left sidebar */}
-        <div
-          className="flex flex-col gap-6 p-8"
-          style={{ width: 300, minWidth: 300, borderRight: '1px solid rgb(var(--es-panel))' }}
-        >
-          {/* Join code */}
-          <div>
-            <p style={{ fontSize: 9, letterSpacing: '1.5px', color: 'rgb(var(--es-muted))', marginBottom: 4 }}>
-              {t('host.lobby.accessAuthorization')}
-            </p>
-            <p style={{ fontSize: 9, letterSpacing: '1px', color: 'rgb(var(--es-dim))', marginBottom: 8 }}>
-              {t('host.lobby.gameCode')}
-            </p>
+      <main className="mx-auto grid w-full max-w-7xl flex-1 grid-cols-1 gap-10 px-5 py-10 lg:grid-cols-[360px_minmax(0,1fr)] lg:px-10">
+        {/* The way in: the code on a keypad display, the QR taped beside it. */}
+        <aside className="flex flex-col gap-8">
+          <div className="es-plate px-5 pb-5 pt-5">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="es-label">{t('host.lobby.gameCode')}</h2>
+              <span className="es-led" data-state="ready" aria-hidden="true" />
+            </div>
             <p
               title={t('host.lobby.copyTitle')}
-              style={{
-                fontSize: 48,
-                fontWeight: 700,
-                letterSpacing: '4px',
-                lineHeight: 1,
-                color: 'rgb(var(--es-ink))',
-                cursor: 'text',
-                userSelect: 'all',
-              }}
+              className="es-lcd es-lcd-text cursor-text select-all px-4 py-3 text-center text-7xl leading-none tracking-[0.18em]"
             >
-              {game.joinCode || '----'}
+              {code}
             </p>
-            <p style={{ fontSize: 9, color: 'rgb(var(--es-dim))', marginTop: 10, lineHeight: 1.5 }}>
-              {t('host.lobby.shareHint')}
-            </p>
+            <p className="mt-3 text-sm leading-6 text-muted">{t('host.lobby.shareHint')}</p>
           </div>
 
-          {/* QR join */}
-          <div
-            className="flex flex-col items-center p-4"
-            style={{ background: 'rgb(var(--es-panel))', border: '1px solid rgb(var(--es-line))' }}
-          >
-            <p style={{ fontSize: 9, letterSpacing: '1.5px', color: 'rgb(var(--es-muted))', marginBottom: 12, alignSelf: 'flex-start' }}>
-              {t('host.lobby.scanToDeploy')}
-            </p>
-            <div style={{ background: 'rgb(var(--es-ink))', padding: 10, lineHeight: 0 }}>
-              <QRCodeSVG value={joinUrl} size={140} bgColor="#e5e2e1" fgColor="#0e0e0e" level="M" />
+          <div className="es-paper mx-auto w-full max-w-[300px] rotate-[1.4deg] px-5 pb-5 pt-6 text-center">
+            <span className="es-pin" aria-hidden="true" />
+            <p className="es-stamp mb-4 !text-sm text-[#a3150e]">{t('host.lobby.scanToDeploy')}</p>
+            <div className="mx-auto w-fit bg-[#f4efe4] p-2 leading-none">
+              <QRCodeSVG value={joinUrl} size={168} bgColor="#f4efe4" fgColor="#1e1915" level="M" />
             </div>
-            <p style={{ fontSize: 9, color: 'rgb(var(--es-dim))', marginTop: 10, textAlign: 'center', lineHeight: 1.5, wordBreak: 'break-all' }}>
-              {joinUrl}
-            </p>
-            <p style={{ fontSize: 9, color: 'rgb(var(--es-dim))', marginTop: 4, textAlign: 'center', lineHeight: 1.5 }}>
-              {t('host.lobby.distributeHint')}
-            </p>
+            <p className="mt-3 break-all text-xs leading-5 text-[#3b322b]">{joinUrl}</p>
+            <p className="mt-1 text-xs leading-5 text-[#3b322b]">{t('host.lobby.distributeHint')}</p>
           </div>
+        </aside>
 
-          {/* Difficulty */}
-          <div>
-            <p style={{ fontSize: 9, letterSpacing: '1.5px', color: 'rgb(var(--es-muted))', marginBottom: 8 }}>
-              {t('host.lobby.gameDifficulty')}
-            </p>
-            {['easy', 'medium', 'hard'].map(d => (
-              <div
-                key={d}
-                className="flex items-center justify-between px-4 py-3 mb-2"
-                style={{ border: game.difficulty === d ? '1px solid rgb(var(--es-brand))' : '1px solid rgb(var(--es-panel))' }}
-              >
-                <span style={{ fontSize: 11, letterSpacing: '1px', color: game.difficulty === d ? 'rgb(var(--es-ink))' : 'rgb(var(--es-dim))' }}>
-                  {`${t(`difficulty.${d}`)}: ${t(`difficulty.${d}Sub`)}`}
-                </span>
-                <div style={{
-                  width: 16, height: 16, borderRadius: '50%',
-                  border: `2px solid ${game.difficulty === d ? 'rgb(var(--es-brand))' : 'rgb(var(--es-dim))'}`,
-                  background: game.difficulty === d ? 'rgb(var(--es-brand))' : 'transparent',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  {game.difficulty === d && (
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'rgb(var(--es-on-brand))' }} />
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right panel */}
-        <div className="flex-1 flex flex-col p-8 gap-6">
-
-          {/* Header row */}
-          <div className="flex items-center justify-between">
+        {/* The room filling up. */}
+        <section className="flex flex-col gap-8">
+          <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
-              <p style={{ fontSize: 10, letterSpacing: '1.5px', color: 'rgb(var(--es-brand))', marginBottom: 4 }}>
-                {game.groupName?.toUpperCase()}
-              </p>
-              <h1 style={{ fontWeight: 700, fontSize: 28, letterSpacing: '2px', color: 'rgb(var(--es-ink))' }}>
-                {t('host.lobby.title')}
-              </h1>
-              {game.playMode === 'online' && (
-                <p style={{ fontSize: 10, letterSpacing: '1.5px', color: 'rgb(var(--es-muted))', marginTop: 2 }}>
-                  {t('host.lobby.onlineVersus')}
-                </p>
-              )}
-              <div className="flex items-center gap-2 mt-1">
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgb(var(--es-brand))' }} />
-                <p style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-muted))' }}>
+              <p className="es-label mb-2">{game.groupName?.toUpperCase()}</p>
+              <h1 className="es-title text-6xl text-ink">{t('host.lobby.title')}</h1>
+              <ul className="mt-4 flex flex-col gap-1.5 text-sm text-muted">
+                {game.playMode === 'online' && <li>{t('host.lobby.onlineVersus')}</li>}
+                <li className="flex items-center gap-2">
+                  <span className="es-led" data-state="busy" aria-hidden="true" />
                   {t('host.lobby.awaitingStart')}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 mt-1">
-                <div
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    background: game.riddlesReady ? 'rgb(var(--es-correct))' : 'rgb(var(--es-dim))',
-                  }}
-                />
-                <p style={{ fontSize: 10, letterSpacing: '1px', color: game.riddlesReady ? 'rgb(var(--es-correct))' : 'rgb(var(--es-muted))' }}>
+                </li>
+                <li className={`flex items-center gap-2 ${game.riddlesReady ? 'text-correct' : ''}`}>
+                  <span className="es-led" data-state={game.riddlesReady ? 'ok' : 'off'} aria-hidden="true" />
                   {game.riddlesReady ? 'RIDDLES READY' : 'GENERATING RIDDLES...'}
-                </p>
-              </div>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="es-led" data-state="off" aria-hidden="true" />
+                  {t('host.lobby.gameDifficulty')}: {t(`difficulty.${game.difficulty}`)}, {t(`difficulty.${game.difficulty}Sub`)}
+                </li>
+              </ul>
             </div>
             <div className="text-right">
-              <p style={{ fontSize: 9, letterSpacing: '1px', color: 'rgb(var(--es-muted))' }}>{t('host.lobby.capacity')}</p>
-              <p style={{ fontSize: 28, fontWeight: 700, letterSpacing: '2px', color: 'rgb(var(--es-ink))' }}>
-                {String(players.length).padStart(2, '0')} /{' '}
-                <span style={{ color: 'rgb(var(--es-dim))' }}>{String(capacity).padStart(2, '0')}</span>
+              <p className="es-label">{t('host.lobby.capacity')}</p>
+              <p className="es-title mt-1 text-5xl tabular-nums text-ink">
+                {String(players.length).padStart(2, '0')}
+                <span className="text-dim"> / {String(capacity).padStart(2, '0')}</span>
               </p>
             </div>
           </div>
 
-          {/* Players grid */}
-          <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-8 pt-2 xl:grid-cols-4">
             {slots.map((player, i) =>
               player ? (
-                <PlayerCard key={player._id} player={player} />
+                <PlayerCard key={player._id} player={player} index={i} />
               ) : (
                 <EmptySlot key={`empty-${i}`} />
               )
             )}
           </div>
 
-          {error && (
-            <p style={{ fontSize: 11, color: 'rgb(var(--es-brand))', letterSpacing: '1px' }}>!! {error}</p>
-          )}
+          {error && <p role="alert" className="font-display text-base text-brand-bright">⚠ {error}</p>}
 
-          {/* Start button */}
           {game.playMode === 'online' && !gameStarted ? (
-            <OnlineMatchmaking
-              game={game}
-              lobbyFull={lobbyFull}
-              remainingSlots={capacity - players.length}
-            />
+            <OnlineMatchmaking game={game} lobbyFull={lobbyFull} remainingSlots={remaining} />
           ) : gameStarted ? (
-            <div
-              className="text-center py-4"
-              style={{ border: '1px solid rgb(var(--es-brand))', background: 'rgb(var(--es-brand) / 0.2)' }}
-            >
-              <p style={{ fontSize: 12, letterSpacing: '1.5px', color: 'rgb(var(--es-muted))' }}>
-                {t('host.lobby.missionActive')}
-              </p>
-            </div>
+            <p className="es-lcd es-lcd-text px-4 py-4 text-center text-lg">{t('host.lobby.missionActive')}</p>
           ) : (
             <button
+              type="button"
               onClick={handleStartGame}
               disabled={starting || !lobbyFull}
-              style={{
-                width: '100%',
-                padding: '18px',
-                background: starting ? 'rgb(var(--es-brand) / 0.4)' : lobbyFull ? 'rgb(var(--es-brand))' : 'rgb(var(--es-panel))',
-                color: starting || !lobbyFull ? 'rgb(var(--es-dim))' : 'rgb(var(--es-ink))',
-                fontWeight: 700,
-                fontSize: 14,
-                letterSpacing: '2px',
-                cursor: starting || !lobbyFull ? 'not-allowed' : 'pointer',
-                transition: 'background 0.15s',
-                border: 'none',
-              }}
-              onMouseEnter={e => { if (!starting && lobbyFull) e.currentTarget.style.background = 'rgb(var(--es-brand-bright))'; }}
-              onMouseLeave={e => { if (!starting && lobbyFull) e.currentTarget.style.background = 'rgb(var(--es-brand))'; }}
+              className="es-btn es-btn-primary w-full"
             >
               {starting
                 ? 'DEPLOYING AGENTS...'
                 : lobbyFull
                   ? 'START MISSION'
-                  : `AWAITING ${capacity - players.length} MORE OPERATIVE${capacity - players.length === 1 ? '' : 'S'}...`}
+                  : `AWAITING ${remaining} MORE OPERATIVE${remaining === 1 ? '' : 'S'}...`}
             </button>
           )}
-
-        </div>
+        </section>
       </main>
     </div>
   );

@@ -1,18 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useT } from '../../../../languages/LanguageProvider';
 
-const PANEL = 'rgb(var(--es-panel))';
-const INNER = 'rgb(var(--es-ground))';
-const BORDER = 'rgb(var(--es-line))';
-const ACCENT = 'rgb(var(--es-brand))';
-const TEXT = 'rgb(var(--es-ink))';
-const MUTED = 'rgb(var(--es-muted))';
-const DIM = 'rgb(var(--es-dim))';
-const CORRECT = 'rgb(var(--es-correct))';
-const INCORRECT = 'rgb(var(--es-incorrect))';
-
-const FOCUS_RING = `2px solid ${MUTED}`;
-
 // The model's three outcomes collapse to two for the operator: only 'pass'
 // earned a letter.
 function isPass(photo) {
@@ -33,97 +21,61 @@ function formatTimestamp(value) {
 }
 
 const SectionHeader = ({ label }) => (
-  <div className="flex items-center gap-3 mb-4">
-    <div style={{ width: 4, height: 16, background: ACCENT }} />
-    <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: TEXT }}>{label}</span>
-  </div>
+  <h2 className="es-title mb-4 text-2xl text-ink">{label}</h2>
 );
 
 const FilterButton = ({ active, onClick, children }) => (
   <button
+    type="button"
     onClick={onClick}
-    style={{
-      background: active ? ACCENT : 'transparent',
-      color: active ? TEXT : MUTED,
-      border: `1px solid ${active ? ACCENT : BORDER}`,
-      padding: '8px 16px',
-      fontSize: 10,
-      fontWeight: 700,
-      letterSpacing: '1px',
-      cursor: 'pointer',
-      whiteSpace: 'nowrap',
-    }}
-    onFocus={(e) => (e.currentTarget.style.outline = FOCUS_RING)}
-    onBlur={(e) => (e.currentTarget.style.outline = 'none')}
+    aria-pressed={active}
+    className={`es-chip !min-h-[38px] ${active ? '!border-brand-bright text-brand-bright' : 'text-muted'}`}
   >
     {children}
   </button>
 );
 
 const EmptyPanel = ({ title, detail }) => (
-  <div style={{ background: INNER, border: `1px dashed ${BORDER}`, padding: '48px 24px', textAlign: 'center' }}>
-    <p style={{ fontSize: 11, letterSpacing: '1px', color: MUTED }}>{title}</p>
-    {detail && (
-      <p style={{ fontSize: 10, letterSpacing: '0.5px', color: DIM, marginTop: 10, lineHeight: 1.8 }}>
-        {detail}
-      </p>
-    )}
+  <div className="rounded-sm border-2 border-dashed border-line/70 px-6 py-12 text-center">
+    <p className="font-display text-lg tracking-[0.03em] text-muted">{title}</p>
+    {detail && <p className="mx-auto mt-3 max-w-[56ch] text-sm leading-6 text-dim">{detail}</p>}
   </div>
 );
 
-const PhotoTile = ({ photo, onOpen }) => {
+// Each capture is pinned up as a polaroid, the way the landing page's
+// evidence board shows its photos: who took it written on the border, and
+// whether it counted stamped on top.
+const PhotoTile = ({ photo, onOpen, index }) => {
   const t = useT();
   const pass = isPass(photo);
-  const status = pass ? CORRECT : INCORRECT;
 
   return (
     <button
+      type="button"
       onClick={() => onOpen(photo)}
       aria-label={`Round ${photo.roundNumber}, ${photo.playerName}, ${pass ? 'correct' : 'incorrect'} — open larger view`}
-      style={{
-        position: 'relative',
-        padding: 0,
-        border: `1px solid ${BORDER}`,
-        borderBottom: `3px solid ${status}`,
-        background: INNER,
-        cursor: 'pointer',
-        display: 'block',
-        width: '100%',
-        textAlign: 'left',
-      }}
-      onFocus={(e) => (e.currentTarget.style.outline = FOCUS_RING)}
-      onBlur={(e) => (e.currentTarget.style.outline = 'none')}
+      className="es-pola relative block w-full text-left transition-transform hover:!rotate-0"
+      style={{ '--rot': `${[-1.6, 1.2, -0.6, 1.8][index % 4]}deg` }}
     >
-      <img
-        src={photo.photoUrl}
-        alt=""
-        style={{ display: 'block', width: '100%', aspectRatio: '4 / 3', objectFit: 'cover' }}
-      />
-
-      <span style={{
-        position: 'absolute', top: 8, left: 8,
-        background: 'rgb(var(--es-ground) / 0.85)', color: TEXT,
-        fontSize: 9, fontWeight: 700, letterSpacing: '1px', padding: '4px 8px',
-      }}>
-        {t('host.summary.round', { n: photo.roundNumber })}
-      </span>
-
-      {photo.attemptNumber > 1 && (
-        <span style={{
-          position: 'absolute', top: 8, right: 8,
-          background: 'rgb(var(--es-brand) / 0.9)', color: 'rgb(var(--es-on-brand))',
-          fontSize: 9, fontWeight: 700, letterSpacing: '1px', padding: '4px 8px',
-        }}>
-          {t('host.summary.retry', { n: photo.attemptNumber })}
-        </span>
-      )}
-
-      <div className="flex items-center justify-between" style={{ padding: '10px 12px' }}>
-        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '1px', color: TEXT }}>
-          {String(photo.playerName).toUpperCase()}
-        </span>
-        <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '1px', color: status }}>
+      <div className="es-pola-photo">
+        <img
+          src={photo.photoUrl}
+          alt=""
+          className="block w-full object-cover"
+          style={{ aspectRatio: '4 / 3' }}
+        />
+        <span
+          className={`es-stamp absolute right-2 top-2 !border-2 bg-black/30 !px-2 !py-0.5 !text-xs ${pass ? 'text-correct' : 'text-incorrect'}`}
+        >
           {pass ? t('host.summary.correctLabel') : t('host.summary.incorrectLabel')}
+        </span>
+      </div>
+
+      <div className="flex items-baseline justify-between gap-2 px-1 pt-3">
+        <span className="es-pola-note truncate text-sm">{String(photo.playerName).toUpperCase()}</span>
+        <span className="whitespace-nowrap font-display text-sm text-[#3b322b]">
+          {t('host.summary.round', { n: photo.roundNumber })}
+          {photo.attemptNumber > 1 && `, ${t('host.summary.retry', { n: photo.attemptNumber })}`}
         </span>
       </div>
     </button>
@@ -171,7 +123,6 @@ const PhotoLightbox = ({ photo, onClose }) => {
   }, [onClose]);
 
   const pass = isPass(photo);
-  const status = pass ? CORRECT : INCORRECT;
   const detections = [...(photo.detections ?? [])].sort((a, b) => b.confidence - a.confidence);
 
   return (
@@ -181,97 +132,73 @@ const PhotoLightbox = ({ photo, onClose }) => {
       aria-label={`Photo detail — round ${photo.roundNumber}, ${photo.playerName}`}
       ref={dialogRef}
       onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 50,
-        background: 'rgba(0,0,0,0.85)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: 32,
-      }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-8"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{
-          background: PANEL, border: `1px solid ${BORDER}`,
-          display: 'flex', gap: 0,
-          maxWidth: 1100, width: '100%', maxHeight: '100%',
-        }}
+        className="es-plate flex max-h-full w-full max-w-[1100px] overflow-hidden"
       >
-        <div style={{ background: '#000', flex: '1 1 60%', display: 'flex', alignItems: 'center', minWidth: 0 }}>
+        <div className="flex min-w-0 flex-[1_1_60%] items-center bg-black">
           <img
             src={photo.photoUrl}
             alt={`Submission for round ${photo.roundNumber} by ${photo.playerName}`}
-            style={{ width: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+            className="max-h-[80vh] w-full object-contain"
           />
         </div>
 
-        <div style={{ flex: '0 0 320px', padding: 24, overflowY: 'auto', maxHeight: '80vh' }}>
-          <div className="flex items-start justify-between" style={{ marginBottom: 20 }}>
+        <div className="max-h-[80vh] flex-[0_0_320px] overflow-y-auto p-6">
+          <div className="mb-5 flex items-start justify-between">
             <div>
-              <p style={{ fontSize: 10, letterSpacing: '1px', color: MUTED }}>{t('host.summary.round', { n: photo.roundNumber })}</p>
-              <p style={{ fontSize: 20, fontWeight: 700, letterSpacing: '1.5px', color: TEXT, marginTop: 4 }}>
-                {String(photo.playerName).toUpperCase()}
-              </p>
+              <p className="es-label">{t('host.summary.round', { n: photo.roundNumber })}</p>
+              <p className="es-title mt-1 text-3xl text-ink">{String(photo.playerName).toUpperCase()}</p>
             </div>
             <button
               ref={closeRef}
+              type="button"
               onClick={onClose}
               aria-label={t('host.summary.closePhotoDetail')}
-              style={{
-                background: 'transparent', border: `1px solid ${BORDER}`, color: MUTED,
-                fontSize: 14, lineHeight: 1, padding: '8px 12px', cursor: 'pointer',
-              }}
-              onFocus={(e) => (e.currentTarget.style.outline = FOCUS_RING)}
-              onBlur={(e) => (e.currentTarget.style.outline = 'none')}
+              className="es-chip"
             >
               ✕
             </button>
           </div>
 
-          <div style={{ borderLeft: `4px solid ${status}`, background: INNER, padding: '12px 16px', marginBottom: 20 }}>
-            <p style={{ fontSize: 14, fontWeight: 700, letterSpacing: '1.5px', color: status }}>
+          <div className="mb-5">
+            <span className={`es-stamp ${pass ? 'text-correct' : 'text-incorrect'}`}>
               {pass ? t('host.summary.correctLabel') : t('host.summary.incorrectLabel')}
-            </p>
+            </span>
             {photo.attemptNumber > 1 && (
-              <p style={{ fontSize: 10, letterSpacing: '0.5px', color: DIM, marginTop: 4 }}>
-                {t('host.summary.attempt', { n: photo.attemptNumber })}
-              </p>
+              <p className="mt-2 text-sm text-dim">{t('host.summary.attempt', { n: photo.attemptNumber })}</p>
             )}
           </div>
 
-          <p style={{ fontSize: 10, letterSpacing: '1px', color: MUTED }}>{t('host.summary.targetObject')}</p>
-          <p style={{ fontSize: 16, fontWeight: 700, letterSpacing: '1px', color: TEXT, marginTop: 4, marginBottom: 20 }}>
+          <p className="es-label">{t('host.summary.targetObject')}</p>
+          <p className="mb-5 mt-1 font-display text-xl font-semibold tracking-[0.03em] text-ink">
             {String(photo.targetObject ?? '—').toUpperCase()}
           </p>
 
-          <p style={{ fontSize: 10, letterSpacing: '1px', color: MUTED, marginBottom: 8 }}>{t('host.summary.detections')}</p>
+          <p className="es-label mb-2">{t('host.summary.detections')}</p>
           {detections.length === 0 ? (
-            <p style={{ fontSize: 11, color: DIM, marginBottom: 20 }}>{t('host.summary.nothingDetected')}</p>
+            <p className="mb-5 text-sm text-dim">{t('host.summary.nothingDetected')}</p>
           ) : (
-            <div style={{ marginBottom: 20 }}>
+            <ul className="mb-5">
               {detections.map((d, i) => {
                 const hit = d.label === photo.targetObject;
                 return (
-                  <div
+                  <li
                     key={`${d.label}-${i}`}
-                    className="flex items-center justify-between"
-                    style={{ padding: '8px 0', borderBottom: `1px solid ${BORDER}` }}
+                    className="flex items-center justify-between border-b border-line/60 py-2 text-sm"
                   >
-                    <span style={{ fontSize: 12, letterSpacing: '0.5px', color: hit ? CORRECT : TEXT }}>
-                      {String(d.label).toUpperCase()}
-                    </span>
-                    <span style={{ fontSize: 12, color: MUTED }}>
-                      {Math.round(d.confidence * 100)}%
-                    </span>
-                  </div>
+                    <span className={hit ? 'text-correct' : 'text-ink'}>{String(d.label).toUpperCase()}</span>
+                    <span className="tabular-nums text-muted">{Math.round(d.confidence * 100)}%</span>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           )}
 
-          <p style={{ fontSize: 10, letterSpacing: '1px', color: MUTED }}>{t('host.summary.captured')}</p>
-          <p style={{ fontSize: 12, letterSpacing: '0.5px', color: TEXT, marginTop: 4 }}>
-            {formatTimestamp(photo.createdAt)}
-          </p>
+          <p className="es-label">{t('host.summary.captured')}</p>
+          <p className="mt-1 text-sm text-ink">{formatTimestamp(photo.createdAt)}</p>
         </div>
       </div>
     </div>
@@ -298,7 +225,7 @@ const PhotoGallery = ({ photos = [], players = [], photosExpired = false }) => {
   const filtered = outcomeFilter !== 'all' || playerFilter !== 'all';
 
   return (
-    <div style={{ background: PANEL, padding: 24 }}>
+    <section className="es-well px-6 pb-8 pt-5">
       <SectionHeader label={t('host.summary.photoArchive')} />
 
       {photos.length === 0 ? (
@@ -316,8 +243,8 @@ const PhotoGallery = ({ photos = [], players = [], photosExpired = false }) => {
         )
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-2" style={{ marginBottom: 16 }}>
-            <span style={{ fontSize: 10, letterSpacing: '1px', color: DIM, marginRight: 4 }}>{t('host.summary.outcome')}</span>
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <span className="es-label mr-1">{t('host.summary.outcome')}</span>
             <FilterButton active={outcomeFilter === 'all'} onClick={() => setOutcomeFilter('all')}>
               {t('host.summary.all')}
             </FilterButton>
@@ -328,7 +255,7 @@ const PhotoGallery = ({ photos = [], players = [], photosExpired = false }) => {
               {t('host.summary.incorrectLabel')}
             </FilterButton>
 
-            <span style={{ fontSize: 10, letterSpacing: '1px', color: DIM, margin: '0 4px 0 16px' }}>{t('host.summary.operative')}</span>
+            <span className="es-label ml-4 mr-1">{t('host.summary.operative')}</span>
             <FilterButton active={playerFilter === 'all'} onClick={() => setPlayerFilter('all')}>
               {t('host.summary.all')}
             </FilterButton>
@@ -343,20 +270,16 @@ const PhotoGallery = ({ photos = [], players = [], photosExpired = false }) => {
             ))}
           </div>
 
-          <p style={{ fontSize: 10, letterSpacing: '1px', color: DIM, marginBottom: 12 }}>
+          <p className="mb-6 text-sm text-dim">
             {t('host.summary.showingXOfY', { shown: visible.length, total: photos.length })}
           </p>
 
           {visible.length === 0 ? (
             <EmptyPanel title={t('host.summary.noPhotosMatchFilter')} />
           ) : (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-              gap: 12,
-            }}>
-              {visible.map((photo) => (
-                <PhotoTile key={photo._id} photo={photo} onOpen={setSelected} />
+            <div className="grid gap-x-6 gap-y-8" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))' }}>
+              {visible.map((photo, i) => (
+                <PhotoTile key={photo._id} photo={photo} onOpen={setSelected} index={i} />
               ))}
             </div>
           )}
@@ -369,20 +292,15 @@ const PhotoGallery = ({ photos = [], players = [], photosExpired = false }) => {
             setOutcomeFilter('all');
             setPlayerFilter('all');
           }}
-          style={{
-            marginTop: 16, background: 'transparent', border: `1px solid ${BORDER}`,
-            color: MUTED, fontSize: 10, fontWeight: 700, letterSpacing: '1px',
-            padding: '8px 16px', cursor: 'pointer',
-          }}
-          onFocus={(e) => (e.currentTarget.style.outline = FOCUS_RING)}
-          onBlur={(e) => (e.currentTarget.style.outline = 'none')}
+          type="button"
+          className="es-link mt-6 text-muted"
         >
           {t('host.summary.clearFilters')}
         </button>
       )}
 
       {selected && <PhotoLightbox photo={selected} onClose={() => setSelected(null)} />}
-    </div>
+    </section>
   );
 };
 

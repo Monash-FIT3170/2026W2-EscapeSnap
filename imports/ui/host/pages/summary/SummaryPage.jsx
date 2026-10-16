@@ -4,14 +4,10 @@ import { useGameSummary } from '/imports/ui/shared/hooks/useGameSummary.js';
 import GameNotFound from '/imports/ui/shared/components/GameNotFound.jsx';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
 import PhotoGallery from '/imports/ui/host/components/summary/PhotoGallery.jsx';
+import { RoomBar } from '/imports/ui/shared/components/room/RoomBar';
 import { useT } from '../../../../languages/LanguageProvider';
 import { useGameUiTheme } from '../../../shared/components/theme/UiThemeProvider';
 
-const BG = 'rgb(var(--es-ground))';
-const PANEL = 'rgb(var(--es-panel))';
-const INNER = 'rgb(var(--es-ground))';
-const BORDER = 'rgb(var(--es-line))';
-const ACCENT = 'rgb(var(--es-brand))';
 const TEXT = 'rgb(var(--es-ink))';
 const MUTED = 'rgb(var(--es-muted))';
 const DIM = 'rgb(var(--es-dim))';
@@ -55,37 +51,32 @@ const STATUS_LABEL_KEYS = {
 };
 
 const SectionHeader = ({ label }) => (
-  <div className="flex items-center gap-3 mb-4">
-    <div style={{ width: 4, height: 16, background: ACCENT }} />
-    <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: TEXT }}>{label}</span>
-  </div>
+  <h2 className="es-title mb-4 text-2xl text-ink">{label}</h2>
 );
 
 const StatTile = ({ label, value, hint, subHint }) => (
-  <div style={{ background: INNER, border: `1px solid ${BORDER}`, padding: '20px 24px', flex: 1, minWidth: 0 }}>
-    <p style={{ fontSize: 10, letterSpacing: '1px', color: MUTED, whiteSpace: 'nowrap' }}>{label}</p>
-    <p style={{ fontSize: 32, fontWeight: 700, letterSpacing: '1px', color: TEXT, marginTop: 8, lineHeight: 1 }}>
-      {value}
-    </p>
-    {hint && <p style={{ fontSize: 10, letterSpacing: '0.5px', color: DIM, marginTop: 8 }}>{hint}</p>}
-    {subHint && <p style={{ fontSize: 10, letterSpacing: '0.5px', color: INCORRECT, marginTop: 4 }}>{subHint}</p>}
+  <div className="es-plate min-w-0 flex-1 px-5 pb-5 pt-4">
+    <p className="es-label whitespace-nowrap">{label}</p>
+    <p className="es-title mt-3 text-5xl tabular-nums text-ink">{value}</p>
+    {hint && <p className="mt-3 text-sm text-muted">{hint}</p>}
+    {subHint && <p className="mt-1 text-sm text-incorrect">{subHint}</p>}
   </div>
 );
 
 const Th = ({ children, align = 'left' }) => (
-  <th style={{
-    textAlign: align, padding: '10px 12px', fontSize: 10, fontWeight: 600,
-    letterSpacing: '1px', color: MUTED, borderBottom: `1px solid ${BORDER}`, whiteSpace: 'nowrap',
-  }}>
+  <th
+    className="es-label whitespace-nowrap border-b border-line px-3 py-2.5 font-medium"
+    style={{ textAlign: align }}
+  >
     {children}
   </th>
 );
 
 const Td = ({ children, align = 'left', color = TEXT }) => (
-  <td style={{
-    textAlign: align, padding: '12px', fontSize: 13, color,
-    borderBottom: `1px solid ${PANEL}`, whiteSpace: 'nowrap',
-  }}>
+  <td
+    className="whitespace-nowrap border-b border-line/50 px-3 py-3 font-display text-lg tabular-nums"
+    style={{ textAlign: align, color }}
+  >
     {children}
   </td>
 );
@@ -94,10 +85,9 @@ const Shell = ({ gameId, children }) => {
   const t = useT();
   return (
     <SidebarLayout gameId={gameId} activePage="summary">
-      <header className="flex items-center justify-between px-6 py-4" style={{ background: BG, borderBottom: `2px solid ${PANEL}` }}>
-        <span className="font-display text-lg font-black tracking-wide text-brand">ESCAPESNAP</span>
-        <span style={{ fontSize: 10, letterSpacing: '1px', color: MUTED }}>{t('host.summary.missionDebrief')}</span>
-      </header>
+      <RoomBar home={null}>
+        <span className="font-display text-base tracking-[0.04em] text-muted">{t('host.summary.missionDebrief')}</span>
+      </RoomBar>
       {children}
     </SidebarLayout>
   );
@@ -112,8 +102,8 @@ const SummaryPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: BG }}>
-        <p style={{ color: MUTED, fontSize: 10, letterSpacing: '1px' }}>{t('host.summary.loading')}</p>
+      <div className="es-room flex items-center justify-center">
+        <p className="pulse-text font-display text-lg text-muted">{t('host.summary.loading')}</p>
       </div>
     );
   }
@@ -125,33 +115,14 @@ const SummaryPage = () => {
   if (!ended) {
     return (
       <Shell gameId={gameId}>
-        <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8">
-          <div style={{ width: 4, height: 40, background: ACCENT }} />
-          <h1 style={{ fontWeight: 700, fontSize: 24, letterSpacing: '2px', color: TEXT, textAlign: 'center' }}>
-            {t('host.summary.missionStillActive')}
-          </h1>
-          <p style={{ fontSize: 12, letterSpacing: '1px', color: MUTED, textAlign: 'center', maxWidth: 460, lineHeight: 1.7 }}>
-            {t('host.summary.debriefLockedBody')}
-          </p>
-          <div className="flex gap-3">
-            <button
-              onClick={() => navigate(`/game/${gameId}/progress`)}
-              style={{
-                background: ACCENT, color: 'rgb(var(--es-on-brand))', fontSize: 12, fontWeight: 700,
-                letterSpacing: '1.5px', padding: '14px 32px', border: 'none', cursor: 'pointer',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgb(var(--es-brand-bright))')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = ACCENT)}
-            >
+        <div className="flex flex-1 flex-col items-center justify-center gap-6 p-8 text-center">
+          <p className="es-tape -rotate-2 px-10 text-lg">{t('host.summary.missionStillActive')}</p>
+          <p className="mt-4 max-w-[46ch] leading-7 text-muted">{t('host.summary.debriefLockedBody')}</p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <button type="button" onClick={() => navigate(`/game/${gameId}/progress`)} className="es-btn es-btn-primary">
               {t('host.summary.backToOperatives')}
             </button>
-            <button
-              onClick={() => navigate(`/game/${gameId}/final-riddle`)}
-              style={{
-                background: 'transparent', color: MUTED, fontSize: 12, fontWeight: 700,
-                letterSpacing: '1.5px', padding: '14px 32px', border: `1px solid ${BORDER}`, cursor: 'pointer',
-              }}
-            >
+            <button type="button" onClick={() => navigate(`/game/${gameId}/final-riddle`)} className="es-btn es-btn-ghost">
               {t('host.summary.finalRiddle')}
             </button>
           </div>
@@ -168,26 +139,23 @@ const SummaryPage = () => {
 
   return (
     <Shell gameId={gameId}>
-      <div className="flex-1 p-8 flex flex-col gap-6">
+      <div className="flex flex-1 flex-col gap-10 px-6 py-8 lg:px-10">
 
-        {/* Outcome */}
-        <div className="flex items-center gap-3">
-          <div style={{ width: 4, height: 32, background: ACCENT }} />
-          <div>
-            <p style={{ fontSize: 10, letterSpacing: '1px', color: MUTED }}>
-              {won ? t('host.summary.missionSuccess') : t('host.summary.missionFailed')}
-            </p>
-            <h1 style={{ fontWeight: 700, fontSize: 28, letterSpacing: '2px', color: TEXT, lineHeight: 1.2 }}>
-              {won ? t('host.summary.you') : t('host.summary.no')}{' '}
-              <span style={{ color: ACCENT }}>{won ? t('host.summary.escaped') : t('host.summary.escape')}</span>
-            </h1>
-          </div>
-        </div>
+        {/* Outcome: the case file closed, stamped with how it ended. */}
+        <header className="flex flex-wrap items-end gap-x-8 gap-y-4">
+          <h1 className="es-title text-6xl text-ink lg:text-7xl">
+            {won ? t('host.summary.you') : t('host.summary.no')}{' '}
+            {won ? t('host.summary.escaped') : t('host.summary.escape')}
+          </h1>
+          <span className={`es-stamp mb-2 !text-xl ${won ? 'text-correct' : 'text-brand-bright'}`}>
+            {won ? t('host.summary.missionSuccess') : t('host.summary.missionFailed')}
+          </span>
+        </header>
 
         {/* Team tiles */}
         <div>
           <SectionHeader label={t('host.summary.teamPerformance')} />
-          <div className="flex gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatTile
               label={t('host.summary.totalTime')}
               value={`${team.totalTimeApproximate ? '~' : ''}${formatClock(team.totalTimeMs)}`}
@@ -229,10 +197,10 @@ const SummaryPage = () => {
         </div>
 
         {/* Per-player table */}
-        <div style={{ background: PANEL, padding: 24 }}>
+        <section className="es-plate px-6 pb-6 pt-5">
           <SectionHeader label={t('host.summary.operativeManifest')} />
           {players.length === 0 ? (
-            <p style={{ fontSize: 11, color: MUTED, opacity: 0.6 }}>{t('host.summary.noOperativesOnRecord')}</p>
+            <p className="text-muted">{t('host.summary.noOperativesOnRecord')}</p>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
@@ -253,7 +221,7 @@ const SummaryPage = () => {
                   {players.map((p) => (
                     <tr key={p.playerId}>
                       <Td>
-                        <span style={{ fontWeight: 700, letterSpacing: '1px' }}>{p.name.toUpperCase()}</span>
+                        <span className="font-display text-lg font-semibold tracking-[0.02em]">{p.name.toUpperCase()}</span>
                       </Td>
                       <Td align="right" color={p.correct > 0 ? CORRECT : DIM}>{p.correct}</Td>
                       <Td align="right" color={p.incorrect > 0 ? INCORRECT : DIM}>{p.incorrect}</Td>
@@ -270,17 +238,15 @@ const SummaryPage = () => {
             </div>
           )}
           {anyUntimed && (
-            <p style={{ fontSize: 10, letterSpacing: '0.5px', color: DIM, marginTop: 12 }}>
-              {t('host.summary.untimedNote')}
-            </p>
+            <p className="mt-3 text-sm text-dim">{t('host.summary.untimedNote')}</p>
           )}
-        </div>
+        </section>
 
         {/* Per-round timing */}
-        <div style={{ background: PANEL, padding: 24 }}>
+        <section className="es-plate px-6 pb-6 pt-5">
           <SectionHeader label={t('host.summary.roundTiming')} />
           {roundNumbers.length === 0 ? (
-            <p style={{ fontSize: 11, color: MUTED, opacity: 0.6 }}>{t('host.summary.noRoundsOnRecord')}</p>
+            <p className="text-muted">{t('host.summary.noRoundsOnRecord')}</p>
           ) : (
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 560 }}>
@@ -295,21 +261,21 @@ const SummaryPage = () => {
                 <tbody>
                   {players.map((p) => (
                     <tr key={p.playerId}>
-                      <Td><span style={{ fontWeight: 700, letterSpacing: '1px' }}>{p.name.toUpperCase()}</span></Td>
+                      <Td><span className="font-display text-lg font-semibold tracking-[0.02em]">{p.name.toUpperCase()}</span></Td>
                       {roundNumbers.map((n) => {
                         const round = p.rounds.find((r) => r.roundNumber === n);
                         const color = STATUS_COLOR[round?.status] ?? DIM;
                         return (
-                          <td key={n} style={{ padding: 8, borderBottom: `1px solid ${PANEL}` }}>
-                            <div style={{ background: INNER, border: `1px solid ${BORDER}`, borderBottom: `2px solid ${color}`, padding: '12px 8px', textAlign: 'center' }}>
-                              <p style={{ fontSize: 18, fontWeight: 700, color: TEXT, lineHeight: 1 }}>
+                          <td key={n} className="border-b border-line/50 p-2">
+                            <div className="es-well px-2 py-3 text-center" style={{ borderBottom: `2px solid ${color}` }}>
+                              <p className="font-display text-2xl font-semibold leading-none tabular-nums text-ink">
                                 {formatDuration(round?.durationMs)}
                               </p>
-                              <p style={{ fontSize: 9, letterSpacing: '0.8px', color, marginTop: 6 }}>
+                              <p className="mt-2 font-display text-sm tracking-[0.03em]" style={{ color }}>
                                 {STATUS_LABEL_KEYS[round?.status] ? t(`host.summary.${STATUS_LABEL_KEYS[round.status]}`) : DASH}
                               </p>
                               {round?.attempts > 1 && (
-                                <p style={{ fontSize: 9, letterSpacing: '0.5px', color: DIM, marginTop: 4 }}>
+                                <p className="mt-1 text-xs text-dim">
                                   {t('host.summary.attemptsCount', { n: round.attempts })}
                                 </p>
                               )}
@@ -323,7 +289,7 @@ const SummaryPage = () => {
               </table>
             </div>
           )}
-        </div>
+        </section>
 
         <PhotoGallery photos={photos} players={players} photosExpired={team.photosExpired} />
 

@@ -209,7 +209,7 @@ const MobileRiddlePage = ({
 
   if (!roundId) {
     return (
-      <div className="px-5 pt-6 text-center font-mono text-xs uppercase tracking-[0.2em] text-muted">
+      <div className="px-5 pt-6 text-center font-display text-sm uppercase tracking-[0.06em] text-muted">
         {t('mobile.riddle.loadingRound')}
       </div>
     );
@@ -225,14 +225,14 @@ const MobileRiddlePage = ({
         {cameraError ? (
           // The camera area is black in every theme, so this text stays light.
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-            <p className="px-8 text-center font-mono text-xs uppercase tracking-widest text-white/70">
+            <p className="px-8 text-center font-display text-sm uppercase tracking-[0.06em] text-white/70">
               {cameraError}
             </p>
             {!isExpired && (
               <button
                 type="button"
                 onClick={retryCamera}
-                className="border border-white/60 px-5 py-2 font-mono text-xs uppercase tracking-widest text-white"
+                className="border border-white/60 px-5 py-2 font-display text-sm uppercase tracking-[0.06em] text-white"
               >
                 {t('mobile.dashboard.retry')}
               </button>
@@ -259,14 +259,14 @@ const MobileRiddlePage = ({
         {(validationState === 'fail' || validationState === 'error') && (
           <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-1 bg-ground/90 px-6 py-4">
             <span
-              className={`font-mono text-xs uppercase tracking-widest ${
+              className={`font-display text-sm uppercase tracking-[0.06em] ${
                 validationState === 'error' ? 'text-muted' : 'text-incorrect'
               }`}
             >
               {validationState === 'error' ? t('mobile.riddle.couldntVerify') : t('mobile.riddle.notAMatch')}
             </span>
             {explanation && (
-              <span className="text-center font-mono text-[11px] leading-5 text-muted">
+              <span className="text-center text-sm leading-5 text-muted">
                 {explanation}
               </span>
             )}
@@ -294,7 +294,7 @@ const MobileRiddlePage = ({
             </div>
 
             <div className="absolute inset-x-0 bottom-6 flex items-center justify-center">
-              <span className="pulse-text bg-ground/80 px-4 py-2 font-mono text-xs uppercase tracking-[0.25em] text-muted">
+              <span className="pulse-text bg-ground/80 px-4 py-2 font-display text-sm uppercase tracking-[0.06em] text-muted">
                 {t('mobile.riddle.analysing')}
               </span>
             </div>
@@ -304,10 +304,10 @@ const MobileRiddlePage = ({
         {isExpired && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-ground/80">
             <span className="font-mono text-3xl text-incorrect">✗</span>
-            <span className="font-mono text-xs uppercase tracking-[0.25em] text-incorrect">
+            <span className="font-display text-sm uppercase tracking-[0.06em] text-incorrect">
               {t('mobile.riddle.roundEnded')}
             </span>
-            <span className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-dim">
+            <span className="mt-1 font-display text-xs uppercase tracking-[0.06em] text-dim">
               {t('mobile.riddle.noSubmissionAccepted')}
             </span>
           </div>
@@ -321,7 +321,7 @@ const MobileRiddlePage = ({
           <button
             onClick={handleCapture}
             disabled={uploading || !!cameraError}
-            className="flex h-[72px] w-[72px] items-center justify-center rounded-full border-2 border-brand bg-brand text-on-brand transition active:scale-95 active:bg-brand-bright disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex h-[72px] w-[72px] items-center justify-center rounded-full border-[3px] border-line bg-brand text-on-brand shadow-[0_0_0_4px_rgb(0_0_0/0.6),0_14px_32px_-10px_rgb(var(--es-brand)/0.9)] transition active:scale-95 active:bg-brand-bright disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label={t('mobile.riddle.capturePhotoAria')}
           >
             <CameraIcon />

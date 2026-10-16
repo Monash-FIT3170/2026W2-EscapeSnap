@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router';
 import { useT } from '../../../../languages/LanguageProvider';
 import { LanguagePicker } from '../../../../languages/LanguagePicker';
 import { ThemePicker } from '../../../shared/components/theme/ThemePicker';
+import { RoomBar } from '/imports/ui/shared/components/room/RoomBar';
 import { useUiTheme } from '../../../shared/components/theme/UiThemeProvider';
 import { errorKey } from '../../../../languages/errors';
 import { DEFAULT_ANSWER_MODE } from '../../../../lib/answerModes';
@@ -31,6 +32,37 @@ const MODE_OPTIONS = [
   { value: 'camera', labelKey: 'host.createGame.modeCamera', subKey: 'host.createGame.modeCameraSub' },
   { value: 'drawing', labelKey: 'host.createGame.modeDrawing', subKey: 'host.createGame.modeDrawingSub' },
 ];
+
+// One row of keypad keys; the chosen one stays pressed in and lit.
+function OptionKeys({ options, value, onChange, columns = 3, renderLabel }) {
+  const t = useT();
+  return (
+    <div className={`grid gap-2 ${columns === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+      {options.map(opt => (
+        <button
+          key={opt.value}
+          type="button"
+          aria-pressed={value === opt.value}
+          onClick={() => onChange(opt.value)}
+          className="es-key"
+        >
+          <span>{renderLabel ? renderLabel(opt) : opt.labelKey ? t(opt.labelKey) : opt.label}</span>
+          <span className="es-key-sub">{opt.subKey ? t(opt.subKey) : opt.sub}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// A labelled block on the rig.
+function Section({ label, children }) {
+  return (
+    <section className="border-t border-line/70 px-5 py-5 first:border-t-0">
+      <h2 className="es-label mb-3">{label}</h2>
+      {children}
+    </section>
+  );
+}
 
 const CreateGame = () => {
   const navigate = useNavigate();
@@ -89,245 +121,141 @@ const CreateGame = () => {
     }
   };
 
+  // Laid out like the landing page's hero: the title on the left, the
+  // controls on a plate beside it (stacked on narrow screens).
   return (
-    <div className="min-h-screen text-ink flex flex-col" style={{ background: 'rgb(var(--es-ground))' }}>
-      <header className="px-8 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid rgb(var(--es-panel))' }}>
-        <span className="font-display text-xl font-black tracking-wide text-brand">
-          ESCAPESNAP
-        </span>
-        <div className="flex items-center gap-3">
-          <ThemePicker />
-          <LanguagePicker />
+    <div className="es-room flex flex-col">
+      <RoomBar>
+        <ThemePicker chipClassName="es-chip" />
+        <LanguagePicker chipClassName="es-chip" />
+      </RoomBar>
+
+      <main className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 gap-10 px-5 py-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:px-10">
+        <div className="lg:sticky lg:top-28 lg:self-start">
+          <p className="es-label mb-3">{t('host.createGame.eyebrow')}</p>
+          <h1 className="es-title text-6xl text-ink lg:text-7xl">{t('host.createGame.title')}</h1>
+          <p className="mt-5 max-w-[42ch] text-lg leading-8 text-muted">{t('host.createGame.subtitle')}</p>
         </div>
-      </header>
 
-      <main className="flex-1 flex items-center justify-center px-8 py-12">
-        <div className="w-full max-w-lg">
-          <div className="mb-8">
-            <p className="text-xs tracking-widest mb-1" style={{ color: 'rgb(var(--es-brand))' }}>
-              {t('host.createGame.eyebrow')}
-            </p>
-            <h1 className="text-3xl font-bold tracking-widest uppercase" style={{ color: 'rgb(var(--es-ink))' }}>
-              {t('host.createGame.title')}
-            </h1>
-            <p className="text-xs mt-2 tracking-wide" style={{ color: 'rgb(var(--es-dim))' }}>
-              {t('host.createGame.subtitle')}
-            </p>
-          </div>
+        <div className="es-plate">
+          <Section label={t('host.createGame.gameMode')}>
+            <OptionKeys options={PLAY_MODE_OPTIONS} value={playMode} onChange={setPlayMode} />
+            {playMode !== 'solo' && (
+              <p className="mt-3 text-sm leading-6 text-muted">
+                {t(isLocal ? 'host.createGame.localNote' : 'host.createGame.onlineNote')}
+              </p>
+            )}
+          </Section>
 
-          <div className="space-y-6">
+          <Section
+            label={t(isLocal ? 'host.createGame.team1Name' : playMode === 'online' ? 'host.createGame.teamName' : 'host.createGame.groupName')}
+          >
+            <input
+              type="text"
+              aria-label={t(isLocal ? 'host.createGame.team1Name' : playMode === 'online' ? 'host.createGame.teamName' : 'host.createGame.groupName')}
+              placeholder={t(isLocal ? 'host.createGame.team1Placeholder' : 'host.createGame.groupNamePlaceholder')}
+              value={groupName}
+              onChange={e => setGroupName(e.target.value)}
+              maxLength={40}
+              autoComplete="off"
+              className="es-field"
+            />
+            {isLocal && (
+              <>
+                <h2 className="es-label mb-3 mt-5">{t('host.createGame.team2Name')}</h2>
+                <input
+                  type="text"
+                  aria-label={t('host.createGame.team2Name')}
+                  placeholder={t('host.createGame.team2Placeholder')}
+                  value={rivalName}
+                  onChange={e => setRivalName(e.target.value)}
+                  maxLength={40}
+                  autoComplete="off"
+                  className="es-field"
+                />
+              </>
+            )}
+          </Section>
 
-            <div className="p-4" style={{ border: '1px solid rgb(var(--es-panel))' }}>
-              <label className="block text-xs tracking-widest mb-3" style={{ color: 'rgb(var(--es-muted))' }}>
-                {t('host.createGame.gameMode')}
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {PLAY_MODE_OPTIONS.map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setPlayMode(opt.value)}
-                    className="p-3 text-left transition-colors cursor-pointer"
-                    style={{
-                      border: playMode === opt.value ? '1px solid rgb(var(--es-brand))' : '1px solid rgb(var(--es-panel))',
-                      background: playMode === opt.value ? 'rgb(var(--es-brand) / 0.12)' : 'transparent',
-                    }}
-                  >
-                    <div className="text-xs font-bold" style={{ color: 'rgb(var(--es-ink))' }}>
-                      {t(opt.labelKey)}
-                    </div>
-                    <div className="text-xs mt-1 leading-tight" style={{ color: playMode === opt.value ? 'rgb(var(--es-muted))' : 'rgb(var(--es-dim))' }}>
-                      {t(opt.subKey)}
-                    </div>
-                  </button>
-                ))}
+          <div className="grid grid-cols-1 border-t border-line/70 sm:grid-cols-2 [&>section]:border-t-0 sm:[&>section+section]:border-l">
+            <Section label={t('host.createGame.timeLimit')}>
+              <div className="flex items-center gap-4">
+                <input
+                  type="range" min={10} max={60} step={5} value={timer}
+                  aria-label={t('host.createGame.timeLimit')}
+                  className="es-range flex-1"
+                  onChange={e => setTimer(Number(e.target.value))}
+                />
+                <span className="es-lcd es-lcd-text w-16 py-1 text-center text-2xl tabular-nums">{timer}</span>
               </div>
-              {playMode !== 'solo' && (
-                <p className="text-xs mt-3 leading-relaxed" style={{ color: 'rgb(var(--es-dim))' }}>
-                  {t(isLocal ? 'host.createGame.localNote' : 'host.createGame.onlineNote')}
-                </p>
-              )}
-            </div>
+            </Section>
 
-            <div className="p-4 space-y-4" style={{ border: '1px solid rgb(var(--es-panel))' }}>
-              {[
-                {
-                  labelKey: isLocal ? 'host.createGame.team1Name' : playMode === 'online' ? 'host.createGame.teamName' : 'host.createGame.groupName',
-                  placeholderKey: isLocal ? 'host.createGame.team1Placeholder' : 'host.createGame.groupNamePlaceholder',
-                  value: groupName,
-                  onChange: setGroupName,
-                },
-                ...(isLocal
-                  ? [{ labelKey: 'host.createGame.team2Name', placeholderKey: 'host.createGame.team2Placeholder', value: rivalName, onChange: setRivalName }]
-                  : []),
-              ].map(field => (
-                <div key={field.labelKey}>
-                  <label className="block text-xs tracking-widest mb-3" style={{ color: 'rgb(var(--es-muted))' }}>
-                    {t(field.labelKey)}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder={t(field.placeholderKey)}
-                    value={field.value}
-                    onChange={e => field.onChange(e.target.value)}
-                    maxLength={40}
-                    autoComplete="off"
-                    className="w-full bg-transparent px-3 py-3 text-sm tracking-wide focus:outline-none"
-                    style={{ border: '1px solid rgb(var(--es-panel))', color: 'rgb(var(--es-ink))' }}
-                  />
-                </div>
-              ))}
-            </div>
-
-            <div className="p-4" style={{ border: '1px solid rgb(var(--es-panel))' }}>
-              <label className="block text-xs tracking-widest mb-3" style={{ color: 'rgb(var(--es-muted))' }}>
-                {t('host.createGame.timeLimit')}
-              </label>
-              <input
-                type="range" min={10} max={60} step={5} value={timer}
-                className="w-full accent-brand cursor-pointer"
-                onChange={e => setTimer(Number(e.target.value))}
-              />
-              <div className="flex justify-between px-2.5 mt-2 text-xs" style={{ color: 'rgb(var(--es-dim))' }}>
-                <span>|</span><span>|</span><span>|</span><span>|</span><span>|</span>
-                <span>|</span><span>|</span><span>|</span><span>|</span><span>|</span><span>|</span>
-              </div>
-              <div className="flex justify-between px-2.5 mt-2 text-xs" style={{ color: 'rgb(var(--es-dim))' }}>
-                <span>10</span><span>15</span><span>20</span><span>25</span><span>30</span>
-                <span>35</span><span>40</span><span>45</span><span>50</span><span>55</span><span>60</span>
-              </div>
-            </div>
-
-            <div className="p-4" style={{ border: '1px solid rgb(var(--es-panel))' }}>
-              <label className="block text-xs tracking-widest mb-3" style={{ color: 'rgb(var(--es-muted))' }}>
-                {t(playMode === 'solo' ? 'host.createGame.lobbyCapacity' : 'host.createGame.playersPerTeam')}
-              </label>
+            <Section label={t(playMode === 'solo' ? 'host.createGame.lobbyCapacity' : 'host.createGame.playersPerTeam')}>
               <div className="flex items-center gap-4">
                 <input
                   type="range" min={2} max={4} step={1} value={capacity}
+                  aria-label={t(playMode === 'solo' ? 'host.createGame.lobbyCapacity' : 'host.createGame.playersPerTeam')}
                   onChange={e => setCapacity(Number(e.target.value))}
-                  className="flex-1 accent-brand cursor-pointer"
+                  className="es-range flex-1"
                 />
-                <span className="text-lg w-12 text-right font-bold" style={{ color: 'rgb(var(--es-brand))' }}>
+                <span className="es-lcd es-lcd-text w-16 py-1 text-center text-2xl tabular-nums">
                   {String(capacity).padStart(2, '0')}
                 </span>
               </div>
-            </div>
+            </Section>
+          </div>
 
-            <div className="p-4" style={{ border: '1px solid rgb(var(--es-panel))' }}>
-              <label className="block text-xs tracking-widest mb-3" style={{ color: 'rgb(var(--es-muted))' }}>
-                {t('host.createGame.difficultyLevel')}
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {DIFFICULTY_OPTIONS.map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setDifficulty(opt.value)}
-                    className="p-3 text-left transition-colors cursor-pointer"
-                    style={{
-                      border: difficulty === opt.value ? '1px solid rgb(var(--es-brand))' : '1px solid rgb(var(--es-panel))',
-                      background: difficulty === opt.value ? 'rgb(var(--es-brand) / 0.2)' : 'transparent',
-                    }}
-                  >
-                    <div className="text-xs font-bold" style={{ color: 'rgb(var(--es-ink))' }}>
-                      {t(opt.labelKey)}
-                    </div>
-                    <div className="text-xs mt-1 leading-tight" style={{ color: difficulty === opt.value ? 'rgb(var(--es-muted))' : 'rgb(var(--es-dim))' }}>
-                      {t(opt.subKey)}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
+          <Section label={t('host.createGame.difficultyLevel')}>
+            <OptionKeys options={DIFFICULTY_OPTIONS} value={difficulty} onChange={setDifficulty} />
+          </Section>
 
-            <div className="p-4" style={{ border: '1px solid rgb(var(--es-panel))' }}>
-              <label className="block text-xs tracking-widest mb-3" style={{ color: 'rgb(var(--es-muted))' }}>
-                RIDDLE THEME
-              </label>
-              <div className="grid grid-cols-3 gap-2">
-                {THEME_OPTIONS.map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setTheme(opt.value)}
-                    className="p-3 text-left transition-colors cursor-pointer"
-                    style={{
-                      border: theme === opt.value ? '1px solid rgb(var(--es-brand))' : '1px solid rgb(var(--es-panel))',
-                      background: theme === opt.value ? 'rgb(var(--es-brand) / 0.2)' : 'transparent',
-                    }}
-                  >
-                    <div className="text-xs font-bold" style={{ color: 'rgb(var(--es-ink))' }}>
-                      {opt.value === CUSTOM_THEME ? (
-                        // Shimmers so hosts notice they can type their own theme.
-                        <span className="ai-text">{t(opt.labelKey)}</span>
-                      ) : (
-                        opt.label
-                      )}
-                    </div>
-                    <div className="text-xs mt-1 leading-tight" style={{ color: theme === opt.value ? 'rgb(var(--es-muted))' : 'rgb(var(--es-dim))' }}>
-                      {opt.subKey ? t(opt.subKey) : opt.sub}
-                    </div>
-                  </button>
-                ))}
-              </div>
-              {theme === CUSTOM_THEME && (
-                <input
-                  type="text"
-                  autoFocus
-                  placeholder={t('host.createGame.customThemePlaceholder')}
-                  aria-label={t('host.createGame.themeOther')}
-                  value={customTheme}
-                  onChange={e => setCustomTheme(e.target.value)}
-                  maxLength={CUSTOM_THEME_MAX_LENGTH}
-                  autoComplete="off"
-                  className="mt-3 w-full bg-transparent px-3 py-3 text-sm tracking-wide focus:outline-none"
-                  style={{ border: '1px solid rgb(var(--es-brand))', color: 'rgb(var(--es-ink))' }}
-                />
-              )}
-            </div>
+          <Section label="RIDDLE THEME">
+            <OptionKeys
+              options={THEME_OPTIONS}
+              value={theme}
+              onChange={setTheme}
+              renderLabel={opt =>
+                opt.value === CUSTOM_THEME ? (
+                  // Shimmers so hosts notice they can type their own theme.
+                  <span className="ai-text">{t(opt.labelKey)}</span>
+                ) : (
+                  opt.label
+                )
+              }
+            />
+            {theme === CUSTOM_THEME && (
+              <input
+                type="text"
+                autoFocus
+                placeholder={t('host.createGame.customThemePlaceholder')}
+                aria-label={t('host.createGame.themeOther')}
+                value={customTheme}
+                onChange={e => setCustomTheme(e.target.value)}
+                maxLength={CUSTOM_THEME_MAX_LENGTH}
+                autoComplete="off"
+                className="es-field mt-3"
+              />
+            )}
+          </Section>
 
-            <div className="p-4" style={{ border: '1px solid rgb(var(--es-panel))' }}>
-              <label className="block text-xs tracking-widest mb-3" style={{ color: 'rgb(var(--es-muted))' }}>
-                {t('host.createGame.answerMode')}
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                {MODE_OPTIONS.map(opt => (
-                  <button
-                    key={opt.value}
-                    onClick={() => setMode(opt.value)}
-                    className="p-3 text-left transition-colors cursor-pointer"
-                    style={{
-                      border: mode === opt.value ? '1px solid rgb(var(--es-brand))' : '1px solid rgb(var(--es-panel))',
-                      background: mode === opt.value ? 'rgb(var(--es-brand) / 0.2)' : 'transparent',
-                    }}
-                  >
-                    <div className="text-xs font-bold" style={{ color: 'rgb(var(--es-ink))' }}>
-                      {t(opt.labelKey)}
-                    </div>
-                    <div className="text-xs mt-1 leading-tight" style={{ color: mode === opt.value ? 'rgb(var(--es-muted))' : 'rgb(var(--es-dim))' }}>
-                      {t(opt.subKey)}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
+          <Section label={t('host.createGame.answerMode')}>
+            <OptionKeys options={MODE_OPTIONS} value={mode} onChange={setMode} columns={2} />
+          </Section>
 
+          <div className="border-t border-line/70 px-5 pb-5 pt-5">
             {error && (
-              <p className="text-xs tracking-widest" style={{ color: 'rgb(var(--es-brand))' }}>
-                !! {error}
+              <p role="alert" className="mb-4 font-display text-base tracking-[0.03em] text-brand-bright">
+                ⚠ {error}
               </p>
             )}
-
             <button
+              type="button"
               onClick={handleCreateGame}
               disabled={loading}
-              className="w-full text-sm tracking-widest uppercase py-4 transition-colors cursor-pointer disabled:cursor-not-allowed"
-              style={{
-                background: loading ? 'rgb(var(--es-brand) / 0.4)' : 'rgb(var(--es-brand))',
-                color: loading ? 'rgb(var(--es-dim))' : 'rgb(var(--es-on-brand))',
-              }}
+              className="es-btn es-btn-primary w-full"
             >
               {loading ? t('host.createGame.initializing') : t('host.createGame.initializeMission')}
             </button>
-
           </div>
         </div>
       </main>

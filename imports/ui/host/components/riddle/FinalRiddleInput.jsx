@@ -55,57 +55,44 @@ const FinalRiddleInput = ({ gameId, attemptsUsed = 0, onCorrect = () => {}, onFa
     });
   }
 
+  // Messages inherit their colour, so they read on the host's dark plate and
+  // on the phone's paper case file alike.
+  const message = (text, aside = null) => (
+    <p role="status" className="mt-3 flex items-center gap-2 font-display text-base tracking-[0.03em]">
+      <span className="es-led" data-state="ready" aria-hidden="true" />
+      <span className="flex-1">{text}</span>
+      {aside && <span className="text-sm opacity-75">{aside}</span>}
+    </p>
+  );
+
   return (
     <div>
       <input
         type="text"
         placeholder={t('host.finalRiddle.enterOverridePlaceholder')}
-        className="w-full bg-transparent border border-line text-ink placeholder-dim text-sm font-mono tracking-widest px-4 py-4 mb-3 focus:outline-none focus:border-brand"
+        className="es-field mb-3 uppercase"
         onChange={e => setGuess(e.target.value)}
         value={guess}
         disabled={exhausted}
       />
       <button
+        type="button"
         onClick={handleSubmit}
         disabled={exhausted}
-        style={{
-          width: '100%',
-          padding: '14px',
-          background: exhausted ? 'rgb(var(--es-brand) / 0.4)' : 'rgb(var(--es-brand))',
-          color: exhausted ? 'rgb(var(--es-dim))' : 'rgb(var(--es-on-brand))',
-          fontWeight: 700,
-          fontSize: 13,
-          letterSpacing: '1.5px',
-          cursor: exhausted ? 'not-allowed' : 'pointer',
-          transition: 'background 0.15s',
-          opacity: exhausted ? 0.5 : 1,
-        }}
-        onMouseEnter={e => { if (!exhausted) e.currentTarget.style.background = 'rgb(var(--es-brand-bright))'; }}
-        onMouseLeave={e => { if (!exhausted) e.currentTarget.style.background = 'rgb(var(--es-brand))'; }}
+        className="es-btn es-btn-primary w-full"
       >
         {t('host.finalRiddle.submitAnswer')}
       </button>
 
-      {networkError && (
-        <div style={{ marginTop: 12, padding: '12px 16px', background: 'rgb(var(--es-brand) / 0.2)', borderLeft: '3px solid rgb(var(--es-brand))' }}>
-          <p style={{ fontSize: 12, color: 'rgb(var(--es-ink))', letterSpacing: '1px' }}>{t('host.finalRiddle.connectionError')}</p>
-        </div>
-      )}
+      {networkError && message(t('host.finalRiddle.connectionError'))}
 
-      {result === 'incorrect' && !exhausted && (
-        <div style={{ marginTop: 12, padding: '12px 16px', background: 'rgb(var(--es-brand) / 0.2)', borderLeft: '3px solid rgb(var(--es-brand))', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontSize: 12, color: 'rgb(var(--es-ink))', letterSpacing: '1px' }}>{t('host.finalRiddle.incorrectTryAgain')}</p>
-          <p style={{ fontSize: 11, color: 'rgb(var(--es-muted))', letterSpacing: '1px' }}>
-            {t('host.finalRiddle.attemptsLeftLabel', { n: attemptsLeft, unit: attemptsLeft === 1 ? t('host.finalRiddle.attempt') : t('host.finalRiddle.attempts') })}
-          </p>
-        </div>
-      )}
+      {result === 'incorrect' && !exhausted &&
+        message(
+          t('host.finalRiddle.incorrectTryAgain'),
+          t('host.finalRiddle.attemptsLeftLabel', { n: attemptsLeft, unit: attemptsLeft === 1 ? t('host.finalRiddle.attempt') : t('host.finalRiddle.attempts') })
+        )}
 
-      {exhausted && (
-        <div style={{ marginTop: 12, padding: '12px 16px', background: 'rgb(var(--es-brand) / 0.2)', borderLeft: '3px solid rgb(var(--es-incorrect))' }}>
-          <p style={{ fontSize: 12, color: 'rgb(var(--es-ink))', letterSpacing: '1px' }}>{t('host.finalRiddle.missionFailed')}</p>
-        </div>
-      )}
+      {exhausted && message(t('host.finalRiddle.missionFailed'))}
     </div>
   );
 };
