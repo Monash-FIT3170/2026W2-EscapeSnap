@@ -25,6 +25,22 @@ if (Meteor.isServer) {
         assert.isNull(game.startedAt);
       });
 
+      it('never reuses a join code an open lobby already has', async function () {
+        // Raw insert: only the fields the code lookup reads, so skip the schema.
+        await Games.rawCollection().insertOne({ _id: 'open-lobby', joinCode: '1000', status: 'lobby' });
+        // First draw collides with the open lobby (1000), second is free (5500).
+        const draws = [0, 0.5];
+        const realRandom = Math.random;
+        Math.random = () => draws.shift() ?? realRandom();
+        try {
+          const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
+          const game = await Games.findOneAsync(gameId);
+          assert.equal(game.joinCode, '5500');
+        } finally {
+          Math.random = realRandom;
+        }
+      });
+
       it('applies the documented defaults when called with no options', async function () {
         const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
         const game = await Games.findOneAsync(gameId);

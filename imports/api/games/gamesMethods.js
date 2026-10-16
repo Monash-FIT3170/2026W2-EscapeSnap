@@ -42,8 +42,24 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function generateJoinCode() {
+function randomJoinCode() {
   return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+// players.join looks a game up by code among open lobbies, so two open
+// lobbies sharing a code would send players to whichever one Mongo returns
+// first. Pick a code no open lobby is using; abandoned lobbies never close,
+// so this matters more the longer the app runs.
+async function generateJoinCode() {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const joinCode = randomJoinCode();
+    const inUse = await Games.findOneAsync(
+      { joinCode, status: 'lobby' },
+      { fields: { _id: 1 } }
+    );
+    if (!inUse) return joinCode;
+  }
+  throw new Meteor.Error('no-join-code', 'Could not allocate a join code');
 }
 
 // Tops up a short/empty AI pool with the theme-filtered fallback bank, so a
@@ -214,7 +230,7 @@ Meteor.methods({
         'Custom theme text is required'
       );
     }
-    const joinCode = generateJoinCode();
+    const joinCode = await generateJoinCode();
 
     const gameId = await Games.insertAsync({
       joinCode,
