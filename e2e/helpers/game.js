@@ -11,16 +11,22 @@ export function uniqueName(prefix) {
 }
 
 // Fills in the host's create-game form and waits for the lobby.
-// Returns the new game's id and its 4-digit join code.
-export async function createGame(page, { groupName, capacity = 2 } = {}) {
+// Returns the new game's id, its 4-digit join code and its group name.
+// `mode` is how players answer: 'camera' (photos) or 'drawing' (sketches).
+export async function createGame(
+  page,
+  { groupName = uniqueName('E2E TEAM '), capacity = 2, mode = 'camera' } = {}
+) {
   await placeWindow(page, 0);
   await page.goto('/host');
-  await page
-    .getByPlaceholder('e.g. FIT3170 BEST TEAM')
-    .fill(groupName ?? uniqueName('E2E TEAM '));
+  await page.getByPlaceholder('e.g. FIT3170 BEST TEAM').fill(groupName);
 
   // The capacity slider is the only range input with min=2.
   await page.locator('input[type="range"][min="2"]').fill(String(capacity));
+
+  if (mode === 'drawing') {
+    await page.getByRole('button', { name: /^DRAWING/ }).click();
+  }
 
   await page.getByRole('button', { name: 'INITIALIZE MISSION' }).click();
   await page.waitForURL(/\/game\/[^/]+\/lobby$/);
@@ -29,7 +35,11 @@ export async function createGame(page, { groupName, capacity = 2 } = {}) {
   await expect(joinCode).toHaveText(/^\d{4}$/);
 
   const gameId = page.url().match(/\/game\/([^/]+)\/lobby$/)[1];
-  return { gameId, joinCode: (await joinCode.textContent()).trim() };
+  return {
+    gameId,
+    groupName,
+    joinCode: (await joinCode.textContent()).trim(),
+  };
 }
 
 // Opens a phone-sized browser context, the way a player joins in real life.
@@ -63,10 +73,18 @@ export async function joinGame(page, { name, code }) {
 }
 
 // Creates a game, fills it with players and starts it, leaving every player
-// on the round 1 riddle and the host on the progress page. Callers should
-// close each player's context when done.
-export async function startGame(hostPage, browser, { capacity = 2 } = {}) {
-  const { gameId, joinCode } = await createGame(hostPage, { capacity });
+// on the round 1 riddle and the host on the progress page. The first player
+// reads the whole tutorial when `readTutorial` is set; everyone else skips it.
+// Callers should close each player's context when done.
+export async function startGame(
+  hostPage,
+  browser,
+  { capacity = 2, mode = 'camera', readTutorial = false } = {}
+) {
+  const { gameId, groupName, joinCode } = await createGame(hostPage, {
+    capacity,
+    mode,
+  });
 
   const players = [];
   for (let i = 1; i <= capacity; i++) {
@@ -79,12 +97,42 @@ export async function startGame(hostPage, browser, { capacity = 2 } = {}) {
   await hostPage.getByRole('button', { name: 'START MISSION' }).click();
   await hostPage.waitForURL(`**/game/${gameId}/progress`);
 
-  for (const { page } of players) {
-    await page.getByRole('button', { name: 'Skip Tutorial' }).click();
+  for (const [i, { page }] of players.entries()) {
+    if (readTutorial && i === 0) {
+      await readWholeTutorial(page);
+    } else {
+      await page.getByRole('button', { name: 'Skip Tutorial' }).click();
+    }
     await expect(page.getByText('ROUND_1')).toBeVisible();
   }
 
-  return { gameId, players };
+  return { gameId, groupName, players };
+}
+
+const TUTORIAL_STEPS = [
+  'READ THE RIDDLE',
+  'FIND THE OBJECT',
+  'TAKE A PHOTO',
+  'COLLECT LETTERS',
+  'ESCAPE',
+];
+
+// Steps through every tutorial page (checking Back on the way) and starts.
+async function readWholeTutorial(page) {
+  for (const [i, title] of TUTORIAL_STEPS.entries()) {
+    await expect(page.getByText(title, { exact: true })).toBeVisible();
+    if (i === 1) {
+      await page.getByRole('button', { name: 'Back' }).click();
+      await expect(
+        page.getByText(TUTORIAL_STEPS[0], { exact: true })
+      ).toBeVisible();
+      await page.getByRole('button', { name: 'Next' }).click();
+    }
+    const last = i === TUTORIAL_STEPS.length - 1;
+    await page
+      .getByRole('button', { name: last ? 'Start Mission' : 'Next' })
+      .click();
+  }
 }
 
 // Snaps a photo of the round's riddle. The browser's camera is Chrome's fake
@@ -119,6 +167,42 @@ async function waitForCamera(page, attempts = 3) {
       await page.getByRole('button', { name: 'Scanner' }).click();
     }
   }
+}
+
+// Sketches on the drawing canvas and submits it (drawing-mode games). Like
+// photos, the server's check is faked to "correct".
+export async function drawAnswer(page, roundNumber) {
+  await expect(page.getByText(`ROUND_${roundNumber}`)).toBeVisible();
+
+  const canvas = page.getByLabel('Drawing canvas');
+  const box = await canvas.boundingBox();
+  const at = (fx, fy) => [box.x + box.width * fx, box.y + box.height * fy];
+  await page.mouse.move(...at(0.3, 0.3));
+  await page.mouse.down();
+  await page.mouse.move(...at(0.7, 0.4), { steps: 5 });
+  await page.mouse.move(...at(0.5, 0.7), { steps: 5 });
+  await page.mouse.up();
+
+  await page.getByRole('button', { name: 'Submit Sketch' }).click();
+  await expectRoundSettled(page, roundNumber);
+  await expect(page.getByText('INCORRECT!')).toBeHidden();
+}
+
+// Buys the round's hint (two taps: it costs the team a minute).
+export async function revealHint(page) {
+  await page.getByRole('button', { name: /Reveal Hint/ }).click();
+  await page.getByRole('button', { name: /Tap again/ }).click();
+  await expect(page.getByRole('button', { name: /Reveal Hint/ })).toBeHidden();
+  await expect(page.getByText(/^💡 \S/)).toBeVisible();
+}
+
+// Opens the player's Letters tab, checks the tally, and returns to the scanner.
+export async function checkLetters(page, { solved, total }) {
+  await page.getByRole('button', { name: 'Letters' }).click();
+  await expect(
+    page.getByText(`${solved} / ${total} Rounds Complete`)
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Scanner' }).click();
 }
 
 // Gives up on the round (two taps, like a real player) and forfeits its letter.
