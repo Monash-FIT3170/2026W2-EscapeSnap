@@ -75,7 +75,7 @@ export default function HeroSection({ join, onJoined }) {
           viewBox="0 0 130 50"
         >
           <g
-            stroke="rgba(170,30,20,.85)"
+            stroke="currentColor"
             strokeWidth="3"
             strokeLinecap="round"
             fill="none"

@@ -18,7 +18,7 @@ export function LobbyHeader({ unitLabel, onExit }) {
       </div>
 
       <div className="flex flex-shrink-0 items-center gap-2">
-        <ThemePicker />
+        <ThemePicker compact />
         <LanguagePicker compact />
         {onExit && (
           <button

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useT } from '../../../../languages/LanguageProvider';
 import { LanguagePicker } from '../../../../languages/LanguagePicker';
+import { ThemePicker } from '../../../shared/components/theme/ThemePicker';
 import { sound } from './landingSound';
 
 export function Brand() {
@@ -81,6 +82,7 @@ export default function LandingNav() {
             {t(soundOn ? 'landing.nav.soundOn' : 'landing.nav.soundOff')}
           </span>
         </button>
+        <ThemePicker chipClassName="lp-chip" />
         <LanguagePicker chipClassName="lp-chip" />
       </div>
     </header>

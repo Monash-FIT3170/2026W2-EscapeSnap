@@ -41,7 +41,7 @@ export function PlayerHome({ onStart, loading = false, serverError = '', initial
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <ThemePicker />
+            <ThemePicker compact />
             <LanguagePicker compact />
           </div>
         </div>

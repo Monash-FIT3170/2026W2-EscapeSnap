@@ -516,7 +516,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
             timeLeft={timeLeft ?? totalGameSeconds}
             totalTime={totalGameSeconds}
           />
-          <ThemePicker />
+          <ThemePicker compact />
           <button
             type="button"
             onClick={onExit}
