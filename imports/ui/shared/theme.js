@@ -20,4 +20,5 @@ export const COLORS = {
   onBrand: token('on-brand'),
   correct: token('correct'),
   incorrect: token('incorrect'),
+  warn: token('warn'),
 };

@@ -16,15 +16,17 @@ const LIVE_STATUSES = ['lobby', 'in_progress', 'final_riddle'];
 // started is treated as abandoned, not running.
 const LOBBY_MAX_AGE_MS = 60 * 60 * 1000;
 
+// The app's theme colours (client/main.css), so the page follows the theme.
 const COLORS = {
-  bg: '#0e0e0e',
-  text: '#e5e2e1',
-  muted: '#aa8984',
-  dim: '#555',
-  line: '#1c1b1b',
-  accent: '#8b0000',
-  ok: '#4caf50',
-  warn: '#d4a017',
+  bg: 'rgb(var(--es-ground))',
+  text: 'rgb(var(--es-ink))',
+  muted: 'rgb(var(--es-muted))',
+  dim: 'rgb(var(--es-dim))',
+  line: 'rgb(var(--es-panel))',
+  accent: 'rgb(var(--es-brand))',
+  onAccent: 'rgb(var(--es-on-brand))',
+  ok: 'rgb(var(--es-correct))',
+  warn: 'rgb(var(--es-warn))',
 };
 
 const STATUS_LABELS = {
@@ -119,7 +121,7 @@ function KeyForm({ error, onSubmit }) {
         aria-label="Admin key"
         className="px-4 py-3 text-sm outline-none"
         style={{
-          background: '#151414',
+          background: 'rgb(var(--es-panel))',
           color: COLORS.text,
           border: `1px solid ${COLORS.line}`,
         }}
@@ -138,7 +140,7 @@ function KeyForm({ error, onSubmit }) {
         className="text-sm tracking-widest uppercase py-3 cursor-pointer"
         style={{
           background: COLORS.accent,
-          color: COLORS.text,
+          color: COLORS.onAccent,
           border: 'none',
         }}
       >
@@ -209,7 +211,7 @@ function ConfirmButton({ label, confirmLabel, onConfirm, disabled }) {
       }}
       className="text-[10px] tracking-widest uppercase px-3 py-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
       style={{
-        color: COLORS.text,
+        color: armed ? COLORS.onAccent : COLORS.text,
         background: armed ? COLORS.accent : 'transparent',
         border: `1px solid ${COLORS.accent}`,
       }}
@@ -357,7 +359,7 @@ function GameRow({ game, players, rounds, now, expanded, onToggle, adminKey }) {
         aria-expanded={expanded}
         className="w-full grid grid-cols-2 md:grid-cols-[70px_1fr_80px_110px_80px_80px_80px] gap-x-4 gap-y-1 items-center px-4 py-3 text-left cursor-pointer"
         style={{
-          background: expanded ? '#141313' : 'transparent',
+          background: expanded ? 'rgb(var(--es-panel))' : 'transparent',
           color: COLORS.text,
         }}
       >
@@ -406,7 +408,7 @@ function GameRow({ game, players, rounds, now, expanded, onToggle, adminKey }) {
       {expanded && (
         <div
           className="px-4 pb-4 pt-1 flex flex-col gap-4 text-xs"
-          style={{ background: '#141313' }}
+          style={{ background: 'rgb(var(--es-panel))' }}
         >
           <div
             className="flex flex-wrap gap-x-6 gap-y-1"
@@ -631,7 +633,7 @@ function Dashboard({ adminKey, onAuthError, onLock }) {
   );
 
   const selectStyle = {
-    background: '#151414',
+    background: 'rgb(var(--es-panel))',
     color: COLORS.text,
     border: `1px solid ${COLORS.line}`,
   };

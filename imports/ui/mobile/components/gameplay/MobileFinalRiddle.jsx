@@ -15,44 +15,44 @@ export function MobileFinalRiddle({ gameId, attemptsUsed, rivalName }) {
   const { letters } = useRevealedLetters(gameId);
 
   return (
-    <div className="flex flex-col gap-4 border border-[#8b0000] bg-[#1c1b1b] px-5 py-5">
+    <div className="flex flex-col gap-4 border border-brand bg-panel px-5 py-5">
       <div>
-        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#8b0000]">
+        <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-brand">
           {t('mobile.versus.finalRiddleTitle')}
         </p>
-        <p className="mt-2 font-mono text-xs leading-5 text-[#aa8984]">
+        <p className="mt-2 font-mono text-xs leading-5 text-muted">
           {t('mobile.versus.finalRiddleBody', { team: rivalName ?? '' })}
         </p>
       </div>
 
-      <p className="font-display text-lg font-semibold leading-7 text-[#e5e2e1]">
+      <p className="font-display text-lg font-semibold leading-7 text-ink">
         &ldquo;{finalRiddle ?? '...'}&rdquo;
       </p>
 
       {finalRiddleHint &&
         (hintShown ? (
-          <p className="font-mono text-xs leading-5 text-[#aa8984]">
+          <p className="font-mono text-xs leading-5 text-muted">
             💡 {t('mobile.versus.hint', { hint: finalRiddleHint })}
           </p>
         ) : (
           <button
             type="button"
             onClick={() => setHintShown(true)}
-            className="min-h-[44px] self-start font-mono text-[10px] uppercase tracking-[0.2em] text-[#aa8984]"
+            className="min-h-[44px] self-start font-mono text-[10px] uppercase tracking-[0.2em] text-muted"
           >
             💡 {t('mobile.versus.revealHint')}
           </button>
         ))}
 
       <div>
-        <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-[#aa8984]">
+        <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">
           {t('mobile.versus.teamLetters')}
         </p>
         <div className="flex flex-wrap gap-2">
           {letters.map((letter, i) => (
             <span
               key={i}
-              className="flex h-10 w-10 items-center justify-center border-b-2 border-[#8b0000] bg-[#0e0e0e] font-display text-xl font-black text-[#e5e2e1]"
+              className="flex h-10 w-10 items-center justify-center border-b-2 border-brand bg-ground font-display text-xl font-black text-ink"
             >
               {letter}
             </span>
