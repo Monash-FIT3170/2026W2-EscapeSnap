@@ -1,5 +1,5 @@
 // Meteor's JSX transform still requires React in module scope.
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Rounds } from '/imports/api/rounds/RoundsCollection';
