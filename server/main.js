@@ -68,6 +68,24 @@ Meteor.onConnection((connection) => {
 Meteor.startup(async () => {
   console.log('[EscapeSnap] server ready');
   await Games.createIndexAsync({ joinCode: 1 });
+  // No two open lobbies may share a join code (games.create retries on a
+  // clash). Older databases can already hold duplicate open lobbies, which
+  // makes this fail; games.create's free-code check still applies then.
+  try {
+    await Games.createIndexAsync(
+      { joinCode: 1, status: 1 },
+      {
+        name: 'unique_open_lobby_joinCode',
+        unique: true,
+        partialFilterExpression: { status: 'lobby' },
+      }
+    );
+  } catch (err) {
+    console.error(
+      '[EscapeSnap] could not create unique join-code index:',
+      err.message
+    );
+  }
   await Games.createIndexAsync({ status: 1 });
   await Rounds.createIndexAsync({ gameId: 1, roundNumber: 1 });
   await Rounds.createIndexAsync({ playerId: 1, roundNumber: 1 });

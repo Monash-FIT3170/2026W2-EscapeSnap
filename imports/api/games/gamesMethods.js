@@ -46,18 +46,38 @@ function randomJoinCode() {
   return String(Math.floor(1000 + Math.random() * 9000));
 }
 
+// Where new join codes come from. Tests swap `next` for a fixed sequence
+// rather than stubbing the global Math.random, which background riddle
+// generation also draws from.
+export const joinCodeSource = { next: randomJoinCode };
+
 // players.join looks a game up by code among open lobbies, so two open
 // lobbies sharing a code would send players to whichever one Mongo returns
 // first. Pick a code no open lobby is using; abandoned lobbies never close,
 // so this matters more the longer the app runs.
 async function generateJoinCode() {
   for (let attempt = 0; attempt < 20; attempt++) {
-    const joinCode = randomJoinCode();
+    const joinCode = joinCodeSource.next();
     const inUse = await Games.findOneAsync(
       { joinCode, status: 'lobby' },
       { fields: { _id: 1 } }
     );
     if (!inUse) return joinCode;
+  }
+  throw new Meteor.Error('no-join-code', 'Could not allocate a join code');
+}
+
+// The check in generateJoinCode can't stop two games created at the same
+// moment from picking the same free code. The unique open-lobby index
+// (server/main.js) rejects the second insert, so draw a new code and retry.
+async function insertGameWithJoinCode(game) {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const joinCode = await generateJoinCode();
+    try {
+      return await Games.insertAsync({ ...game, joinCode });
+    } catch (err) {
+      if (err?.code !== 11000) throw err;
+    }
   }
   throw new Meteor.Error('no-join-code', 'Could not allocate a join code');
 }
@@ -230,10 +250,7 @@ Meteor.methods({
         'Custom theme text is required'
       );
     }
-    const joinCode = await generateJoinCode();
-
-    const gameId = await Games.insertAsync({
-      joinCode,
+    const gameId = await insertGameWithJoinCode({
       groupName: groupName.trim(),
       status: 'lobby',
       currentRound: 1,

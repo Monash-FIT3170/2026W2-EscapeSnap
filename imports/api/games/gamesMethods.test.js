@@ -3,7 +3,7 @@ import { assert } from 'chai';
 import { Games } from './GamesCollection';
 import { Players } from '../players/PlayersCollection';
 import { Rounds } from '../rounds/RoundsCollection';
-import './gamesMethods';
+import { joinCodeSource } from './gamesMethods';
 import '../rounds/roundsMethods';
 
 if (Meteor.isServer) {
@@ -29,15 +29,43 @@ if (Meteor.isServer) {
         // Raw insert: only the fields the code lookup reads, so skip the schema.
         await Games.rawCollection().insertOne({ _id: 'open-lobby', joinCode: '1000', status: 'lobby' });
         // First draw collides with the open lobby (1000), second is free (5500).
-        const draws = [0, 0.5];
-        const realRandom = Math.random;
-        Math.random = () => draws.shift() ?? realRandom();
+        const draws = ['1000', '5500'];
+        const realNext = joinCodeSource.next;
+        joinCodeSource.next = () => draws.shift() ?? realNext();
         try {
           const gameId = await Meteor.callAsync('games.create', { groupName: 'Team Rocket' });
           const game = await Games.findOneAsync(gameId);
           assert.equal(game.joinCode, '5500');
         } finally {
-          Math.random = realRandom;
+          joinCodeSource.next = realNext;
+        }
+      });
+
+      it('gives games created at the same moment different join codes', async function () {
+        // server/main.js creates this index at startup, which tests don't run.
+        await Games.createIndexAsync(
+          { joinCode: 1, status: 1 },
+          {
+            name: 'unique_open_lobby_joinCode',
+            unique: true,
+            partialFilterExpression: { status: 'lobby' },
+          }
+        );
+        // Both games draw 1000 first; whichever loses must move to 5500.
+        const draws = ['1000', '1000', '5500'];
+        const realNext = joinCodeSource.next;
+        joinCodeSource.next = () => draws.shift() ?? realNext();
+        try {
+          const ids = await Promise.all([
+            Meteor.callAsync('games.create', { groupName: 'Team Rocket' }),
+            Meteor.callAsync('games.create', { groupName: 'Team Aqua' }),
+          ]);
+          const codes = await Promise.all(
+            ids.map(async (id) => (await Games.findOneAsync(id)).joinCode)
+          );
+          assert.sameMembers(codes, ['1000', '5500']);
+        } finally {
+          joinCodeSource.next = realNext;
         }
       });
 

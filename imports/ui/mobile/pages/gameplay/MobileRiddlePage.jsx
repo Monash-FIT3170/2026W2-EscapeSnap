@@ -6,6 +6,10 @@ import { useT } from '../../../../languages/LanguageProvider';
 // submission, so keep it in step with the `photoUrl` cap in the schema.
 const CAPTURE_MAX_WIDTH = 900;
 
+// How long to wait on a camera request before showing an error with Retry.
+// Long enough for a player to answer the browser's permission prompt.
+const CAMERA_TIMEOUT_MS = 20_000;
+
 function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -49,36 +53,55 @@ const MobileRiddlePage = ({
   const [explanation, setExplanation] = useState(null);
   const [validationState, setValidationState] = useState(null);
 
+  // getUserMedia can resolve after this screen has unmounted (the result
+  // screen swaps in and out between rounds), after the round has expired, or
+  // after we've given up waiting on it. A stream that arrives then has no
+  // owner left to stop it, so it stays live, keeping the camera on and
+  // blanking the next screen's feed. Each camera request takes a number; any
+  // of those events bumps the counter, and a stream for an old number is
+  // stopped on arrival.
+  const cameraRequestRef = useRef(0);
+  const isExpiredRef = useRef(isExpired);
+  isExpiredRef.current = isExpired;
+
   useEffect(() => {
     if (isExpired) return;
-    // getUserMedia can resolve after this screen has unmounted (the result
-    // screen swaps in and out between rounds). A stream that arrives then has
-    // no owner left to stop it, so it stays live, keeping the camera on and
-    // blanking the next screen's feed. Flag the unmount so it's stopped instead.
-    const mount = { unmounted: false };
-    startCamera(mount);
+    startCamera();
     return () => {
-      mount.unmounted = true;
+      cameraRequestRef.current++;
       stopCamera();
     };
   }, []);
 
   useEffect(() => {
-    if (isExpired) stopCamera();
+    if (!isExpired) return;
+    cameraRequestRef.current++;
+    stopCamera();
   }, [isExpired]);
 
-  async function startCamera(mount) {
+  async function startCamera() {
     if (!navigator.mediaDevices?.getUserMedia) {
       console.error('[camera] navigator.mediaDevices is unavailable - likely an insecure (non-HTTPS) context');
       setCameraError(t('mobile.riddle.errCameraSecure'));
       return;
     }
+    const request = ++cameraRequestRef.current;
+    // Some browsers never answer a camera request (no stream, no error),
+    // which would leave a black feed and a shutter that does nothing.
+    const timeout = setTimeout(() => {
+      if (request !== cameraRequestRef.current) return;
+      console.error(
+        `[camera] getUserMedia gave no answer after ${CAMERA_TIMEOUT_MS} ms`
+      );
+      cameraRequestRef.current++;
+      setCameraError(t('mobile.riddle.errCameraUnavailable'));
+    }, CAMERA_TIMEOUT_MS);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' },
         audio: false,
       });
-      if (mount.unmounted) {
+      if (request !== cameraRequestRef.current || isExpiredRef.current) {
         stream.getTracks().forEach((track) => track.stop());
         return;
       }
@@ -87,6 +110,7 @@ const MobileRiddlePage = ({
         videoRef.current.srcObject = stream;
       }
     } catch (err) {
+      if (request !== cameraRequestRef.current) return;
       console.error('[camera] getUserMedia failed:', err.name, err.message);
       const message = err.name === 'NotAllowedError'
         ? t('mobile.riddle.errCameraPermission')
@@ -94,7 +118,15 @@ const MobileRiddlePage = ({
           ? t('mobile.riddle.errCameraNotFound')
           : t('mobile.riddle.errCameraUnavailable');
       setCameraError(message);
+    } finally {
+      clearTimeout(timeout);
     }
+  }
+
+  function retryCamera() {
+    stopCamera();
+    setCameraError(null);
+    startCamera();
   }
 
   function stopCamera() {
@@ -191,10 +223,19 @@ const MobileRiddlePage = ({
     <div className="flex flex-col flex-1">
       <div className="relative min-h-0 flex-1 overflow-hidden bg-black">
         {cameraError ? (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
             <p className="px-8 text-center font-mono text-xs uppercase tracking-widest text-[#aa8984]">
               {cameraError}
             </p>
+            {!isExpired && (
+              <button
+                type="button"
+                onClick={retryCamera}
+                className="border border-[#aa8984] px-5 py-2 font-mono text-xs uppercase tracking-widest text-[#e5e2e1]"
+              >
+                {t('mobile.dashboard.retry')}
+              </button>
+            )}
           </div>
         ) : (
           <video
