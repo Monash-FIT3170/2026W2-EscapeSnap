@@ -1,5 +1,5 @@
 // Meteor's JSX transform still requires React in module scope.
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Rounds } from '/imports/api/rounds/RoundsCollection';
@@ -424,7 +424,15 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
     ? Math.round(gameBudgetMs(game) / 1000)
     : 30 * 60;
 
-  const handleCorrectAnswer = useCallback((letter, isCorrect) => {
+  const roundIdRef = useRef(null);
+  roundIdRef.current = round?._id ?? null;
+
+  // The last player's submit advances the round on the server, and the new
+  // round can reach us before the submit's own result does. Drop a result for
+  // a round we've already left, or it paints CORRECT! (with Retry/Skip) over
+  // the next riddle.
+  const handleCorrectAnswer = useCallback((letter, isCorrect, forRoundId) => {
+    if (forRoundId && forRoundId !== roundIdRef.current) return;
     setRevealedLetter(letter);
     setAnswerCorrect(isCorrect);
   }, []);

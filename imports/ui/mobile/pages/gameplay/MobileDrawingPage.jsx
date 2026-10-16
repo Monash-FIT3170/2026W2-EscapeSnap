@@ -217,7 +217,7 @@ const MobileDrawingPage = ({
   async function submitRiddle() {
     try {
       const letter = await Meteor.callAsync('rounds.submit', roundId, true);
-      if (onCorrect) onCorrect(letter, true);
+      if (onCorrect) onCorrect(letter, true, roundId);
     } catch (err) {
       console.error(
         '[rounds.submit] failed:',
@@ -250,7 +250,7 @@ const MobileDrawingPage = ({
       if (result.outcome === 'pass') {
         await submitRiddle();
       } else if (result.outcome === 'fail' && onCorrect) {
-        onCorrect('?', false);
+        onCorrect('?', false, roundId);
       }
     } catch (err) {
       console.error(
