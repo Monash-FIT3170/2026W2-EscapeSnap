@@ -200,6 +200,30 @@ if (Meteor.isServer) {
         return gameId;
       }
 
+      it('refuses ids that are not strings', async function () {
+        const alpha = await createOnlineTeam('alpha');
+        await Meteor.callAsync('matches.findOpponent', alpha);
+
+        // A selector instead of an id would otherwise match alpha's game.
+        const selector = { playMode: 'online' };
+        await expectError(
+          Meteor.callAsync('matches.cancelSearch', selector),
+          'not-found'
+        );
+        await expectError(
+          Meteor.callAsync('matches.findOpponent', selector),
+          'not-found'
+        );
+        await expectError(
+          Meteor.callAsync('matches.start', { status: 'lobby' }),
+          'not-found'
+        );
+        assert.instanceOf(
+          (await Games.findOneAsync(alpha)).matchmakingSince,
+          Date
+        );
+      });
+
       it('queues a lone team until a rival arrives', async function () {
         const alpha = await createOnlineTeam('alpha');
         await Meteor.callAsync('matches.findOpponent', alpha);
