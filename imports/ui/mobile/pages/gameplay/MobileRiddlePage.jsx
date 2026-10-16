@@ -223,8 +223,9 @@ const MobileRiddlePage = ({
     <div className="flex flex-col flex-1">
       <div className="relative min-h-0 flex-1 overflow-hidden bg-black">
         {cameraError ? (
+          // The camera area is black in every theme, so this text stays light.
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-            <p className="px-8 text-center font-mono text-xs uppercase tracking-widest text-muted">
+            <p className="px-8 text-center font-mono text-xs uppercase tracking-widest text-white/70">
               {cameraError}
             </p>
             {!isExpired && (
