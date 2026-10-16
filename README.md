@@ -46,7 +46,7 @@ meteor run --settings settings.example.json
 | `meteor npm run format` | Prettier write |
 | `meteor npm run test:e2e` | Playwright end-to-end tests (starts the app itself) |
 | `meteor npm run test:e2e:ui` | Same, in Playwright's visual runner |
-| `meteor npm run test:e2e:demo` | Presentation mode: slowed down, windows tiled (add `-- -g "escapes"` for one full game) |
+| `meteor npm run test:e2e:demo` | Presentation mode: slowed down, windows tiled (add `-- -g "photographs"` for one full game) |
 | `meteor npm run test:e2e:report` | Open the HTML report from the last E2E run |
 
 ## End-to-end tests (Playwright)
@@ -54,8 +54,11 @@ meteor run --settings settings.example.json
 Tests live in `e2e/` (excluded from the Meteor bundle via `.meteorignore`):
 
 - `e2e/playwright.config.js` starts its own `meteor run` on port 3000 with test settings, so stop `meteor npm start` first (or set `E2E_PORT`).
-- `e2e/helpers/game.js` holds shared steps (create a game, join on a phone-sized browser, take a photo, skip a round, answer the final riddle).
-- `e2e/tests/*.spec.js` hold the scenarios: landing page, creating a game, joining, starting a game, and two full games (photograph everything and escape; skip everything and fail the final riddle).
+- `e2e/helpers/game.js` holds shared steps (create a game, join on a phone-sized browser, read the tutorial, take a photo, draw a sketch, reveal a hint, check letters, skip a round, answer the final riddle).
+- `e2e/tests/*.spec.js` hold the scenarios: landing page, creating a game, joining, starting a game, and three full games:
+  - **Photograph everything and escape:** tutorial, sealed debrief, hint penalty, letters tab, final riddle, win screens, debrief with every photo, and the leaderboard.
+  - **Sketch everything and escape:** the same game in drawing mode.
+  - **Skip everything and fail:** forfeited letters and three wrong final answers.
 
 First-time setup: `meteor npx playwright install chromium`.
 
