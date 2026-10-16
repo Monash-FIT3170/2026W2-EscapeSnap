@@ -1,5 +1,5 @@
 // Meteor's JSX transform still requires React in module scope.
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Rounds } from '/imports/api/rounds/RoundsCollection';
@@ -20,6 +20,9 @@ import {
   remainingGameMs,
 } from '/imports/lib/gameClock';
 import { useT } from '../../../languages/LanguageProvider';
+import { useMatch } from '/imports/ui/shared/hooks/useMatch';
+import { isVersusGame, teamPhase } from '/imports/lib/teamStatus';
+import { MobileFinalRiddle } from '../components/gameplay/MobileFinalRiddle';
 
 // How long the armed skip button waits for the confirming tap before it
 // disarms itself again.
@@ -145,6 +148,40 @@ function TeamWaitScreen({ ready, total, isFinalRound, holding }) {
   );
 }
 
+// One line under the header in a versus match: who the rival is and how far
+// along they are.
+function RivalStrip({ rival, phase }) {
+  const t = useT();
+  const label =
+    phase === 'escaped'
+      ? t('mobile.versus.rivalEscaped')
+      : phase === 'failed'
+        ? t('mobile.versus.rivalFailed')
+        : phase === 'final'
+          ? t('mobile.versus.rivalFinal')
+          : t('mobile.versus.rivalRound', {
+              n: rival.currentRound ?? 1,
+              total: rival.totalRounds,
+            });
+  return (
+    <div className="flex flex-shrink-0 items-center gap-3 border-b border-line bg-panel px-4 py-2">
+      <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-brand">
+        {t('mobile.versus.vs')}
+      </span>
+      <span className="min-w-0 flex-1 truncate font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-ink">
+        {rival.groupName}
+      </span>
+      <span
+        className={`font-mono text-[10px] uppercase tracking-[0.15em] ${
+          phase === 'final' || phase === 'escaped' ? 'text-brand' : 'text-muted'
+        }`}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
 function ResultScreen({
   revealedLetter,
   answerCorrect,
@@ -158,8 +195,13 @@ function ResultScreen({
   onArmSkip,
   onSkip,
   onRetry,
+  onNext,
+  finalRiddleSlot,
 }) {
   const t = useT();
+  // A solved riddle with another one queued behind it (covering for a
+  // teammate) banks its letter like a settled round, then moves on.
+  const banked = settled || !!onNext;
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-6">
       <section className="flex flex-col gap-5 pt-5">
@@ -173,7 +215,7 @@ function ResultScreen({
 
         {/* Only a settled round has actually banked (or forfeited) a letter —
             a failed scan can still be retried, so nothing is revealed yet. */}
-        {settled && (
+        {banked && (
           <div className="border border-line bg-panel px-6 py-8 text-center">
             <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-muted">
               {t('mobile.dashboard.dataRecoveryActive')}
@@ -204,7 +246,17 @@ function ResultScreen({
           </p>
         </div>
 
-        {settled ? (
+        {onNext ? (
+          <button
+            type="button"
+            onClick={onNext}
+            className="min-h-[52px] w-full border border-brand bg-brand px-5 font-mono text-xs font-semibold uppercase tracking-[0.25em] text-on-brand transition active:bg-brand-bright"
+          >
+            {t('mobile.dashboard.nextRiddle')}
+          </button>
+        ) : settled && finalRiddleSlot ? (
+          finalRiddleSlot
+        ) : settled ? (
           <TeamWaitScreen
             ready={teamReady}
             total={teamTotal}
@@ -236,8 +288,9 @@ function ResultScreen({
 export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   const t = useT();
   const [activeTab, setActiveTab] = useState('scanner');
-  const [revealedLetter, setRevealedLetter] = useState(null);
-  const [answerCorrect, setAnswerCorrect] = useState(null);
+  // { roundId, letter, correct } from the last scan. Keyed by round because a
+  // player covering for a teammate can be handed a new riddle mid-round.
+  const [answered, setAnswered] = useState(null);
   const [timeLeft, setTimeLeft] = useState(null);
   // The hint text only exists on the client once it has been paid for.
   const [hint, setHint] = useState(null);
@@ -251,6 +304,9 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
 
   const {
     round,
+    taskIds,
+    roundSettled,
+    coveringFor,
     revealedLetters,
     game,
     currentRound,
@@ -261,7 +317,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
     shareLoading,
   } = useTracker(() => {
     // player.self is held by PlayerFlow for the whole session — it doubles as
-    // presence tracking, so subscribing again here would register twice.
+    // the server's presence signal, so it must not drop with this screen.
     const gameSubscription = Meteor.subscribe('games.current', gameId);
     const trackedGame = Games.findOne(gameId);
 
@@ -283,8 +339,26 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
     const roundsSubscription = gameEnded
       ? Meteor.subscribe('rounds.forGame', gameId)
       : null;
+
+    // This player's own riddle unless a teammate holds it, then any riddles
+    // they are covering for teammates who left — own first.
+    const ownRound = teamRounds.find((r) => r.playerId === playerId);
+    const tasks = teamRounds
+      .filter((r) =>
+        r.coveredBy ? r.coveredBy === playerId : r.playerId === playerId
+      )
+      .sort((a, b) => (a.playerId === playerId ? -1 : b.playerId === playerId ? 1 : 0));
+    const nextTask = tasks.find((r) => r.status === 'pending');
+    const shownTask = nextTask ?? ownRound;
+    const coveredPlayer =
+      shownTask && shownTask.playerId !== playerId
+        ? Players.findOne(shownTask.playerId)
+        : null;
     return {
-      round: Rounds.findOne({ playerId, roundNumber: activeRound }),
+      round: shownTask,
+      taskIds: tasks.map((r) => r._id),
+      roundSettled: !!shownTask && !nextTask,
+      coveringFor: coveredPlayer?.name ?? null,
       revealedLetters: Players.findOne(playerId)?.revealedLetters ?? [],
       game: trackedGame,
       currentRound: activeRound,
@@ -300,18 +374,52 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
     };
   }, [playerId, gameId]);
 
+  const versus = isVersusGame(game);
+  const {
+    match,
+    teams: matchTeams,
+    rounds: matchRounds,
+  } = useMatch(versus ? game?.matchId : null);
+  const rival = matchTeams.find((team) => team._id !== gameId) ?? null;
+  const rivalPhase = rival ? teamPhase(rival, matchRounds) : null;
+
+  let versusLine = null;
+  if (match?.status === 'finished' && rival) {
+    const team = rival.groupName;
+    if (!match.winnerGameId) versusLine = t('mobile.versus.draw');
+    else if (match.winnerGameId === gameId)
+      versusLine = t('mobile.versus.wonMatch', { team });
+    else versusLine = t('mobile.versus.rivalEscapedFirst', { team });
+  }
+
+  const revealedLetter = answered?.letter ?? null;
+  const answerCorrect = answered?.correct ?? null;
+  // The riddle just solved was settled and the next covered riddle took its
+  // place — the result stays up until the player moves on to it. Only a riddle
+  // from this round counts: the last player's submit can advance the round
+  // before its own result arrives, and that late result must not paint
+  // CORRECT! (with NEXT RIDDLE) over the next round's riddle.
+  const handedOn =
+    !!answered?.correct &&
+    !!round &&
+    answered.roundId !== round._id &&
+    taskIds.includes(answered.roundId) &&
+    !roundSettled;
+
   const totalRounds = game?.totalRounds ?? 1;
   // Old games have no `mode`; normalizeAnswerMode treats that as camera.
   const answerMode = normalizeAnswerMode(game?.mode);
   // 'correct', 'wrong' (skipped) and 'timeout' all mean the same thing here:
-  // this player is done with the round and is waiting on the others.
-  const roundSettled = !!round && round.status !== 'pending';
+  // this player has nothing left to solve this round and is waiting on the
+  // others. `roundSettled` comes from the tracker, which knows about riddles
+  // covered for teammates too.
   const isFinalRound = currentRound >= totalRounds;
   // The team has rolled on, but this player's result is still doing its dwell.
   const holding = !!resultLock && currentRound > resultLock.roundNumber;
   const shownRound = holding ? resultLock.roundNumber : currentRound;
   const settled = roundSettled || holding;
-  const showResult = settled || revealedLetter !== null;
+  const showResult =
+    settled || handedOn || (!!answered && answered.roundId === round?._id);
   // rounds.forPlayer withholds `letter`, so the banked letter comes from the
   // player's own tally — one entry is pushed per settled round, in order.
   const bankedLetter = revealedLetters[shownRound - 1];
@@ -321,7 +429,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   const displayCorrect = settled
     ? holding
       ? bankedLetter !== '?'
-      : round.status === 'correct'
+      : (answerCorrect ?? round.status === 'correct')
     : answerCorrect;
 
   const shareSnapshot = useMemo(
@@ -340,14 +448,22 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   // it. `resultLock` is deliberately left alone: it is what keeps the outgoing
   // round's letter on screen for its dwell.
   useEffect(() => {
-    setRevealedLetter(null);
-    setAnswerCorrect(null);
+    setAnswered(null);
     setHint(null);
     setHintArmed(false);
     setSkipArmed(false);
     setSkipError(false);
     setActiveTab('scanner');
   }, [currentRound]);
+
+  // Settling one riddle can hand this player the next one they are covering
+  // for a teammate, within the same round. Its hint and skip start fresh.
+  useEffect(() => {
+    setHint(null);
+    setHintArmed(false);
+    setSkipArmed(false);
+    setSkipError(false);
+  }, [round?._id]);
 
   useEffect(() => {
     if (!round?._id || !round.hintRevealedAt || hint) return;
@@ -426,17 +542,8 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
     ? Math.round(gameBudgetMs(game) / 1000)
     : 30 * 60;
 
-  const roundIdRef = useRef(null);
-  roundIdRef.current = round?._id ?? null;
-
-  // The last player's submit advances the round on the server, and the new
-  // round can reach us before the submit's own result does. Drop a result for
-  // a round we've already left, or it paints CORRECT! (with Retry/Skip) over
-  // the next riddle.
-  const handleCorrectAnswer = useCallback((letter, isCorrect, forRoundId) => {
-    if (forRoundId && forRoundId !== roundIdRef.current) return;
-    setRevealedLetter(letter);
-    setAnswerCorrect(isCorrect);
+  const handleCorrectAnswer = useCallback((letter, isCorrect, roundId) => {
+    setAnswered({ roundId, letter, correct: isCorrect });
   }, []);
 
   const handleRevealHint = useCallback(async () => {
@@ -477,8 +584,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   }, [round?._id, skipping]);
 
   const handleRetry = () => {
-    setRevealedLetter(null);
-    setAnswerCorrect(null);
+    setAnswered(null);
     setSkipArmed(false);
     setActiveTab('scanner');
   };
@@ -486,6 +592,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   if (game?.status === 'won') {
     return (
       <PlayerWinScreen
+        versusLine={versusLine}
         playerId={playerId}
         snapshot={shareSnapshot}
         loading={shareLoading}
@@ -495,6 +602,7 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
   if (game?.status === 'lost') {
     return (
       <PlayerLoseScreen
+        versusLine={versusLine}
         playerId={playerId}
         snapshot={shareSnapshot}
         loading={shareLoading}
@@ -527,14 +635,23 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
         </div>
       </header>
 
+      {rival && <RivalStrip rival={rival} phase={rivalPhase} />}
+
       {!showResult && activeTab === 'scanner' && (
         <div className="flex flex-shrink-0 items-start gap-3 border-b border-line bg-panel px-4 py-3">
           <span className="flex-shrink-0 bg-brand px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.15em] text-on-brand">
             {t('mobile.dashboard.roundBadge', { n: currentRound })}
           </span>
-          <p className="min-w-0 font-mono text-xs leading-5 text-ink">
-            {round?.riddleText ?? t('mobile.dashboard.loadingRiddle')}
-          </p>
+          <div className="min-w-0">
+            {coveringFor && (
+              <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.2em] text-brand">
+                {t('mobile.dashboard.coveringFor', { name: coveringFor })}
+              </p>
+            )}
+            <p className="font-mono text-xs leading-5 text-ink">
+              {round?.riddleText ?? t('mobile.dashboard.loadingRiddle')}
+            </p>
+          </div>
         </div>
       )}
 
@@ -600,6 +717,20 @@ export function PlayerDashboard({ playerName, playerId, gameId, onExit }) {
             onArmSkip={() => setSkipArmed(true)}
             onSkip={handleSkip}
             onRetry={handleRetry}
+            onNext={handedOn ? () => setAnswered(null) : null}
+            finalRiddleSlot={
+              versus &&
+              isFinalRound &&
+              !holding &&
+              teamTotal > 0 &&
+              teamReady >= teamTotal ? (
+                <MobileFinalRiddle
+                  gameId={gameId}
+                  attemptsUsed={game?.finalRiddleAttempts ?? 0}
+                  rivalName={rival?.groupName}
+                />
+              ) : null
+            }
           />
         ) : (
           <>

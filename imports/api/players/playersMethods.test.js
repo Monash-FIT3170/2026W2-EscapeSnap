@@ -220,43 +220,6 @@ if (Meteor.isServer) {
       await expectError(rejoin({ $ne: null }, ada.sessionToken), 'not-found');
     });
 
-    it('frees the lobby slot once the window has closed', async function () {
-      await droppedAgo(ada.playerId, RECONNECT_WINDOW_MS);
-
-      await expectError(rejoin(ada.playerId, ada.sessionToken), 'expired');
-      assert.isUndefined(await Players.findOneAsync(ada.playerId));
-    });
-
-    it('does not let a wrong token trigger the expiry', async function () {
-      await droppedAgo(ada.playerId, RECONNECT_WINDOW_MS);
-
-      await expectError(rejoin(ada.playerId, grace.sessionToken), 'not-found');
-      assert.exists(await Players.findOneAsync(ada.playerId));
-    });
-
-    it('forfeits an expired player so the team can still advance', async function () {
-      await Meteor.callAsync('games.start', gameId);
-      await droppedAgo(ada.playerId, RECONNECT_WINDOW_MS);
-
-      await expectError(rejoin(ada.playerId, ada.sessionToken), 'expired');
-
-      const adaRounds = await Rounds.find({
-        playerId: ada.playerId,
-      }).fetchAsync();
-      assert.isTrue(adaRounds.every((r) => r.status === 'wrong'));
-      assert.deepEqual(
-        (await Players.findOneAsync(ada.playerId)).revealedLetters,
-        adaRounds.map(() => '?')
-      );
-
-      const graceRound = await Rounds.findOneAsync({
-        playerId: grace.playerId,
-        roundNumber: 1,
-      });
-      await Meteor.callAsync('rounds.skip', graceRound._id);
-      assert.equal((await Games.findOneAsync(gameId)).currentRound, 2);
-    });
-
     it('refuses a game that has already ended', async function () {
       await Games.updateAsync(gameId, { $set: { status: 'won' } });
 
@@ -271,10 +234,16 @@ if (Meteor.isServer) {
     let ada;
     let grace;
 
-    const publish = Meteor.server.publish_handlers['player.self'];
-    const fakeConnection = (id) => {
-      const conn = { id, onClose: (cb) => (conn.close = cb) };
-      return conn;
+    // Runs the publication as a subscription on connection `id` would; calling
+    // `.close()` on the result stops that subscription.
+    const handler = Meteor.server.publish_handlers['player.self'];
+    const fakeConnection = (id) => ({ id });
+    const publish = {
+      call: (ctx, ...args) =>
+        handler.call(
+          { ...ctx, onStop: (cb) => (ctx.connection.close = cb) },
+          ...args
+        ),
     };
     const settle = () => new Promise((resolve) => setTimeout(resolve, 50));
 
@@ -363,23 +332,6 @@ if (Meteor.isServer) {
       await leave(ada.playerId, ada.sessionToken);
 
       assert.isUndefined(await Players.findOneAsync(ada.playerId));
-    });
-
-    it('forfeits a player who leaves as the game starts', async function () {
-      await Meteor.callAsync('games.start', gameId);
-
-      await leave(ada.playerId, ada.sessionToken);
-
-      const adaRounds = await Rounds.find({
-        playerId: ada.playerId,
-      }).fetchAsync();
-      assert.isTrue(adaRounds.every((r) => r.status === 'wrong'));
-      const graceRound = await Rounds.findOneAsync({
-        playerId: grace.playerId,
-        roundNumber: 1,
-      });
-      await Meteor.callAsync('rounds.skip', graceRound._id);
-      assert.equal((await Games.findOneAsync(gameId)).currentRound, 2);
     });
 
     it("refuses to remove a player without that player's token", async function () {

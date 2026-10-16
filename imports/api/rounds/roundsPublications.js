@@ -1,10 +1,11 @@
 import { Meteor } from 'meteor/meteor';
 import { Rounds } from './RoundsCollection';
 
-// Mobile: player's round — includes answer (for camera detection) but not the letter reward
+// Mobile: player's round — includes answer (for camera detection) but not the letter reward.
+// Also any rounds they are covering for a teammate who left the game.
 Meteor.publish('rounds.forPlayer', function (playerId, roundNumber) {
   return Rounds.find(
-    { playerId, roundNumber },
+    { roundNumber, $or: [{ playerId }, { coveredBy: playerId }] },
     { fields: { letter: 0, hint: 0 } }
   );
 });
@@ -13,7 +14,15 @@ Meteor.publish('rounds.forPlayer', function (playerId, roundNumber) {
 Meteor.publish('rounds.progress', function (gameId, roundNumber) {
   return Rounds.find(
     { gameId, roundNumber },
-    { fields: { gameId: 1, playerId: 1, roundNumber: 1, status: 1 } }
+    {
+      fields: {
+        gameId: 1,
+        playerId: 1,
+        roundNumber: 1,
+        status: 1,
+        coveredBy: 1,
+      },
+    }
   );
 });
 

@@ -13,6 +13,8 @@
   --es-on-brand: 229 226 225;
   --es-correct: 74 222 128;
   --es-incorrect: 239 68 68;
+  /* Waiting or at risk: riddles still loading, a team on its final riddle. */
+  --es-warn: 252 211 77;
 }
 
 /* Player-selectable skins (UI_THEMES in imports/ui/mobile/theme.js). The
@@ -28,6 +30,8 @@
   --es-brand: 255 176 0;
   --es-brand-bright: 255 198 64;
   --es-on-brand: 20 14 0;
+  /* Amber is already the accent here, so warnings go orange. */
+  --es-warn: 255 120 60;
 }
 
 [data-ui-theme='blueprint'] {
@@ -55,6 +59,7 @@
   --es-on-brand: 255 250 245;
   --es-correct: 22 128 61;
   --es-incorrect: 200 30 30;
+  --es-warn: 161 98 7;
 }
 
 [data-ui-theme='contrast'] {
@@ -67,6 +72,7 @@
   --es-brand: 255 235 0;
   --es-brand-bright: 255 245 120;
   --es-on-brand: 0 0 0;
+  --es-warn: 255 160 0;
 }
 
 /* Paints the page behind the app (overscroll, safe areas) in the

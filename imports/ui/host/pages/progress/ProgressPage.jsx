@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router';
+import React, { useState, useEffect, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Games } from '../../../../api/games/GamesCollection';
@@ -10,6 +10,25 @@ import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
 import { remainingGameMs } from '/imports/lib/gameClock';
 import { useT } from '../../../../languages/LanguageProvider';
 import { useGameUiTheme } from '../../../shared/components/theme/UiThemeProvider';
+import { useMatch } from '/imports/ui/shared/hooks/useMatch';
+import TeamScoreCard from '../../components/match/TeamScoreCard';
+
+// Online versus: the rival team's live standing, above our own manifest.
+const RivalPanel = ({ gameId, matchId }) => {
+  const t = useT();
+  const { match, teams, players, rounds } = useMatch(matchId);
+  const rival = teams.find((team) => team._id !== gameId);
+  if (!match || !rival) return null;
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-3">
+        <div style={{ width: 4, height: 16, background: 'rgb(var(--es-brand))' }} />
+        <span style={{ fontWeight: 700, fontSize: 14, letterSpacing: '1.4px', color: 'rgb(var(--es-ink))' }}>{t('host.match.rival')}</span>
+      </div>
+      <TeamScoreCard team={rival} players={players} rounds={rounds} compact />
+    </div>
+  );
+};
 
 // Event types drawn in the accent colour — the moments the host most wants to spot.
 const HIGHLIGHTED_EVENTS = ['roundSolved', 'gameWon'];
@@ -116,6 +135,22 @@ const ProgressPage = () => {
     return () => clearInterval(interval);
   }, [game?.startedAt, game?.timerMinutes, game?.timePenaltyMs]);
 
+  // The game can end while this screen is up — the clock running out, an
+  // admin ending it, a rival escaping first — so follow it to the end screen.
+  // Only on the change itself, so the board can still be reopened afterwards.
+  const navigate = useNavigate();
+  const lastStatus = useRef(null);
+  useEffect(() => {
+    const status = game?.status;
+    if (
+      lastStatus.current === 'in_progress' &&
+      (status === 'won' || status === 'lost')
+    ) {
+      navigate(`/game/${gameId}/final-riddle`, { replace: true });
+    }
+    lastStatus.current = status ?? null;
+  }, [game?.status, gameId]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'rgb(var(--es-ground))' }}>
@@ -212,6 +247,8 @@ const ProgressPage = () => {
             <div style={{ width: 96, height: 96, background: 'rgba(255,255,255,0.8)' }} />
           </div>
         </div>
+
+        {game.matchId && <RivalPanel gameId={gameId} matchId={game.matchId} />}
 
         {/* Operative Manifest */}
         <div style={{ background: 'rgb(var(--es-panel))' }}>

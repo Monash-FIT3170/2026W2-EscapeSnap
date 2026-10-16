@@ -2,12 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Players } from './PlayersCollection';
 import { Games } from '../games/GamesCollection';
 import { logGameEvent } from '../events/gameEventLog';
-import {
-  dropPlayer,
-  findOwnedPlayer,
-  findReconnectablePlayer,
-  newSessionToken,
-} from './presence';
+import { findOwnedPlayer, newSessionToken, playerLeft } from './presence';
 
 Meteor.methods({
   async 'players.join'(joinCode, playerName) {
@@ -32,8 +27,11 @@ Meteor.methods({
     return { playerId, gameId: game._id, sessionToken: token };
   },
 
+  // A refreshed or reopened phone picking its game back up. Mid-game this
+  // works even after the reconnect window: the player reclaims their riddles
+  // from teammates from the next round on (see presence.js).
   async 'players.rejoin'(playerId, sessionToken) {
-    const player = await findReconnectablePlayer(playerId, sessionToken);
+    const player = await findOwnedPlayer(playerId, sessionToken);
     const game = await Games.findOneAsync({
       _id: player.gameId,
       status: { $in: ['lobby', 'in_progress'] },
@@ -45,14 +43,15 @@ Meteor.methods({
       gameId: game._id,
       playerName: player.name,
       gameCode: game.joinCode,
+      groupName: game.groupName,
       status: game.status,
     };
   },
 
-  // The player pressed exit. Without this they'd stay in the game with their
-  // tab still open, so the team would keep waiting on them every round.
+  // Leaving on purpose skips the reconnect window: a lobby slot frees up at
+  // once, and mid-game the teammates take over straight away.
   async 'players.leave'(playerId, sessionToken) {
     const player = await findOwnedPlayer(playerId, sessionToken);
-    await dropPlayer(player);
+    await playerLeft(player);
   },
 });

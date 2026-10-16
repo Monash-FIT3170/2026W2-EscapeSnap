@@ -4,7 +4,7 @@ import { PlayerResultSummary } from '../../components/result/PlayerResultSummary
 import { EndgameShareStudio } from '../../components/result/EndgameShareStudio';
 import { useT } from '../../../../languages/LanguageProvider';
 
-export function PlayerLoseScreen({ playerId, snapshot, loading }) {
+export function PlayerLoseScreen({ playerId, snapshot, loading, versusLine = null }) {
   const t = useT();
   return (
     <div className="flex min-h-[100dvh] flex-col bg-ground pb-[env(safe-area-inset-bottom)]">
@@ -19,6 +19,11 @@ export function PlayerLoseScreen({ playerId, snapshot, loading }) {
         <p className="font-mono text-xs leading-6 text-muted">
           {t('mobile.loseScreen.bodyLine1')}<br />{t('mobile.loseScreen.bodyLine2')}
         </p>
+        {versusLine && (
+          <p className="font-mono text-sm font-bold uppercase tracking-[0.15em]" style={{ color: 'rgb(var(--es-brand))' }}>
+            {versusLine}
+          </p>
+        )}
         <PlayerResultSummary playerId={playerId} />
       </div>
       <EndgameShareStudio snapshot={snapshot} loading={loading} />

@@ -357,27 +357,9 @@ if (Meteor.isServer) {
         assert.equal((await Games.findOneAsync(gameId)).currentRound, 1);
       });
 
-      it('stops waiting on a player gone past the grace period, every round including the last', async function () {
-        const { gameId, adaId, graceId } = await startTwoPlayerGame();
-        await Players.updateAsync(graceId, {
-          $set: { disconnectedAt: new Date(Date.now() - 61 * 1000) },
-        });
-
-        await skip(gameId, adaId);
-        assert.equal((await Games.findOneAsync(gameId)).currentRound, 2);
-
-        await skip(gameId, adaId);
-        const graceRounds = await Rounds.find({
-          playerId: graceId,
-        }).fetchAsync();
-        assert.isTrue(graceRounds.every((round) => round.status === 'wrong'));
-        assert.deepEqual(
-          (await Players.findOneAsync(graceId)).revealedLetters,
-          ['?', '?']
-        );
-      });
-
-      it('keeps waiting on a player still inside the grace period', async function () {
+      // A dropped player's riddles move to teammates only once the reconnect
+      // window passes (presence.js); until then the team waits.
+      it('keeps waiting on a disconnected player inside the reconnect window', async function () {
         const { gameId, adaId, graceId } = await startTwoPlayerGame();
         await Players.updateAsync(graceId, {
           $set: { disconnectedAt: new Date(Date.now() - 10 * 1000) },

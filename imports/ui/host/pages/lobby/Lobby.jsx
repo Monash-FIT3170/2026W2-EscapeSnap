@@ -10,6 +10,8 @@ import { useGameUiTheme } from '../../../shared/components/theme/UiThemeProvider
 import { LanguagePicker } from '../../../../languages/LanguagePicker';
 import { ThemePicker } from '../../../shared/components/theme/ThemePicker';
 import { errorKey } from '../../../../languages/errors';
+import { SEARCH_TTL_MS } from '/imports/lib/teamStatus';
+import { formatClock } from '../../components/match/TeamScoreCard';
 
 const PlayerCard = ({ player }) => {
   const initials = player.name?.slice(0, 2).toUpperCase() || '??';
@@ -64,6 +66,90 @@ const EmptySlot = () => {
   );
 };
 
+// Online versus: a full team searches for a random rival instead of starting.
+// The game flips to in_progress the moment a rival is found, which the
+// lobby's existing redirect picks up.
+const OnlineMatchmaking = ({ game, lobbyFull, remainingSlots }) => {
+  const t = useT();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState(null);
+  const [now, setNow] = useState(Date.now());
+
+  const since = game.matchmakingSince ? new Date(game.matchmakingSince).getTime() : null;
+  const expired = since !== null && now - since > SEARCH_TTL_MS;
+  const searching = pending || (since !== null && !expired);
+
+  useEffect(() => {
+    if (!searching) return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [searching]);
+
+  const handleFind = async () => {
+    setPending(true);
+    setError(null);
+    setNow(Date.now());
+    try {
+      await Meteor.callAsync('matches.findOpponent', game._id);
+    } catch (err) {
+      setError(t(errorKey(err)));
+    } finally {
+      setPending(false);
+    }
+  };
+
+  const handleCancel = () => {
+    Meteor.callAsync('matches.cancelSearch', game._id).catch((err) => setError(t(errorKey(err))));
+  };
+
+  const buttonStyle = (enabled) => ({
+    width: '100%',
+    padding: '18px',
+    background: enabled ? 'rgb(var(--es-brand))' : 'rgb(var(--es-panel))',
+    color: enabled ? 'rgb(var(--es-on-brand))' : 'rgb(var(--es-dim))',
+    fontWeight: 700,
+    fontSize: 14,
+    letterSpacing: '2px',
+    cursor: enabled ? 'pointer' : 'not-allowed',
+    border: 'none',
+  });
+
+  return (
+    <div className="flex flex-col gap-3">
+      {error && <p style={{ fontSize: 11, color: 'rgb(var(--es-brand))', letterSpacing: '1px' }}>!! {error}</p>}
+      {expired && !pending && (
+        <p style={{ fontSize: 11, color: 'rgb(var(--es-muted))', letterSpacing: '1px' }}>{t('host.lobby.searchExpired')}</p>
+      )}
+      {searching ? (
+        <div className="flex items-center gap-3">
+          <div className="flex-1 text-center py-4" style={{ border: '1px solid rgb(var(--es-brand))', background: 'rgb(var(--es-brand) / 0.12)' }}>
+            <p className="animate-pulse" style={{ fontSize: 12, letterSpacing: '1.5px', color: 'rgb(var(--es-ink))' }}>
+              {t('host.lobby.searching')}
+            </p>
+            <p style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-muted))', marginTop: 4 }}>
+              {t('host.lobby.searchingFor', { time: formatClock(since ? Math.max(0, now - since) : 0) })}
+            </p>
+          </div>
+          {since !== null && (
+            <button
+              onClick={handleCancel}
+              style={{ padding: '18px 24px', background: 'transparent', color: 'rgb(var(--es-muted))', border: '1px solid rgb(var(--es-line))', fontSize: 11, letterSpacing: '1.5px', cursor: 'pointer' }}
+            >
+              {t('host.lobby.cancelSearch')}
+            </button>
+          )}
+        </div>
+      ) : (
+        <button onClick={handleFind} disabled={!lobbyFull} style={buttonStyle(lobbyFull)}>
+          {lobbyFull
+            ? t('host.lobby.findOpponent')
+            : t('host.lobby.awaitingMore', { n: remainingSlots })}
+        </button>
+      )}
+    </div>
+  );
+};
+
 const Lobby = () => {
   const { gameId } = useParams();
   useGameUiTheme(gameId);
@@ -87,6 +173,13 @@ const Lobby = () => {
       navigate(`/game/${gameId}/progress`);
     }
   }, [game?.status]);
+
+  // A same-room team's lobby lives on the shared match screen.
+  useEffect(() => {
+    if (game?.playMode === 'local' && game.matchId) {
+      navigate(`/match/${game.matchId}/lobby`, { replace: true });
+    }
+  }, [game?.playMode, game?.matchId]);
 
   const handleStartGame = async () => {
     setStarting(true);
@@ -238,6 +331,11 @@ const Lobby = () => {
               <h1 style={{ fontWeight: 700, fontSize: 28, letterSpacing: '2px', color: 'rgb(var(--es-ink))' }}>
                 {t('host.lobby.title')}
               </h1>
+              {game.playMode === 'online' && (
+                <p style={{ fontSize: 10, letterSpacing: '1.5px', color: 'rgb(var(--es-muted))', marginTop: 2 }}>
+                  {t('host.lobby.onlineVersus')}
+                </p>
+              )}
               <div className="flex items-center gap-2 mt-1">
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgb(var(--es-brand))' }} />
                 <p style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-muted))' }}>
@@ -283,7 +381,13 @@ const Lobby = () => {
           )}
 
           {/* Start button */}
-          {gameStarted ? (
+          {game.playMode === 'online' && !gameStarted ? (
+            <OnlineMatchmaking
+              game={game}
+              lobbyFull={lobbyFull}
+              remainingSlots={capacity - players.length}
+            />
+          ) : gameStarted ? (
             <div
               className="text-center py-4"
               style={{ border: '1px solid rgb(var(--es-brand))', background: 'rgb(var(--es-brand) / 0.2)' }}

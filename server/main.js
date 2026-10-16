@@ -6,13 +6,21 @@ import '../imports/api/players/playersPublications';
 import '../imports/api/rounds/roundsMethods';
 import '../imports/api/rounds/roundsPublications';
 import '../imports/api/achievements/achievementsPublications';
+import '../imports/api/matches/matchesMethods';
+import '../imports/api/matches/matchesPublications';
 import '/imports/api/rounds/RoundSessions';
 import '../imports/api/submissions/submissionsPublications';
+import '../imports/api/admin/adminPublications';
+import '../imports/api/admin/adminMethods';
+import '../imports/api/admin/adminRateLimit';
 import '../imports/api/events/gameEventsPublications';
 import { Games } from '../imports/api/games/GamesCollection';
 import { Rounds } from '../imports/api/rounds/RoundsCollection';
 import { Submissions, photoExpiryFrom } from '../imports/api/submissions/SubmissionsCollection';
 import { GameResults } from '../imports/api/achievements/GameResultsCollection';
+import { Players } from '../imports/api/players/PlayersCollection';
+import { startPresenceTracking } from '../imports/api/players/presence';
+import { startGameExpiry } from '../imports/api/games/gameExpiry';
 import { GameEvents } from '../imports/api/events/GameEventsCollection';
 import { logGameEvent } from '../imports/api/events/gameEventLog';
 import { normalizeAnswerMode } from '../imports/lib/answerModes';
@@ -90,9 +98,13 @@ Meteor.startup(async () => {
     );
   }
   await Games.createIndexAsync({ status: 1 });
+  await Games.createIndexAsync({ matchId: 1 });
+  await Games.createIndexAsync({ playMode: 1, status: 1, matchmakingSince: 1 });
   await Rounds.createIndexAsync({ gameId: 1, roundNumber: 1 });
   await Rounds.createIndexAsync({ playerId: 1, roundNumber: 1 });
   await GameResults.createIndexAsync({ gameId: 1, playerId: 1 }, { unique: true });
+  await Players.createIndexAsync({ disconnectedAt: 1 }, { sparse: true });
+  await Rounds.createIndexAsync({ coveredBy: 1, roundNumber: 1 }, { sparse: true });
   await GameEvents.createIndexAsync({ gameId: 1, createdAt: -1 });
 
   // TTL index: Mongo drops each submission once its own expiresAt passes,
@@ -105,6 +117,9 @@ Meteor.startup(async () => {
     { expireAfterSeconds: 0 }
   );
   await Submissions.createIndexAsync({ gameId: 1, roundId: 1 });
+
+  await startPresenceTracking();
+  await startGameExpiry();
 });
 
 Meteor.methods({

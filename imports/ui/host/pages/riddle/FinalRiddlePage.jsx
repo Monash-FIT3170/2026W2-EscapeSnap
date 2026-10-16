@@ -21,7 +21,7 @@ const FinalRiddlePage = () => {
   const [hasLost, setHasLost] = useState(false);
   const [hintRevealed, setHintRevealed] = useState(false);
 
-  const { loading, finalRiddle, finalRiddleHint } = useFinalRiddle(gameId);
+  const { loading, finalRiddle, finalRiddleHint, gameStatus } = useFinalRiddle(gameId);
   const { lettersLoading, letters } = useRevealedLetters(gameId);
 
   if (loading || lettersLoading) {
@@ -34,7 +34,9 @@ const FinalRiddlePage = () => {
 
   if (!finalRiddle) return <GameNotFound />;
 
-  if (hasWon) {
+  // The game can also end off this screen — a teammate answering on a phone,
+  // or a rival team escaping first — so follow the server's status too.
+  if (hasWon || gameStatus === 'won') {
     return (
       <WinScreen
         gameId={gameId}
@@ -44,7 +46,7 @@ const FinalRiddlePage = () => {
       />
     );
   }
-  if (hasLost) {
+  if (hasLost || gameStatus === 'lost') {
     return (
       <LoseScreen
         gameId={gameId}

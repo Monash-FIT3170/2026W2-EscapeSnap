@@ -52,5 +52,11 @@ Rounds.attachSchema(
       min: 0,
       optional: true,
     },
+    // A teammate standing in for `playerId` after they left the game. The
+    // letter still goes to `playerId`, so the final code reads the same.
+    coveredBy: {
+      type: String,
+      optional: true,
+    },
   })
 );

@@ -65,10 +65,27 @@ Games.attachSchema(
       min: 1,
       max: CUSTOM_THEME_MAX_LENGTH,
     },
+    // How players answer a riddle: photo or sketch.
     mode: {
       type: String,
       allowedValues: ANSWER_MODES,
       defaultValue: DEFAULT_ANSWER_MODE,
+    },
+    // 'solo' is the classic single-team game. 'local' and 'online' are one
+    // team's side of a team-vs-team match — same room, or randomly paired.
+    playMode: {
+      type: String,
+      allowedValues: ['solo', 'local', 'online'],
+      defaultValue: 'solo',
+    },
+    matchId: {
+      type: String,
+      optional: true,
+    },
+    // Set while an online team sits in the matchmaking queue.
+    matchmakingSince: {
+      type: Date,
+      optional: true,
     },
     createdAt: {
       type: Date,

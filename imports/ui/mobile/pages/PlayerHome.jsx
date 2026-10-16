@@ -7,7 +7,50 @@ import { ThemePicker } from '../../shared/components/theme/ThemePicker';
 const FIELD_CLASS =
   'w-full border border-line bg-ground px-4 py-3.5 font-mono text-base text-ink placeholder:text-dim focus:border-brand focus:outline-none transition-colors';
 
-export function PlayerHome({ onStart, loading = false, serverError = '', initialCode = '' }) {
+// The game this phone was last playing, still running — one tap to go back to
+// it, or leave it for good before joining something else.
+function RejoinCard({ rejoin }) {
+  const t = useT();
+  return (
+    <div className="mt-8 border-l-4 border-brand bg-panel px-5 py-5">
+      <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
+        {rejoin.status === 'in_progress'
+          ? t('mobile.home.rejoinInProgress')
+          : t('mobile.home.rejoinInLobby')}
+      </p>
+      <p className="mt-2 font-display text-lg font-bold tracking-[0.1em] text-ink">
+        {rejoin.groupName}
+      </p>
+      <p className="mt-1 font-mono text-xs text-muted">
+        {t('mobile.home.rejoinAs', { name: rejoin.playerName })}
+      </p>
+      <div className="mt-4 flex gap-3">
+        <button
+          type="button"
+          onClick={rejoin.onRejoin}
+          className="min-h-[48px] flex-1 border border-brand bg-brand px-4 font-mono text-xs font-semibold uppercase tracking-[0.2em] text-on-brand transition active:bg-brand-bright"
+        >
+          {t('mobile.home.rejoin')}
+        </button>
+        <button
+          type="button"
+          onClick={rejoin.onLeave}
+          className="min-h-[48px] border border-line px-4 font-mono text-xs font-semibold uppercase tracking-[0.2em] text-muted transition active:border-muted"
+        >
+          {t('mobile.home.leaveGame')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function PlayerHome({
+  onStart,
+  rejoin = null,
+  loading = false,
+  serverError = '',
+  initialCode = '',
+}) {
   const [name, setName] = useState('');
   const [code, setCode] = useState(initialCode);
   const [error, setError] = useState('');
@@ -57,6 +100,8 @@ export function PlayerHome({ onStart, loading = false, serverError = '', initial
           </span>
           <span className="h-px flex-1 bg-line" />
         </div>
+
+        {rejoin && <RejoinCard rejoin={rejoin} />}
 
         <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
 

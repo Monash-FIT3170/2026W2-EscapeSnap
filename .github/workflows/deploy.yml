@@ -39,6 +39,8 @@ jobs:
       GALAXY_SESSION: ${{ secrets.GALAXY_STAGING_SESSION || secrets.METEOR_STAGING_SESSION_FILE }}
       GEMINI_API_KEY: ${{ secrets.STAGING_GEMINI_API_KEY }}
       MONGO_URL: ${{ secrets.STAGING_MONGO_URL }}
+      # Optional: without it /admin stays locked.
+      ADMIN_KEY: ${{ secrets.STAGING_ADMIN_KEY }}
 
     steps:
       - name: Check out verified commit
@@ -80,8 +82,9 @@ jobs:
           umask 077
           printf '%s' "$GALAXY_SESSION" > "$RUNNER_TEMP/meteor-session.json"
 
-          jq -n --arg key "$GEMINI_API_KEY" --arg mongo "$MONGO_URL" \
-            '{"galaxy.meteor.com": {"env": {"GEMINI_API_KEY": $key, "MONGO_URL": $mongo}}}' \
+          # ADMIN_KEY is left out entirely when unset, never sent as "".
+          jq -n --arg key "$GEMINI_API_KEY" --arg mongo "$MONGO_URL" --arg admin "$ADMIN_KEY" \
+            '{"galaxy.meteor.com": {"env": ({"GEMINI_API_KEY": $key, "MONGO_URL": $mongo} + (if $admin == "" then {} else {"ADMIN_KEY": $admin} end))}}' \
             > "$RUNNER_TEMP/settings.json"
 
       - name: Deploy to staging
@@ -126,6 +129,8 @@ jobs:
       GALAXY_SESSION: ${{ secrets.GALAXY_SESSION || secrets.METEOR_SESSION_FILE }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       MONGO_URL: ${{ secrets.MONGO_URL }}
+      # Optional: without it /admin stays locked.
+      ADMIN_KEY: ${{ secrets.ADMIN_KEY }}
 
     steps:
       - name: Check out verified commit
@@ -162,8 +167,9 @@ jobs:
           umask 077
           printf '%s' "$GALAXY_SESSION" > "$RUNNER_TEMP/meteor-session.json"
 
-          jq -n --arg key "$GEMINI_API_KEY" --arg mongo "$MONGO_URL" \
-            '{"galaxy.meteor.com": {"env": {"GEMINI_API_KEY": $key, "MONGO_URL": $mongo}}}' \
+          # ADMIN_KEY is left out entirely when unset, never sent as "".
+          jq -n --arg key "$GEMINI_API_KEY" --arg mongo "$MONGO_URL" --arg admin "$ADMIN_KEY" \
+            '{"galaxy.meteor.com": {"env": ({"GEMINI_API_KEY": $key, "MONGO_URL": $mongo} + (if $admin == "" then {} else {"ADMIN_KEY": $admin} end))}}' \
             > "$RUNNER_TEMP/settings.json"
 
       - name: Deploy to production
