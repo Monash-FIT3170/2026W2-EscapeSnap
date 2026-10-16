@@ -4,6 +4,9 @@ import { Rounds } from './RoundsCollection';
 
 export const PRESENCE_GRACE_MS = 60 * 1000;
 
+// Mark every still-pending round matching `selector` as wrong.
+// The status is part of the update selector, so a round can only make the
+// pending -> wrong transition once and can never push a duplicate '?'.
 export async function resolvePendingRounds(selector) {
   const pending = await Rounds.find({
     ...selector,
