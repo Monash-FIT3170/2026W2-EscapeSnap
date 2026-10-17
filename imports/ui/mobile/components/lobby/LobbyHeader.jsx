@@ -4,28 +4,23 @@ import React from 'react';
 import { useT } from '../../../../languages/LanguageProvider';
 import { LanguagePicker } from '../../../../languages/LanguagePicker';
 import { ThemePicker } from '../../../shared/components/theme/ThemePicker';
+import { Brand } from '../../../shared/components/room/Brand';
 
 export function LobbyHeader({ unitLabel, onExit }) {
   const t = useT();
 
   return (
-    <header className="flex items-center justify-between gap-3 border-b border-line pb-3">
-      <div className="flex min-w-0 items-center gap-3">
-        <span className="h-4 w-1 flex-shrink-0 bg-brand" />
-        <h1 className="truncate font-mono text-lg font-bold tracking-[0.15em] text-ink">
-          {unitLabel}
-        </h1>
+    <header className="flex items-center justify-between gap-3">
+      <div className="flex min-w-0 flex-col">
+        <Brand className="!min-h-0 text-[1.3rem]" />
+        <span className="es-label mt-1 truncate">{unitLabel}</span>
       </div>
 
       <div className="flex flex-shrink-0 items-center gap-2">
         <ThemePicker compact />
         <LanguagePicker compact />
         {onExit && (
-          <button
-            type="button"
-            onClick={onExit}
-            className="min-h-[44px] border border-brand px-4 font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-muted transition active:bg-brand active:text-on-brand"
-          >
+          <button type="button" onClick={onExit} className="es-chip">
             {t('common.exit')}
           </button>
         )}

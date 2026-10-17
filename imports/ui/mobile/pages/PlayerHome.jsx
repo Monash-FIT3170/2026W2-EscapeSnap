@@ -3,39 +3,36 @@ import React, { useState } from 'react';
 import { useT } from '../../../languages/LanguageProvider';
 import { LanguagePicker } from '../../../languages/LanguagePicker';
 import { ThemePicker } from '../../shared/components/theme/ThemePicker';
-
-const FIELD_CLASS =
-  'w-full border border-line bg-ground px-4 py-3.5 font-mono text-base text-ink placeholder:text-dim focus:border-brand focus:outline-none transition-colors';
+import { Brand } from '../../shared/components/room/Brand';
 
 // The game this phone was last playing, still running — one tap to go back to
 // it, or leave it for good before joining something else.
 function RejoinCard({ rejoin }) {
   const t = useT();
   return (
-    <div className="mt-8 border-l-4 border-brand bg-panel px-5 py-5">
-      <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
+    <div className="es-well mb-5 px-4 py-4">
+      <p className="es-label flex items-center gap-2">
+        <span className="es-led" data-state="ready" aria-hidden="true" />
         {rejoin.status === 'in_progress'
           ? t('mobile.home.rejoinInProgress')
           : t('mobile.home.rejoinInLobby')}
       </p>
-      <p className="mt-2 font-display text-lg font-bold tracking-[0.1em] text-ink">
-        {rejoin.groupName}
-      </p>
-      <p className="mt-1 font-mono text-xs text-muted">
+      <p className="es-title mt-3 text-2xl text-ink">{rejoin.groupName}</p>
+      <p className="mt-1 text-sm text-muted">
         {t('mobile.home.rejoinAs', { name: rejoin.playerName })}
       </p>
       <div className="mt-4 flex gap-3">
         <button
           type="button"
           onClick={rejoin.onRejoin}
-          className="min-h-[48px] flex-1 border border-brand bg-brand px-4 font-mono text-xs font-semibold uppercase tracking-[0.2em] text-on-brand transition active:bg-brand-bright"
+          className="es-btn es-btn-primary es-btn-sm flex-1"
         >
           {t('mobile.home.rejoin')}
         </button>
         <button
           type="button"
           onClick={rejoin.onLeave}
-          className="min-h-[48px] border border-line px-4 font-mono text-xs font-semibold uppercase tracking-[0.2em] text-muted transition active:border-muted"
+          className="es-btn es-btn-ghost es-btn-sm"
         >
           {t('mobile.home.leaveGame')}
         </button>
@@ -73,40 +70,29 @@ export function PlayerHome({
     // Scrolls rather than clipping: on a short phone the on-screen keyboard
     // covers most of the viewport, and a fixed-height screen would bury the
     // submit button under it.
-    <div className="min-h-[100dvh] bg-ground text-ink flex items-center justify-center px-5 py-8">
-      <div className="relative w-full max-w-sm">
-
-        <div className="mb-8 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-brand animate-pulse" />
-            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
-              {t('mobile.home.systemOnline')}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <ThemePicker compact />
-            <LanguagePicker compact />
-          </div>
+    <div className="es-room flex flex-col px-4 pb-8 pt-[max(12px,env(safe-area-inset-top))]">
+      <header className="mx-auto flex w-full max-w-sm items-center justify-between gap-3">
+        <Brand className="text-[1.35rem]" />
+        <div className="flex items-center gap-2">
+          <ThemePicker compact />
+          <LanguagePicker compact />
         </div>
+      </header>
 
-        <h1 className="text-center font-display text-5xl font-black leading-tight tracking-wide text-brand">
-          ESCAPE<br />SNAP
+      <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-8">
+        <h1 className="es-title text-[3.4rem] text-ink">
+          {t('mobile.home.playerTerminal')}
         </h1>
-
-        <div className="mt-5 flex items-center gap-3">
-          <span className="h-px flex-1 bg-line" />
-          <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
-            {t('mobile.home.playerTerminal')}
-          </span>
-          <span className="h-px flex-1 bg-line" />
-        </div>
+        <p className="mb-7 mt-3 flex items-center gap-2 text-sm text-muted">
+          <span className="es-led" data-state="ready" aria-hidden="true" />
+          {t('mobile.home.systemOnline')}
+        </p>
 
         {rejoin && <RejoinCard rejoin={rejoin} />}
 
-        <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-5">
-
+        <form onSubmit={handleSubmit} className="es-plate flex flex-col gap-5 px-5 pb-5 pt-6">
           <div className="flex flex-col gap-2">
-            <label htmlFor="player-name" className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
+            <label htmlFor="player-name" className="es-label">
               {t('mobile.home.playerName')}
             </label>
             <input
@@ -117,17 +103,17 @@ export function PlayerHome({
               onChange={e => setName(e.target.value)}
               maxLength={24}
               autoComplete="off"
-              className={FIELD_CLASS}
+              className="es-field"
             />
           </div>
 
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between gap-3">
-              <label htmlFor="game-code" className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
+              <label htmlFor="game-code" className="es-label">
                 {t('mobile.home.gameCode')}
               </label>
               {scannedViaQr && (
-                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-correct">
+                <span className="text-sm text-correct">
                   {t('mobile.home.scannedViaQr')}
                 </span>
               )}
@@ -142,12 +128,12 @@ export function PlayerHome({
               onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 4))}
               maxLength={4}
               autoComplete="one-time-code"
-              className={`${FIELD_CLASS} tracking-[0.4em]`}
+              className="es-field !text-[2rem] tracking-[0.4em]"
             />
           </div>
 
           {(error || serverError) && (
-            <p role="alert" className="font-mono text-xs leading-5 text-incorrect">
+            <p role="alert" className="text-sm leading-5 text-incorrect">
               ⚠ {error || serverError}
             </p>
           )}
@@ -155,13 +141,12 @@ export function PlayerHome({
           <button
             type="submit"
             disabled={loading}
-            className="mt-1 w-full border border-brand bg-brand px-5 py-4 font-mono text-sm font-semibold uppercase tracking-[0.2em] text-on-brand transition active:bg-brand-bright disabled:opacity-50 disabled:cursor-not-allowed"
+            className="es-btn es-btn-primary w-full"
           >
             {loading ? t('mobile.home.joining') : t('mobile.home.enterGame')}
           </button>
-
         </form>
-      </div>
+      </main>
     </div>
   );
 }

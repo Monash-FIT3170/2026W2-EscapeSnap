@@ -10,6 +10,7 @@ import {
   SHARE_FORMATS,
   SHARE_THEMES,
 } from './shareCard';
+import { Brand } from '../../../shared/components/room/Brand';
 import { useT } from '../../../../languages/LanguageProvider';
 import { COLORS } from '../../../shared/theme';
 
@@ -98,12 +99,12 @@ function PreviewCard({ snapshot, sections, themeKey, formatKey }) {
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2" style={{ background: theme.accent }} />
-          <span className="font-mono text-[10px] font-bold tracking-[0.18em]">
+          <span className="font-['Arial',sans-serif] text-[10px] font-bold tracking-[0.18em]">
             ESCAPESNAP
           </span>
         </div>
         <span
-          className="font-mono text-[8px] tracking-[0.14em]"
+          className="font-['Arial',sans-serif] text-[8px] tracking-[0.14em]"
           style={{ color: theme.muted }}
         >
           {t('mobile.share.afterActionReport')}
@@ -114,18 +115,18 @@ function PreviewCard({ snapshot, sections, themeKey, formatKey }) {
         {sections.result && (
           <div>
             <p
-              className="font-mono text-[9px] font-bold tracking-[0.2em]"
+              className="font-['Arial',sans-serif] text-[9px] font-bold tracking-[0.2em]"
               style={{ color: theme.accent }}
             >
               {snapshot.outcome === 'won'
                 ? t('mobile.share.missionComplete')
                 : t('mobile.share.missionEnded')}
             </p>
-            <p className="mt-1 font-display text-4xl font-black leading-none tracking-tight">
+            <p className="mt-1 font-['Arial',sans-serif] text-4xl font-bold leading-none tracking-tight">
               {snapshot.outcome === 'won' ? t('mobile.share.escaped') : t('mobile.share.noEscape')}
             </p>
             <p
-              className="mt-2 font-mono text-[10px] font-bold tracking-[0.2em]"
+              className="mt-2 font-['Arial',sans-serif] text-[10px] font-bold tracking-[0.2em]"
               style={{ color: theme.muted }}
             >
               {snapshot.operativeName.toUpperCase()}
@@ -141,17 +142,17 @@ function PreviewCard({ snapshot, sections, themeKey, formatKey }) {
             <div className="flex items-end justify-between gap-3">
               <div>
                 <p
-                  className="font-mono text-[8px] tracking-[0.16em]"
+                  className="font-['Arial',sans-serif] text-[8px] tracking-[0.16em]"
                   style={{ color: theme.muted }}
                 >
                   {t('mobile.share.missionScoreLabel')}
                 </p>
-                <p className="mt-1 font-display text-4xl font-black leading-none">
+                <p className="mt-1 font-['Arial',sans-serif] text-4xl font-bold leading-none">
                   {formatScore(snapshot.score)}
                 </p>
               </div>
               <p
-                className="pb-1 text-right font-mono text-[7px] tracking-[0.12em]"
+                className="pb-1 text-right font-['Arial',sans-serif] text-[7px] tracking-[0.12em]"
                 style={{ color: theme.dim }}
               >
                 {snapshot.difficulty}
@@ -175,12 +176,12 @@ function PreviewCard({ snapshot, sections, themeKey, formatKey }) {
                 style={{ background: theme.panel, borderColor: theme.accent }}
               >
                 <p
-                  className="font-mono text-[6px] tracking-[0.12em]"
+                  className="font-['Arial',sans-serif] text-[6px] tracking-[0.12em]"
                   style={{ color: theme.muted }}
                 >
                   {label}
                 </p>
-                <p className="mt-1 font-mono text-sm font-black">{value}</p>
+                <p className="mt-1 font-['Arial',sans-serif] text-sm font-black">{value}</p>
               </div>
             ))}
           </div>
@@ -189,7 +190,7 @@ function PreviewCard({ snapshot, sections, themeKey, formatKey }) {
         {sections.fragments && (
           <div className="p-2.5" style={{ background: theme.panel }}>
             <p
-              className="font-mono text-[7px] tracking-[0.14em]"
+              className="font-['Arial',sans-serif] text-[7px] tracking-[0.14em]"
               style={{ color: theme.muted }}
             >
               {t('mobile.share.keyFragmentsRecovered')}
@@ -198,7 +199,7 @@ function PreviewCard({ snapshot, sections, themeKey, formatKey }) {
               {snapshot.recoveredLetters.map((letter, index) => (
                 <span
                   key={`${letter}-${index}`}
-                  className="flex h-8 min-w-0 flex-1 items-center justify-center border-b-2 font-mono text-sm font-black"
+                  className="flex h-8 min-w-0 flex-1 items-center justify-center border-b-2 font-['Arial',sans-serif] text-sm font-black"
                   style={{
                     background: theme.inner,
                     borderColor: letter === '?' ? theme.dim : theme.accent,
@@ -215,7 +216,7 @@ function PreviewCard({ snapshot, sections, themeKey, formatKey }) {
         {sections.squad && (
           <div className="p-2.5" style={{ background: theme.panel }}>
             <p
-              className="font-mono text-[7px] tracking-[0.14em]"
+              className="font-['Arial',sans-serif] text-[7px] tracking-[0.14em]"
               style={{ color: theme.muted }}
             >
               {t('mobile.share.squadStanding', { rank: snapshot.squadRank, size: snapshot.squadSize })}
@@ -224,7 +225,7 @@ function PreviewCard({ snapshot, sections, themeKey, formatKey }) {
               {snapshot.squadBoard.slice(0, 3).map((entry) => (
                 <div
                   key={`${entry.rank}-${entry.name}`}
-                  className="flex items-center gap-2 font-mono text-[8px]"
+                  className="flex items-center gap-2 font-['Arial',sans-serif] text-[8px]"
                 >
                   <span
                     style={{
@@ -245,7 +246,7 @@ function PreviewCard({ snapshot, sections, themeKey, formatKey }) {
       </div>
 
       <div
-        className="flex items-center justify-between border-t pt-2 font-mono text-[7px] tracking-[0.12em]"
+        className="flex items-center justify-between border-t pt-2 font-['Arial',sans-serif] text-[7px] tracking-[0.12em]"
         style={{ borderColor: theme.accent, color: theme.muted }}
       >
         <span>{t('mobile.share.tagline')}</span>
@@ -295,7 +296,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
 
   if (!snapshot) {
     return (
-      <div className="flex items-center justify-center bg-ground px-8 py-16 text-center font-mono text-xs uppercase tracking-[0.2em] text-muted">
+      <div className="flex items-center justify-center bg-ground px-8 py-16 text-center font-display text-sm uppercase tracking-[0.06em] text-muted">
         {t('mobile.share.preparingDebrief')}
       </div>
     );
@@ -378,22 +379,12 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
 
   return (
     <div
-      className="bg-ground text-ink"
-      style={{
-        backgroundImage:
-          'linear-gradient(rgb(var(--es-incorrect) / 0.035) 1px, transparent 1px), linear-gradient(90deg, rgb(var(--es-incorrect) / 0.035) 1px, transparent 1px)',
-        backgroundSize: '48px 48px',
-      }}
+      className="es-room !min-h-0"
     >
-      <header className="sticky top-0 z-20 border-b border-line bg-ground/95 px-5 py-3 backdrop-blur">
+      <header className="es-bar sticky top-0 z-20">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 animate-pulse bg-brand" />
-            <span className="font-mono text-xs font-black tracking-[0.18em]">
-              ESCAPESNAP
-            </span>
-          </div>
-          <span className="font-mono text-[9px] tracking-[0.2em] text-muted">
+          <Brand className="text-xl" />
+          <span className="font-display text-sm tracking-[0.03em] text-muted">
             {t('mobile.share.shareLabOnline')}
           </span>
         </div>
@@ -401,26 +392,26 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
 
       <main className="mx-auto grid w-full max-w-5xl gap-8 px-5 py-8 lg:grid-cols-[minmax(0,1fr)_minmax(330px,0.82fr)] lg:items-start">
         <section className="min-w-0">
-          <div className="border-l-4 border-brand pl-4">
-            <p className="font-mono text-[10px] font-bold tracking-[0.24em] text-muted">
+          <div>
+            <p className="font-display text-base font-semibold tracking-[0.03em] text-muted">
               {outcomeLabel}
             </p>
-            <h1 className="mt-1 font-display text-4xl font-black uppercase leading-none text-ink sm:text-5xl">
+            <h1 className="es-title mt-2 text-5xl uppercase text-ink sm:text-6xl">
               {t('mobile.share.headlineLine1')}
               <br />
-              <span className="text-brand">{t('mobile.share.headlineLine2')}</span>
+              <span className="text-brand-bright">{t('mobile.share.headlineLine2')}</span>
             </h1>
             <p className="mt-3 max-w-xl text-sm leading-6 text-muted">
               {t('mobile.share.subheadline')}
             </p>
           </div>
 
-          <div className="mt-7 border border-line bg-panel p-4">
+          <div className="mt-7 es-plate p-4">
             <div className="flex items-center justify-between gap-3">
-              <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-ink">
+              <p className="font-display text-base font-semibold tracking-[0.03em] text-ink">
                 {t('mobile.share.step1Title')}
               </p>
-              <span className="font-mono text-[9px] text-dim">
+              <span className="text-xs text-dim">
                 {t('mobile.share.activeCount', { n: selectedCount })}
               </span>
             </div>
@@ -440,7 +431,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
                     }}
                   >
                     <span
-                      className="flex h-5 w-5 flex-shrink-0 items-center justify-center border font-mono text-[10px] font-black"
+                      className="flex h-5 w-5 flex-shrink-0 items-center justify-center border text-xs font-black"
                       style={{
                         borderColor: active ? COLORS.brandBright : COLORS.dim,
                         background: active ? COLORS.brand : 'transparent',
@@ -450,10 +441,10 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
                       {active ? '✓' : '+'}
                     </span>
                     <span className="min-w-0">
-                      <span className="block font-mono text-[11px] font-bold uppercase tracking-wider text-ink">
+                      <span className="block font-display text-[13px] font-bold uppercase tracking-[0.06em] text-ink">
                         {t(option.labelKey)}
                       </span>
-                      <span className="mt-0.5 block text-[10px] text-muted">
+                      <span className="mt-0.5 block text-xs text-muted">
                         {t(option.noteKey)}
                       </span>
                     </span>
@@ -462,19 +453,19 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
               })}
             </div>
             <div className="mt-3 flex items-start gap-2 border-t border-line pt-3">
-              <span className="font-mono text-[10px] text-correct">●</span>
-              <p className="font-mono text-[9px] leading-4 text-muted">
+              <span className="text-xs text-correct">●</span>
+              <p className="text-xs leading-4 text-muted">
                 {t('mobile.share.privacyShield')}
               </p>
             </div>
           </div>
 
-          <div className="mt-4 border border-line bg-panel p-4">
-            <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-ink">
+          <div className="mt-4 es-plate p-4">
+            <p className="font-display text-base font-semibold tracking-[0.03em] text-ink">
               {t('mobile.share.step2Title')}
             </p>
             <div className="mt-4">
-              <p className="mb-2 font-mono text-[9px] tracking-widest text-dim">
+              <p className="mb-2 font-display text-sm tracking-[0.03em] text-dim">
                 {t('mobile.share.cardStyleLabel')}
               </p>
               <div className="grid grid-cols-3 gap-2">
@@ -483,7 +474,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
                     key={key}
                     type="button"
                     onClick={() => setThemeKey(key)}
-                    className="border px-2 py-3 font-mono text-[9px] font-bold tracking-wider transition"
+                    className="border px-2 py-3 font-display text-base font-semibold tracking-[0.03em] transition"
                     style={{
                       borderColor:
                         themeKey === key ? theme.accent : COLORS.line,
@@ -502,7 +493,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
               </div>
             </div>
             <div className="mt-4">
-              <p className="mb-2 font-mono text-[9px] tracking-widest text-dim">
+              <p className="mb-2 font-display text-sm tracking-[0.03em] text-dim">
                 {t('mobile.share.outputFormatLabel')}
               </p>
               <div className="grid grid-cols-3 gap-2">
@@ -511,7 +502,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
                     key={key}
                     type="button"
                     onClick={() => setFormatKey(key)}
-                    className="border px-2 py-3 font-mono text-[9px] font-bold tracking-wider transition"
+                    className="border px-2 py-3 font-display text-base font-semibold tracking-[0.03em] transition"
                     style={{
                       borderColor:
                         formatKey === key ? COLORS.brand : COLORS.line,
@@ -521,7 +512,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
                     }}
                   >
                     {format.label}
-                    <span className="mt-1 block text-[8px] font-normal text-dim">
+                    <span className="mt-1 block text-[11px] font-normal text-dim">
                       {format.ratio.replaceAll(' ', '')}
                     </span>
                   </button>
@@ -530,16 +521,16 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
             </div>
           </div>
 
-          <div className="mt-4 border border-line bg-panel p-4">
+          <div className="mt-4 es-plate p-4">
             <div className="flex items-center justify-between gap-3">
-              <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-ink">
+              <p className="font-display text-base font-semibold tracking-[0.03em] text-ink">
                 {t('mobile.share.step3Title')}
               </p>
-              <span className="font-display text-2xl font-black text-ink">
+              <span className="font-display text-2xl font-bold text-ink">
                 {formatScore(snapshot.score)}
               </span>
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-2 font-mono text-[9px]">
+            <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-2 text-xs">
               {[
                 [t('mobile.share.statObjectives'), snapshot.scoreBreakdown.objectivePoints],
                 [t('mobile.share.scoreEvidenceBonus'), snapshot.scoreBreakdown.evidenceBonus],
@@ -572,10 +563,10 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
 
         <aside className="min-w-0 lg:sticky lg:top-20">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-ink">
+            <p className="font-display text-base font-semibold tracking-[0.03em] text-ink">
               {t('mobile.share.liveCardPreview')}
             </p>
-            <span className="font-mono text-[9px] text-dim">
+            <span className="text-xs text-dim">
               {loading ? t('mobile.share.syncing') : t('mobile.share.verifiedData')}
             </span>
           </div>
@@ -591,7 +582,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
               type="button"
               onClick={handleShare}
               disabled={working || loading}
-              className="col-span-2 flex items-center justify-center gap-2 border border-brand bg-brand px-5 py-4 font-mono text-xs font-black uppercase tracking-[0.18em] text-on-brand transition active:bg-brand-bright disabled:cursor-wait disabled:opacity-50"
+              className="es-btn es-btn-primary col-span-2 disabled:cursor-wait"
             >
               <Icon name="share" />
               {working ? t('mobile.share.rendering') : t('mobile.share.shareCardButton')}
@@ -600,7 +591,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
               type="button"
               onClick={handleDownload}
               disabled={working || loading}
-              className="flex items-center justify-center gap-2 border border-line bg-panel px-3 py-3 font-mono text-[10px] font-bold uppercase tracking-wider text-ink transition active:border-muted disabled:opacity-50"
+              className="es-btn es-btn-ghost es-btn-sm"
             >
               <Icon name="download" />
               {t('mobile.share.saveImage')}
@@ -609,7 +600,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
               type="button"
               onClick={handleCopy}
               disabled={loading}
-              className="flex items-center justify-center gap-2 border border-line bg-panel px-3 py-3 font-mono text-[10px] font-bold uppercase tracking-wider text-ink transition active:border-muted disabled:opacity-50"
+              className="es-btn es-btn-ghost es-btn-sm"
             >
               <Icon name="copy" />
               {t('mobile.share.copyStats')}
@@ -620,7 +611,7 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
             <p
               role="status"
               aria-live="polite"
-              className="font-mono text-[9px] leading-4 text-muted"
+              className="text-xs leading-4 text-muted"
             >
               {status ||
                 t('mobile.share.statusPlaceholder')}
@@ -629,16 +620,16 @@ export function EndgameShareStudio({ snapshot, loading = false }) {
 
           <div className="mt-3 flex items-center justify-between gap-3 border border-dashed border-line px-3 py-2">
             <div>
-              <p className="font-mono text-[8px] font-bold tracking-widest text-muted">
+              <p className="font-display text-base font-semibold tracking-[0.03em] text-muted">
                 {t('mobile.share.globalLeaderboardPort')}
               </p>
-              <p className="mt-1 text-[9px] text-dim">
+              <p className="mt-1 text-xs text-dim">
                 {snapshot.globalLeaderboard.available
                   ? t('mobile.share.rankDataConnected')
                   : t('mobile.share.rankingsGoLive')}
               </p>
             </div>
-            <span className="font-mono text-[9px] text-dim">
+            <span className="text-xs text-dim">
               {snapshot.globalLeaderboard.available ? t('mobile.share.online') : t('mobile.share.standby')}
             </span>
           </div>

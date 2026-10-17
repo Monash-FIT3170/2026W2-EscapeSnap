@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useT } from '../../../../languages/LanguageProvider';
-import { COLORS } from '../../../shared/theme';
 import { useUiTheme } from '../../../shared/components/theme/UiThemeProvider';
 
 // Widest edge of the exported sketch, in px. Matches CAPTURE_MAX_WIDTH on the
@@ -73,12 +72,7 @@ function ToolButton({ pressed, disabled, onClick, label, children }) {
       onClick={onClick}
       disabled={disabled}
       aria-pressed={pressed}
-      className="flex flex-col items-center justify-center gap-1 py-3 font-mono text-[10px] uppercase tracking-[0.2em] transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-      style={{
-        border: `1px solid ${pressed ? COLORS.brand : COLORS.line}`,
-        background: pressed ? 'rgb(var(--es-brand) / 0.12)' : 'transparent',
-        color: pressed ? COLORS.ink : COLORS.muted,
-      }}
+      className="es-key !items-center !text-center !text-sm disabled:cursor-not-allowed disabled:opacity-40"
     >
       {children}
       <span>{label}</span>
@@ -291,7 +285,7 @@ const MobileDrawingPage = ({
 
   if (!roundId) {
     return (
-      <div className="px-5 pt-6 text-center font-mono text-xs uppercase tracking-[0.2em] text-muted">
+      <div className="px-5 pt-6 text-center font-display text-sm uppercase tracking-[0.06em] text-muted">
         {t('mobile.riddle.loadingRound')}
       </div>
     );
@@ -314,7 +308,7 @@ const MobileDrawingPage = ({
 
         {!hasStrokes && !isExpired && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <span className="font-mono text-xs uppercase tracking-[0.25em] text-dim">
+            <span className="font-display text-sm uppercase tracking-[0.06em] text-dim">
               {t('mobile.riddle.drawPrompt')}
             </span>
           </div>
@@ -328,7 +322,7 @@ const MobileDrawingPage = ({
               <div className="scan-sweep absolute inset-x-0 h-0.5 bg-brand shadow-[0_0_8px_2px_rgb(var(--es-brand)/0.8)]" />
             </div>
             <div className="pointer-events-none absolute inset-x-0 bottom-6 flex items-center justify-center">
-              <span className="pulse-text bg-ground/80 px-4 py-2 font-mono text-xs uppercase tracking-[0.25em] text-muted">
+              <span className="pulse-text bg-ground/80 px-4 py-2 font-display text-sm uppercase tracking-[0.06em] text-muted">
                 {t('mobile.riddle.analysing')}
               </span>
             </div>
@@ -338,7 +332,7 @@ const MobileDrawingPage = ({
         {showResult && (
           <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center gap-1 bg-ground/90 px-6 py-4">
             <span
-              className={`font-mono text-xs uppercase tracking-widest ${
+              className={`font-display text-sm uppercase tracking-[0.06em] ${
                 validationState === 'error'
                   ? 'text-muted'
                   : 'text-incorrect'
@@ -349,7 +343,7 @@ const MobileDrawingPage = ({
                 : t('mobile.riddle.notAMatch')}
             </span>
             {explanation && (
-              <span className="text-center font-mono text-[11px] leading-5 text-muted">
+              <span className="text-center text-sm leading-5 text-muted">
                 {explanation}
               </span>
             )}
@@ -359,10 +353,10 @@ const MobileDrawingPage = ({
         {isExpired && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-ground/80">
             <span className="font-mono text-3xl text-incorrect">✗</span>
-            <span className="font-mono text-xs uppercase tracking-[0.25em] text-incorrect">
+            <span className="font-display text-sm uppercase tracking-[0.06em] text-incorrect">
               {t('mobile.riddle.roundEnded')}
             </span>
-            <span className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-dim">
+            <span className="mt-1 font-display text-xs uppercase tracking-[0.06em] text-dim">
               {t('mobile.riddle.noSubmissionAccepted')}
             </span>
           </div>
@@ -370,7 +364,7 @@ const MobileDrawingPage = ({
       </div>
 
       {!isExpired && (
-        <div className="flex-shrink-0 space-y-3 bg-ground px-5 pb-5 pt-4">
+        <div className="flex-shrink-0 space-y-3 bg-ground/80 px-5 pb-5 pt-4">
           <div className="grid grid-cols-3 gap-2">
             <ToolButton
               pressed={tool === 'draw'}
@@ -401,7 +395,7 @@ const MobileDrawingPage = ({
             type="button"
             onClick={handleSubmit}
             disabled={uploading || !hasStrokes}
-            className="w-full bg-brand py-4 font-mono text-sm uppercase tracking-[0.25em] text-on-brand transition active:bg-brand-bright disabled:cursor-not-allowed disabled:opacity-40"
+            className="es-btn es-btn-primary w-full"
           >
             {uploading
               ? t('mobile.riddle.analysing')

@@ -256,10 +256,10 @@ function PlayerFlow({ initialCode = '' }) {
 
   if (screen === 'resuming') {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-ground px-5">
+      <div className="es-room flex items-center justify-center px-5">
         <p
           role="status"
-          className="pulse-text font-mono text-xs uppercase tracking-[0.25em] text-muted"
+          className="pulse-text font-display text-lg tracking-[0.03em] text-muted"
         >
           {t('mobile.home.reconnecting')}
         </p>

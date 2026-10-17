@@ -19,7 +19,7 @@ const NAV_ITEMS = [
 export function MobileBottomNav({ active, onChange }) {
   const t = useT();
   return (
-    <nav className="fixed inset-x-0 bottom-0 border-t border-line bg-ground pt-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+    <nav className="es-bar fixed inset-x-0 bottom-0 !min-h-0 !px-0 border-t border-line !border-b-0 pt-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
       <div className="mx-auto flex max-w-md">
         {NAV_ITEMS.map(({ key, labelKey, path }) => {
           const isActive = active === key;
@@ -29,11 +29,13 @@ export function MobileBottomNav({ active, onChange }) {
               type="button"
               onClick={() => onChange(key)}
               aria-current={isActive ? 'page' : undefined}
-              className={`relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 px-2 font-mono text-[10px] uppercase tracking-[0.2em] transition ${
+              className={`relative flex min-h-[52px] flex-1 flex-col items-center justify-center gap-1 px-2 font-display text-sm tracking-[0.04em] transition ${
                 isActive ? 'text-ink' : 'text-dim'
               }`}
             >
-              {isActive && <span className="absolute top-0 h-0.5 w-10 bg-brand" />}
+              {isActive && (
+                <span className="absolute top-0 h-0.5 w-10 rounded-full bg-brand-bright shadow-[0_0_8px_rgb(var(--es-brand-bright))]" aria-hidden="true" />
+              )}
               <svg
                 viewBox="0 0 24 24"
                 fill="none"

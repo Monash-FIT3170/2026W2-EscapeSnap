@@ -14,66 +14,36 @@ function formatSolveTime(milliseconds) {
     : `${seconds}s`;
 }
 
+const COLUMNS = '64px minmax(280px, 1fr) 110px 110px 130px';
+
 export default function PostGameLeaderboard({ gameId }) {
   const t = useT();
   const { loading, results } = useGameResults(gameId);
 
   return (
-    <section
-      aria-labelledby="post-game-leaderboard-title"
-      style={{ background: 'rgb(var(--es-panel))', border: '1px solid rgb(var(--es-line))' }}
-    >
-      <div
-        className="flex items-center justify-between px-6 py-4"
-        style={{ borderBottom: '1px solid rgb(var(--es-line))' }}
-      >
-        <div className="flex items-center gap-3">
-          <div style={{ width: 4, height: 18, background: 'rgb(var(--es-brand))' }} />
-          <h2
-            id="post-game-leaderboard-title"
-            className="font-bold uppercase"
-            style={{ color: 'rgb(var(--es-ink))', fontSize: 14, letterSpacing: '1.5px' }}
-          >
-            {t('host.leaderboard.finalLeaderboard')}
-          </h2>
-        </div>
-        <span
-          className="font-mono uppercase"
-          style={{ color: 'rgb(var(--es-muted))', fontSize: 9 }}
-        >
-          {t('host.leaderboard.hoverBadgeHint')}
-        </span>
+    <section aria-labelledby="post-game-leaderboard-title" className="es-plate overflow-x-auto">
+      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-line px-6 py-4">
+        <h2 id="post-game-leaderboard-title" className="es-title text-2xl text-ink">
+          {t('host.leaderboard.finalLeaderboard')}
+        </h2>
+        <span className="text-sm text-muted">{t('host.leaderboard.hoverBadgeHint')}</span>
       </div>
 
       {loading && (
-        <p
-          className="px-6 py-8 text-center font-mono"
-          style={{ color: 'rgb(var(--es-muted))', fontSize: 11 }}
-        >
+        <p className="pulse-text px-6 py-8 text-center text-muted">
           {t('host.leaderboard.calculatingResults')}
         </p>
       )}
 
       {!loading && results.length === 0 && (
-        <p
-          className="px-6 py-8 text-center font-mono"
-          style={{ color: 'rgb(var(--es-muted))', fontSize: 11 }}
-        >
-          {t('host.leaderboard.noPlayerResults')}
-        </p>
+        <p className="px-6 py-8 text-center text-muted">{t('host.leaderboard.noPlayerResults')}</p>
       )}
 
       {!loading && results.length > 0 && (
         <div style={{ overflow: 'visible' }}>
           <div
-            className="grid min-w-[720px] px-6 py-3 font-mono uppercase"
-            style={{
-              gridTemplateColumns: '64px minmax(280px, 1fr) 110px 110px 130px',
-              background: 'rgb(var(--es-ground))',
-              color: 'rgb(var(--es-muted))',
-              fontSize: 9,
-              letterSpacing: '1px',
-            }}
+            className="es-label grid min-w-[720px] px-6 py-3"
+            style={{ gridTemplateColumns: COLUMNS }}
           >
             <span>{t('host.leaderboard.rank')}</span>
             <span>{t('host.leaderboard.playerAndAchievements')}</span>
@@ -82,51 +52,30 @@ export default function PostGameLeaderboard({ gameId }) {
             <span className="text-right">{t('host.leaderboard.fastest')}</span>
           </div>
 
-          {results.map((result, index) => (
+          {results.map((result) => (
             <div
               key={result.playerId}
-              className="grid min-w-[720px] items-center px-6 py-4"
-              style={{
-                gridTemplateColumns:
-                  '64px minmax(280px, 1fr) 110px 110px 130px',
-                borderTop: index > 0 ? '1px solid rgb(var(--es-line))' : 'none',
-              }}
+              className="grid min-w-[720px] items-center border-t border-line/70 px-6 py-4"
+              style={{ gridTemplateColumns: COLUMNS }}
             >
               <span
-                className="font-mono font-bold"
-                style={{ color: 'rgb(var(--es-muted))', fontSize: 13 }}
+                className={`font-display text-2xl font-semibold tabular-nums ${
+                  result.rank === 1 ? 'es-lcd-text' : 'text-muted'
+                }`}
               >
-                #{String(result.rank).padStart(2, '0')}
+                {String(result.rank).padStart(2, '0')}
               </span>
               <div className="flex min-w-0 items-center gap-3">
-                <span
-                  className="truncate font-bold uppercase"
-                  style={{
-                    color: 'rgb(var(--es-ink))',
-                    fontSize: 13,
-                    letterSpacing: '0.8px',
-                  }}
-                >
+                <span className="truncate font-display text-xl font-semibold tracking-[0.02em] text-ink">
                   {result.playerName}
                 </span>
                 <BadgeList badges={result.badges} size={23} />
               </div>
-              <span
-                className="text-center font-mono"
-                style={{ color: 'rgb(var(--es-ink))', fontSize: 12 }}
-              >
+              <span className="text-center font-display text-lg tabular-nums text-ink">
                 {result.stats.correctCount}/{result.stats.totalRounds}
               </span>
-              <span
-                className="text-center font-mono"
-                style={{ color: 'rgb(var(--es-ink))', fontSize: 12 }}
-              >
-                {result.stats.accuracyPercent}%
-              </span>
-              <span
-                className="text-right font-mono"
-                style={{ color: 'rgb(var(--es-ink))', fontSize: 12 }}
-              >
+              <span className="text-center font-display text-lg tabular-nums text-ink">{result.stats.accuracyPercent}%</span>
+              <span className="text-right font-display text-lg tabular-nums text-ink">
                 {formatSolveTime(result.stats.fastestSolveMs)}
               </span>
             </div>

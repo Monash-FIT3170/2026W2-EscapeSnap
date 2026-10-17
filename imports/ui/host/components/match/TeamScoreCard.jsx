@@ -4,11 +4,11 @@ import { teamPhase, teamProgressPercent } from '/imports/lib/teamStatus';
 import { useT } from '../../../../languages/LanguageProvider';
 
 const PHASE_STYLE = {
-  waiting: { key: 'statusWaiting', bg: 'rgb(var(--es-panel))', color: 'rgb(var(--es-muted))' },
-  playing: { key: 'statusPlaying', bg: 'rgb(var(--es-correct) / 0.15)', color: 'rgb(var(--es-correct))' },
-  final: { key: 'statusFinal', bg: 'rgb(var(--es-warn) / 0.18)', color: 'rgb(var(--es-warn))' },
-  escaped: { key: 'statusEscaped', bg: 'rgb(var(--es-correct) / 0.25)', color: 'rgb(var(--es-correct))' },
-  failed: { key: 'statusFailed', bg: 'rgb(var(--es-brand))', color: 'rgb(var(--es-on-brand))' },
+  waiting: { key: 'statusWaiting', className: 'border-line text-muted' },
+  playing: { key: 'statusPlaying', className: 'border-correct/40 bg-correct/15 text-correct' },
+  final: { key: 'statusFinal', className: 'border-warn/40 bg-warn/15 text-warn' },
+  escaped: { key: 'statusEscaped', className: 'border-correct/50 bg-correct/25 text-correct' },
+  failed: { key: 'statusFailed', className: 'border-brand bg-brand text-on-brand' },
 };
 
 export function formatClock(ms) {
@@ -33,14 +33,14 @@ function useRemainingMs(team) {
 }
 
 const RoundCell = ({ round, isFuture }) => {
-  if (isFuture) return <span style={{ color: 'rgb(var(--es-dim))', fontSize: 12 }}>—</span>;
+  if (isFuture) return <span className="text-dim">—</span>;
   if (!round || round.status === 'pending') {
-    return <span style={{ color: 'rgb(var(--es-muted))', fontSize: 14, fontWeight: 700 }}>?</span>;
+    return <span className="font-display text-lg font-semibold text-muted">?</span>;
   }
   return round.status === 'correct' ? (
-    <span style={{ color: 'rgb(var(--es-correct))', fontSize: 14, fontWeight: 700 }}>✓</span>
+    <span className="font-display text-lg font-semibold text-correct">✓</span>
   ) : (
-    <span style={{ color: 'rgb(var(--es-incorrect))', fontSize: 14, fontWeight: 700 }}>✕</span>
+    <span className="font-display text-lg font-semibold text-incorrect">✕</span>
   );
 };
 
@@ -61,62 +61,50 @@ const TeamScoreCard = ({ team, players = [], rounds = [], compact = false, highl
     ? remainingGameMs(team, new Date(team.endedAt).getTime())
     : remaining;
 
+  const big = compact ? 'text-3xl' : 'text-5xl';
+
   return (
-    <div
-      className="flex flex-col"
-      style={{
-        background: 'rgb(var(--es-ground))',
-        border: highlight ? '1px solid rgb(var(--es-correct))' : '1px solid rgb(var(--es-panel))',
-        minWidth: 0,
-      }}
-    >
-      <div className="flex items-center justify-between gap-3 px-5 py-4" style={{ borderBottom: '1px solid rgb(var(--es-panel))' }}>
-        <span
-          className="truncate"
-          style={{ fontWeight: 700, fontSize: compact ? 14 : 20, letterSpacing: '1.5px', color: 'rgb(var(--es-ink))' }}
-        >
+    <div className={`es-plate flex min-w-0 flex-col ${highlight ? 'ring-2 ring-correct' : ''}`}>
+      <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
+        <span className={`es-title truncate text-ink ${compact ? 'text-xl' : 'text-3xl'}`}>
           {team.groupName?.toUpperCase()}
         </span>
-        <span style={{ fontSize: 9, padding: '3px 8px', letterSpacing: '1px', background: phase.bg, color: phase.color, whiteSpace: 'nowrap' }}>
+        <span className={`flex items-center gap-2 whitespace-nowrap rounded-sm border px-2 py-0.5 font-display text-sm tracking-[0.03em] ${phase.className}`}>
           {t(`host.match.${phase.key}`)}
         </span>
       </div>
 
-      <div className="grid grid-cols-3 gap-px" style={{ background: 'rgb(var(--es-panel))' }}>
-        <div className="flex flex-col gap-2 p-4" style={{ background: 'rgb(var(--es-panel))' }}>
-          <span style={{ fontSize: 9, letterSpacing: '1px', color: 'rgb(var(--es-muted))' }}>{t('host.match.timeRemaining')}</span>
+      <div className="grid grid-cols-3 gap-4 px-5 py-4">
+        <div className="flex flex-col gap-2">
+          <span className="es-label">{t('host.match.timeRemaining')}</span>
           <span
-            style={{
-              fontWeight: 300,
-              fontSize: compact ? 24 : 36,
-              lineHeight: 1,
-              color: remaining === 0 ? 'rgb(var(--es-incorrect))' : 'rgb(var(--es-ink))',
-              fontVariantNumeric: 'tabular-nums',
-            }}
+            className={`es-lcd px-2 py-1 text-center leading-none tabular-nums ${big} ${
+              remaining === 0 ? 'font-display font-semibold text-dim' : 'es-lcd-text'
+            }`}
           >
             {formatClock(shownMs)}
           </span>
           {team.timePenaltyMs > 0 && (
-            <span style={{ fontSize: 9, color: 'rgb(var(--es-incorrect))' }}>
+            <span className="text-xs text-incorrect">
               {t('host.progress.hintPenalty', { time: formatClock(team.timePenaltyMs) })}
             </span>
           )}
         </div>
-        <div className="flex flex-col gap-2 p-4" style={{ background: 'rgb(var(--es-panel))' }}>
-          <span style={{ fontSize: 9, letterSpacing: '1px', color: 'rgb(var(--es-muted))' }}>{t('host.match.progress')}</span>
-          <span style={{ fontWeight: 700, fontSize: compact ? 24 : 36, lineHeight: 1, color: 'rgb(var(--es-ink))' }}>
+        <div className="flex flex-col gap-2">
+          <span className="es-label">{t('host.match.progress')}</span>
+          <span className={`es-title tabular-nums text-ink ${big}`}>
             {progress}
-            <span style={{ fontSize: 14, color: 'rgb(var(--es-muted))' }}>%</span>
+            <span className="text-lg text-muted">%</span>
           </span>
-          <div style={{ height: 3, background: 'rgb(var(--es-line))' }}>
-            <div style={{ height: '100%', width: `${progress}%`, background: 'rgb(var(--es-brand))' }} />
+          <div className="es-lcd h-1.5 overflow-hidden !rounded-full">
+            <div className="h-full bg-brand-bright" style={{ width: `${progress}%` }} />
           </div>
         </div>
-        <div className="flex flex-col gap-2 p-4" style={{ background: 'rgb(var(--es-panel))' }}>
-          <span style={{ fontSize: 9, letterSpacing: '1px', color: 'rgb(var(--es-muted))' }}>{t('host.match.round')}</span>
-          <span style={{ fontWeight: 700, fontSize: compact ? 24 : 36, lineHeight: 1, color: 'rgb(var(--es-ink))' }}>
+        <div className="flex flex-col gap-2">
+          <span className="es-label">{t('host.match.round')}</span>
+          <span className={`es-title tabular-nums text-ink ${big}`}>
             {String(team.currentRound ?? 1).padStart(2, '0')}
-            <span style={{ fontSize: 14, color: 'rgb(var(--es-muted))' }}> / {String(team.totalRounds).padStart(2, '0')}</span>
+            <span className="text-lg text-muted"> / {String(team.totalRounds).padStart(2, '0')}</span>
           </span>
         </div>
       </div>
@@ -124,18 +112,14 @@ const TeamScoreCard = ({ team, players = [], rounds = [], compact = false, highl
       {!compact && (
         <div className="flex flex-col">
           {teamPlayers.map((player) => (
-            <div
-              key={player._id}
-              className="flex items-center px-5 py-3"
-              style={{ borderTop: '1px solid rgb(var(--es-panel))' }}
-            >
-              <span className="truncate" style={{ flex: '0 0 40%', fontWeight: 700, fontSize: 12, color: 'rgb(var(--es-ink))' }}>
+            <div key={player._id} className="flex items-center border-t border-line/70 px-5 py-3">
+              <span className="truncate font-display text-lg font-semibold tracking-[0.02em] text-ink" style={{ flex: '0 0 40%' }}>
                 {player.name?.toUpperCase()}
               </span>
               {Array.from({ length: team.totalRounds }, (_, i) => {
                 const roundNumber = i + 1;
                 return (
-                  <div key={roundNumber} style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                  <div key={roundNumber} className="flex flex-1 justify-center">
                     <RoundCell
                       round={teamRounds.find((r) => r.playerId === player._id && r.roundNumber === roundNumber)}
                       isFuture={team.status === 'lobby' || roundNumber > team.currentRound}

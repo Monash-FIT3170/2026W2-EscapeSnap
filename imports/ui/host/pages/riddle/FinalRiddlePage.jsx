@@ -7,10 +7,9 @@ import WinScreen from '/imports/ui/host/pages/game-completion/WinScreen.jsx';
 import LoseScreen from '/imports/ui/host/pages/game-completion/LoseScreen.jsx';
 import FinalRiddleInput from '/imports/ui/host/components/riddle/FinalRiddleInput.jsx';
 import SidebarLayout from '/imports/ui/host/layouts/SidebarLayout.jsx';
+import { RoomBar } from '/imports/ui/shared/components/room/RoomBar';
 import { useT } from '../../../../languages/LanguageProvider';
 import { useGameUiTheme } from '../../../shared/components/theme/UiThemeProvider';
-
-const BG = 'rgb(var(--es-ground))';
 
 const FinalRiddlePage = () => {
   const { gameId } = useParams();
@@ -26,8 +25,8 @@ const FinalRiddlePage = () => {
 
   if (loading || lettersLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: BG }}>
-        <p style={{ color: 'rgb(var(--es-muted))', fontSize: 10, letterSpacing: '1px' }}>{t('host.finalRiddle.loading')}</p>
+      <div className="es-room flex items-center justify-center">
+        <p className="pulse-text font-display text-lg text-muted">{t('host.finalRiddle.loading')}</p>
       </div>
     );
   }
@@ -57,102 +56,72 @@ const FinalRiddlePage = () => {
     );
   }
 
+  // Laid out like the landing page's final-riddle section: the riddle as a
+  // case file on the left, the lock (letters and answer) on a plate beside it.
   return (
     <SidebarLayout gameId={gameId} activePage="final-riddle">
+      <RoomBar />
 
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4" style={{ background: BG, borderBottom: '2px solid rgb(var(--es-panel))' }}>
-        <span className="font-display text-lg font-black tracking-wide text-brand">ESCAPESNAP</span>
-      </header>
+      <div className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 items-start gap-10 px-6 py-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:px-10">
+        <div className="flex flex-col gap-8">
+          <h1 className="es-title text-6xl text-ink lg:text-7xl">
+            {t('host.finalRiddle.theFinal')} {t('host.finalRiddle.riddle')}
+          </h1>
 
-      {/* Body */}
-      <div className="flex-1 p-8 flex flex-col gap-6">
+          <article className="es-paper -rotate-1 px-8 pb-9 pt-8">
+            <span className="es-stamp mb-6 text-[#a3150e]">{t('host.finalRiddle.missionCritical')}</span>
+            <p className="mb-3 text-sm text-[#3b322b]">{t('host.finalRiddle.decryptTheClue')}</p>
+            <p className="text-2xl leading-[1.7]">&ldquo;{finalRiddle}&rdquo;</p>
 
-        {/* Title */}
-        <div className="flex items-center gap-3">
-          <div style={{ width: 4, height: 32, background: 'rgb(var(--es-brand))' }} />
-          <div>
-            <p style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-muted))' }}>{t('host.finalRiddle.missionCritical')}</p>
-            <h1 style={{ fontWeight: 700, fontSize: 28, letterSpacing: '2px', color: 'rgb(var(--es-ink))', lineHeight: 1.2 }}>
-              {t('host.finalRiddle.theFinal')} <span style={{ color: 'rgb(var(--es-brand))' }}>{t('host.finalRiddle.riddle')}</span>
-            </h1>
-          </div>
+            {finalRiddleHint && (
+              <div className="mt-6">
+                {hintRevealed ? (
+                  <p className="es-hand text-sm leading-7 text-[#a3150e]">💡 {finalRiddleHint}</p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setHintRevealed(true)}
+                    className="es-link min-h-[44px] text-lg text-[#a3150e]"
+                  >
+                    REVEAL HINT
+                  </button>
+                )}
+              </div>
+            )}
+          </article>
         </div>
 
-        {/* Riddle card */}
-        <div style={{ background: 'rgb(var(--es-ground))', borderLeft: '4px solid rgb(var(--es-brand))', padding: '32px' }}>
-          <p style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-muted))', marginBottom: 12 }}>{t('host.finalRiddle.decryptTheClue')}</p>
-          <p style={{ fontSize: 22, fontWeight: 600, color: 'rgb(var(--es-ink))', lineHeight: 1.6, letterSpacing: '0.5px' }}>
-            &ldquo;{finalRiddle}&rdquo;
-          </p>
-
-          {finalRiddleHint && (
-            <div style={{ marginTop: 20 }}>
-              {hintRevealed ? (
-                <p style={{ fontSize: 13, color: 'rgb(var(--es-muted))', letterSpacing: '0.3px' }}>
-                  💡 HINT: {finalRiddleHint}
-                </p>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setHintRevealed(true)}
-                  style={{
-                    fontSize: 11,
-                    letterSpacing: '1.5px',
-                    color: 'rgb(var(--es-brand))',
-                    background: 'transparent',
-                    border: '1px solid rgb(var(--es-brand))',
-                    padding: '8px 16px',
-                    cursor: 'pointer',
-                  }}
+        <div className="es-plate flex flex-col gap-8 px-6 pb-7 pt-6 lg:mt-24">
+          <section>
+            <h2 className="es-label mb-3 flex items-center gap-2">
+              <span className="es-led" data-state={letters.length ? 'ready' : 'off'} aria-hidden="true" />
+              {t('host.finalRiddle.revealedLetters')}
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {letters.map((letter, i) => (
+                <span
+                  key={i}
+                  className="es-lcd es-lcd-text flex h-16 w-14 items-center justify-center text-4xl"
                 >
-                  REVEAL HINT
-                </button>
+                  {letter}
+                </span>
+              ))}
+              {letters.length === 0 && (
+                <p className="text-sm text-muted">{t('host.finalRiddle.noLettersRevealedYet')}</p>
               )}
             </div>
-          )}
-        </div>
+          </section>
 
-        {/* Revealed Letters */}
-        <div style={{ background: 'rgb(var(--es-panel))', padding: '24px' }}>
-          <div className="flex items-center gap-3 mb-4">
-            <div style={{ width: 4, height: 16, background: 'rgb(var(--es-brand))' }} />
-            <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: 'rgb(var(--es-ink))' }}>{t('host.finalRiddle.revealedLetters')}</span>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            {letters.map((letter, i) => (
-              <div key={i} style={{
-                width: 64, height: 64,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                background: 'rgb(var(--es-ground))',
-                borderBottom: '2px solid rgb(var(--es-brand))',
-                fontWeight: 700, fontSize: 24,
-                color: 'rgb(var(--es-ink))', letterSpacing: '2px',
-              }}>
-                {letter}
-              </div>
-            ))}
-            {letters.length === 0 && (
-              <p style={{ fontSize: 11, color: 'rgb(var(--es-muted))', opacity: 0.6 }}>{t('host.finalRiddle.noLettersRevealedYet')}</p>
-            )}
-          </div>
+          <section>
+            <h2 className="es-label mb-3">{t('host.finalRiddle.submitAnswer')}</h2>
+            <FinalRiddleInput
+              gameId={gameId}
+              onCorrect={() => setHasWon(true)}
+              onFailed={() => setHasLost(true)}
+            />
+          </section>
         </div>
-
-        {/* Input */}
-        <div style={{ background: 'rgb(var(--es-ground))', padding: '24px' }}>
-          <div className="flex items-center gap-3 mb-4">
-            <div style={{ width: 4, height: 16, background: 'rgb(var(--es-brand))' }} />
-            <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: 'rgb(var(--es-ink))' }}>{t('host.finalRiddle.submitAnswer')}</span>
-          </div>
-          <FinalRiddleInput
-            gameId={gameId}
-            onCorrect={() => setHasWon(true)}
-            onFailed={() => setHasLost(true)}
-          />
-        </div>
-
       </div>
-
     </SidebarLayout>
   );
 };

@@ -53,67 +53,60 @@ const Sidebar = ({ gameId, activePage, expanded, onToggle }) => {
   const t = useT();
   const subtitle = t(`host.sidebar.${SUBTITLE_KEYS[activePage] ?? 'game'}`);
 
+  // A metal rail down the side of the room, its buttons lit like the
+  // landing page's keypad when they're the screen in use.
   return (
-    <aside style={{
-      width: expanded ? 200 : 60,
-      minHeight: '100vh',
-      background: 'rgb(var(--es-ground))',
-      borderRight: '1px solid rgb(var(--es-panel))',
-      display: 'flex',
-      flexDirection: 'column',
-      transition: 'width 0.25s ease',
-      overflow: 'hidden',
-      flexShrink: 0,
-    }}>
-      <div style={{
-        borderBottom: '1px solid rgb(var(--es-panel))',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: expanded ? 'space-between' : 'center',
-        padding: expanded ? '20px 16px 20px 24px' : '20px 0',
-      }}>
+    <aside
+      className="es-dark flex flex-shrink-0 flex-col overflow-hidden border-r border-line transition-[width] duration-200"
+      style={{
+        width: expanded ? 216 : 64,
+        minHeight: '100vh',
+        background:
+          'linear-gradient(180deg, color-mix(in srgb, var(--es-metal) 34%, black), color-mix(in srgb, var(--es-metal) 18%, black))',
+      }}
+    >
+      <div
+        className={`flex min-h-[64px] items-center border-b border-line ${expanded ? 'justify-between pl-5 pr-3' : 'justify-center'}`}
+      >
         {expanded && (
-          <div>
-            <div style={{ fontWeight: 700, fontSize: 18, letterSpacing: '1.8px', color: 'rgb(var(--es-ink))', whiteSpace: 'nowrap' }}>{t('host.sidebar.game')}</div>
-            <div style={{ fontWeight: 500, fontSize: 10, letterSpacing: '0.5px', color: 'rgb(var(--es-brand))', marginTop: 2, whiteSpace: 'nowrap' }}>{subtitle}</div>
+          <div className="min-w-0">
+            <div className="es-title truncate text-xl text-ink">{t('host.sidebar.game')}</div>
+            <div className="mt-1 truncate font-display text-sm tracking-[0.03em] text-brand-bright">{subtitle}</div>
           </div>
         )}
         <button
+          type="button"
           onClick={onToggle}
           title={expanded ? t('host.sidebar.collapseSidebar') : t('host.sidebar.expandSidebar')}
-          style={{ background: 'transparent', cursor: 'pointer', opacity: 0.5, padding: 4, display: 'flex', alignItems: 'center' }}
+          aria-label={expanded ? t('host.sidebar.collapseSidebar') : t('host.sidebar.expandSidebar')}
+          className="flex h-11 w-11 items-center justify-center rounded-full opacity-70 transition hover:opacity-100"
         >
           <HamburgerIcon />
         </button>
       </div>
 
-      <nav style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+      <nav className="flex flex-1 flex-col gap-1 p-2">
         {NAV_ITEMS.map(({ labelKey, Icon, page, path }) => {
           const active = page === activePage;
           const label = t(`host.sidebar.${labelKey}`);
+          const color = active ? 'rgb(var(--es-ink))' : 'rgb(var(--es-muted))';
           return (
             <button
               key={labelKey}
+              type="button"
               onClick={() => navigate(path(gameId))}
               title={!expanded ? label : undefined}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: expanded ? 16 : 0,
-                justifyContent: expanded ? 'flex-start' : 'center',
-                padding: expanded ? '16px 24px' : '16px 0',
-                background: active ? 'rgb(var(--es-panel))' : 'transparent',
-                borderLeft: active ? '2px solid rgb(var(--es-brand))' : '2px solid transparent',
-                cursor: 'pointer',
-                opacity: active ? 1 : 0.7,
-                width: '100%',
-                textAlign: 'left',
-                transition: 'background 0.15s',
-              }}
+              aria-current={active ? 'page' : undefined}
+              className={`flex min-h-[48px] w-full items-center rounded-md transition ${
+                expanded ? 'gap-4 px-4' : 'justify-center'
+              } ${active ? 'es-lcd' : 'hover:bg-white/5'}`}
             >
-              <Icon color={active ? 'rgb(var(--es-ink))' : 'rgb(var(--es-muted))'} />
+              <Icon color={active ? 'rgb(var(--es-brand-bright))' : color} />
               {expanded && (
-                <span style={{ fontSize: 16, fontWeight: 500, letterSpacing: '0.8px', color: active ? 'rgb(var(--es-ink))' : 'rgb(var(--es-muted))', whiteSpace: 'nowrap' }}>
+                <span
+                  className="whitespace-nowrap font-display text-lg font-medium tracking-[0.03em]"
+                  style={{ color }}
+                >
                   {label}
                 </span>
               )}
@@ -129,14 +122,14 @@ const SidebarLayout = ({ gameId, activePage, children }) => {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
   return (
-    <main className="flex min-h-screen" style={{ background: 'rgb(var(--es-ground))', color: 'rgb(var(--es-ink))', fontFamily: "'Space Grotesk', Helvetica, sans-serif" }}>
+    <main className="es-room flex min-h-screen">
       <Sidebar
         gameId={gameId}
         activePage={activePage}
         expanded={sidebarExpanded}
         onToggle={() => setSidebarExpanded(v => !v)}
       />
-      <section className="flex flex-col flex-1" style={{ minWidth: 0 }}>
+      <section className="flex min-w-0 flex-1 flex-col">
         {children}
       </section>
     </main>

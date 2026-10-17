@@ -12,6 +12,7 @@ import { useT } from '../../../../languages/LanguageProvider';
 import { useGameUiTheme } from '../../../shared/components/theme/UiThemeProvider';
 import { useMatch } from '/imports/ui/shared/hooks/useMatch';
 import TeamScoreCard from '../../components/match/TeamScoreCard';
+import { RoomBar } from '/imports/ui/shared/components/room/RoomBar';
 
 // Online versus: the rival team's live standing, above our own manifest.
 const RivalPanel = ({ gameId, matchId }) => {
@@ -21,10 +22,7 @@ const RivalPanel = ({ gameId, matchId }) => {
   if (!match || !rival) return null;
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-3">
-        <div style={{ width: 4, height: 16, background: 'rgb(var(--es-brand))' }} />
-        <span style={{ fontWeight: 700, fontSize: 14, letterSpacing: '1.4px', color: 'rgb(var(--es-ink))' }}>{t('host.match.rival')}</span>
-      </div>
+      <h2 className="es-title text-2xl text-ink">{t('host.match.rival')}</h2>
       <TeamScoreCard team={rival} players={players} rounds={rounds} compact />
     </div>
   );
@@ -82,17 +80,13 @@ const ForceAdvanceButton = ({ gameId, pendingCount }) => {
   return (
     <div className="flex items-center gap-3">
       {failed && (
-        <span style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-incorrect))' }}>{t('host.progress.forceAdvanceFailed')}</span>
+        <span className="text-sm text-incorrect">{t('host.progress.forceAdvanceFailed')}</span>
       )}
       <button
         type="button"
         disabled={busy}
         onClick={armed ? advance : () => setArmed(true)}
-        style={{
-          minHeight: 44, padding: '0 16px', fontSize: 10, fontWeight: 700, letterSpacing: '1px',
-          color: armed ? 'rgb(var(--es-on-brand))' : 'rgb(var(--es-ink))', background: armed ? 'rgb(var(--es-brand))' : 'transparent', border: '1px solid rgb(var(--es-brand))',
-          cursor: busy ? 'not-allowed' : 'pointer', opacity: busy ? 0.5 : 1,
-        }}
+        className={`es-btn es-btn-sm ${armed ? 'es-btn-primary' : 'es-btn-ghost'}`}
       >
         {busy
           ? t('host.progress.forceAdvancing')
@@ -153,16 +147,16 @@ const ProgressPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'rgb(var(--es-ground))' }}>
-        <p style={{ color: 'rgb(var(--es-muted))', fontSize: 10, letterSpacing: '1px' }}>{t('host.progress.loading')}</p>
+      <div className="es-room flex items-center justify-center">
+        <p className="pulse-text font-display text-lg text-muted">{t('host.progress.loading')}</p>
       </div>
     );
   }
 
   if (!game) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: 'rgb(var(--es-ground))' }}>
-        <p style={{ color: 'rgb(var(--es-brand))', fontSize: 10, letterSpacing: '1px' }}>{t('host.progress.gameNotFound')}</p>
+      <div className="es-room flex items-center justify-center">
+        <p className="font-display text-lg text-brand-bright">{t('host.progress.gameNotFound')}</p>
       </div>
     );
   }
@@ -183,141 +177,111 @@ const ProgressPage = () => {
   const teamProgress = totalRoundDocs > 0 ? Math.round((solvedRounds / totalRoundDocs) * 100) : 0;
   const pendingThisRound = rounds.filter(r => r.roundNumber === game.currentRound && r.status === 'pending').length;
 
+  // The room's clock reads like the keypad's display; the rest sit beside it.
   return (
     <SidebarLayout gameId={gameId} activePage="progress">
+      <RoomBar />
 
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4" style={{ background: 'rgb(var(--es-ground))', borderBottom: '2px solid rgb(var(--es-panel))' }}>
-        <div className="flex items-center gap-4">
-          <span className="font-display text-lg font-black tracking-wide text-brand">ESCAPESNAP</span>
-          <div style={{ width: 1, height: 16, background: 'rgb(var(--es-line))', opacity: 0.3 }} />
-        </div>
-      </header>
-
-      {/* Body */}
-      <div className="flex-1 p-8 flex flex-col gap-8">
-
-        {/* Stats row */}
-        <div className="grid grid-cols-4" style={{ height: 160 }}>
-          <div className="flex flex-col justify-between p-6" style={{ background: 'rgb(var(--es-ground))', borderLeft: `2px solid ${isExpired ? 'rgb(var(--es-incorrect))' : 'rgb(var(--es-brand))'}` }}>
-            <span style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-muted))' }}>{t('host.progress.timeRemaining')}</span>
-            <span style={{ fontWeight: 300, fontSize: 60, letterSpacing: '-3px', lineHeight: '60px', color: isExpired ? 'rgb(var(--es-incorrect))' : 'rgb(var(--es-ink))' }}>
+      <div className="flex flex-1 flex-col gap-8 px-6 py-8 lg:px-10">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)]">
+          <div className="es-plate flex flex-col gap-3 px-5 pb-5 pt-4">
+            <h2 className="es-label flex items-center justify-between">
+              {t('host.progress.timeRemaining')}
+              <span className="es-led" data-state={isExpired ? 'off' : game.startedAt ? 'busy' : 'off'} aria-hidden="true" />
+            </h2>
+            <p className={`es-lcd px-4 py-2 text-center text-7xl leading-none tabular-nums ${isExpired ? 'font-display font-semibold text-dim' : 'es-lcd-text'}`}>
               {game.startedAt ? formatTime(timeLeft) : '--:--'}
-            </span>
-            {!game.startedAt && (
-              <span style={{ fontSize: 9, color: 'rgb(var(--es-muted))', opacity: 0.6, letterSpacing: '0.5px' }}>{t('host.progress.gameNotStarted')}</span>
-            )}
+            </p>
+            {!game.startedAt && <p className="text-sm text-muted">{t('host.progress.gameNotStarted')}</p>}
             {game.startedAt && game.timePenaltyMs > 0 && (
-              <span style={{ fontSize: 9, color: 'rgb(var(--es-incorrect))', letterSpacing: '0.5px' }}>
+              <p className="text-sm text-incorrect">
                 {t('host.progress.hintPenalty', { time: formatTime(game.timePenaltyMs) })}
-              </span>
+              </p>
             )}
           </div>
 
           {/* SCRUM-110: wire team progress to real round data */}
-          <div className="flex flex-col justify-between p-6" style={{ background: 'rgb(var(--es-panel))' }}>
-            <span style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-muted))' }}>{t('host.progress.teamProgress')}</span>
-            <div className="flex items-end gap-2">
-              <span style={{ fontWeight: 700, fontSize: 48, lineHeight: '48px', color: 'rgb(var(--es-ink))' }}>{teamProgress}</span>
-              <span style={{ fontSize: 24, color: 'rgb(var(--es-muted))', paddingBottom: 4 }}>%</span>
-            </div>
-            <div style={{ height: 4, background: 'rgb(var(--es-line))' }}>
-              <div style={{ height: '100%', width: `${teamProgress}%`, background: 'rgb(var(--es-brand))' }} />
+          <div className="es-plate flex flex-col justify-between gap-4 px-5 pb-5 pt-4">
+            <h2 className="es-label">{t('host.progress.teamProgress')}</h2>
+            <p className="es-title text-6xl tabular-nums text-ink">
+              {teamProgress}<span className="text-3xl text-muted">%</span>
+            </p>
+            <div className="es-lcd h-2 overflow-hidden !rounded-full">
+              <div className="h-full bg-brand-bright shadow-[0_0_10px_rgb(var(--es-brand-bright))]" style={{ width: `${teamProgress}%` }} />
             </div>
           </div>
 
           {/* SCRUM-110: wire round counter to real game state */}
-          <div className="flex flex-col justify-between p-6" style={{ background: 'rgb(var(--es-panel))' }}>
-            <span style={{ fontSize: 10, letterSpacing: '1px', color: 'rgb(var(--es-muted))' }}>{t('host.progress.currentRound')}</span>
-            <div className="flex items-end gap-2">
-              <span style={{ fontWeight: 700, fontSize: 48, lineHeight: '48px', color: 'rgb(var(--es-ink))' }}>
-                {String(game.currentRound).padStart(2, '0')}
-              </span>
-              <span style={{ fontSize: 18, color: 'rgb(var(--es-muted))', paddingBottom: 6 }}>
-                / {String(game.totalRounds).padStart(2, '0')}
-              </span>
-            </div>
-            <span style={{ fontSize: 10, color: 'rgb(var(--es-muted))', opacity: 0.6 }}>
+          <div className="es-plate flex flex-col justify-between gap-4 px-5 pb-5 pt-4">
+            <h2 className="es-label">{t('host.progress.currentRound')}</h2>
+            <p className="es-title text-6xl tabular-nums text-ink">
+              {String(game.currentRound).padStart(2, '0')}
+              <span className="text-3xl text-muted"> / {String(game.totalRounds).padStart(2, '0')}</span>
+            </p>
+            <p className="text-sm text-muted">
               {t('host.progress.remainingPuzzles', { n: Math.max(0, game.totalRounds - game.currentRound) })}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-center p-6 relative" style={{ background: 'rgb(var(--es-ground))' }}>
-            <span style={{ position: 'absolute', top: 8, right: 8, fontSize: 8, color: 'rgb(var(--es-muted))', opacity: 0.4 }}>{t('host.progress.authQrScan')}</span>
-            <div style={{ width: 96, height: 96, background: 'rgba(255,255,255,0.8)' }} />
+            </p>
           </div>
         </div>
 
         {game.matchId && <RivalPanel gameId={gameId} matchId={game.matchId} />}
 
         {/* Operative Manifest */}
-        <div style={{ background: 'rgb(var(--es-panel))' }}>
-          <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgb(var(--es-line))' }}>
-            <div className="flex items-center gap-3">
-              <div style={{ width: 4, height: 16, background: 'rgb(var(--es-brand))' }} />
-              <span style={{ fontWeight: 700, fontSize: 14, letterSpacing: '1.4px', color: 'rgb(var(--es-ink))' }}>{t('host.progress.operativeManifest')}</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1">
-                <CheckIcon />
-                <span style={{ fontSize: 10, color: 'rgb(var(--es-muted))' }}>{t('host.progress.correct')}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <CrossIcon />
-                <span style={{ fontSize: 10, color: 'rgb(var(--es-muted))' }}>{t('host.progress.incorrect')}</span>
-              </div>
-              <span style={{ fontSize: 10, color: 'rgb(var(--es-muted))' }}>{t('host.progress.pending')}</span>
+        <section className="es-plate overflow-x-auto">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line px-6 py-4">
+            <h2 className="es-title text-2xl text-ink">{t('host.progress.operativeManifest')}</h2>
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted">
+              <span className="flex items-center gap-1.5"><CheckIcon />{t('host.progress.correct')}</span>
+              <span className="flex items-center gap-1.5"><CrossIcon />{t('host.progress.incorrect')}</span>
+              <span>{t('host.progress.pending')}</span>
               {game.status === 'in_progress' && pendingThisRound > 0 && (
                 <ForceAdvanceButton gameId={gameId} pendingCount={pendingThisRound} />
               )}
             </div>
           </div>
 
-          {/* Column headers */}
-          <div className="flex items-center px-6 py-3" style={{ background: 'rgb(var(--es-ground))', borderBottom: '1px solid rgb(var(--es-line))' }}>
-            <div style={{ width: 160, fontSize: 10, fontWeight: 700, letterSpacing: '1px', color: 'rgb(var(--es-muted))' }}>{t('host.progress.player')}</div>
+          <div className="es-label flex min-w-[640px] items-center px-6 py-3">
+            <div style={{ width: 180 }}>{t('host.progress.player')}</div>
             {Array.from({ length: game.totalRounds }, (_, i) => (
               <div
                 key={i}
-                style={{
-                  flex: 1, fontSize: 10, fontWeight: 700, letterSpacing: '1px',
-                  color: (i + 1) === game.currentRound ? 'rgb(var(--es-ink))' : 'rgb(var(--es-muted))',
-                  textAlign: 'center',
-                }}
+                className={`flex flex-1 items-center justify-center gap-1.5 ${(i + 1) === game.currentRound ? 'text-ink' : ''}`}
               >
-                {t('host.progress.round', { n: i + 1 })}{(i + 1) === game.currentRound ? ' ●' : ''}
+                {t('host.progress.round', { n: i + 1 })}
+                {(i + 1) === game.currentRound && <span className="es-led" data-state="ready" aria-hidden="true" />}
               </div>
             ))}
-            <div style={{ width: 120, fontSize: 10, fontWeight: 700, letterSpacing: '1px', color: 'rgb(var(--es-muted))', textAlign: 'right' }}>{t('host.progress.status')}</div>
+            <div className="text-right" style={{ width: 130 }}>{t('host.progress.status')}</div>
           </div>
 
           {players.length === 0 && (
-            <div className="px-6 py-6" style={{ color: 'rgb(var(--es-dim))', fontSize: 11, letterSpacing: '1px' }}>
-              {t('host.progress.noPlayersJoined')}
-            </div>
+            <p className="px-6 pb-6 text-muted">{t('host.progress.noPlayersJoined')}</p>
           )}
 
-          {players.map((player, i) => {
+          {players.map((player) => {
             const playerRounds = rounds.filter(r => r.playerId === player._id);
             const hasAnyWrong = playerRounds.some(r => r.status === 'wrong' || r.status === 'timeout');
             const allDone = playerRounds.filter(r => r.status !== 'pending').length === game.totalRounds;
             const allCorrect = playerRounds.every(r => r.status === 'correct');
             const offline = !!player.disconnectedAt;
 
-            let statusLabel, statusBg, statusColor;
+            let statusLabel, statusClass;
             if (offline) {
-              statusLabel = t('host.progress.offline'); statusBg = 'transparent'; statusColor = 'rgb(var(--es-muted))';
+              statusLabel = t('host.progress.offline'); statusClass = 'border-line text-muted';
             } else if (allDone && allCorrect) {
-              statusLabel = t('host.progress.completed'); statusBg = 'rgb(var(--es-line))'; statusColor = 'rgb(var(--es-ink))';
+              statusLabel = t('host.progress.completed'); statusClass = 'border-line bg-line text-ink';
             } else if (hasAnyWrong) {
-              statusLabel = t('host.progress.needsHelp'); statusBg = 'rgb(var(--es-brand))'; statusColor = 'rgb(var(--es-on-brand))';
+              statusLabel = t('host.progress.needsHelp'); statusClass = 'border-brand bg-brand text-on-brand';
             } else {
-              statusLabel = t('host.progress.inProgress'); statusBg = 'rgb(var(--es-correct) / 0.2)'; statusColor = 'rgb(var(--es-correct))';
+              statusLabel = t('host.progress.inProgress'); statusClass = 'border-correct/40 bg-correct/15 text-correct';
             }
 
             return (
-              <div key={player._id} className="flex items-center px-6 py-4" style={{ borderTop: i > 0 ? '1px solid rgb(var(--es-line))' : 'none' }}>
-                <div style={{ width: 160, fontWeight: 700, fontSize: 12, color: offline ? 'rgb(var(--es-muted))' : 'rgb(var(--es-ink))' }}>
+              <div key={player._id} className="flex min-w-[640px] items-center border-t border-line/70 px-6 py-4">
+                <div
+                  className={`truncate font-display text-lg font-semibold tracking-[0.02em] ${offline ? 'text-muted' : 'text-ink'}`}
+                  style={{ width: 180 }}
+                >
                   {player.name.toUpperCase()}
                 </div>
 
@@ -328,9 +292,9 @@ const ProgressPage = () => {
 
                   let cell;
                   if (isFuture) {
-                    cell = <span style={{ color: 'rgb(var(--es-dim))', fontSize: 12 }}>—</span>;
+                    cell = <span className="text-dim">—</span>;
                   } else if (!round || round.status === 'pending') {
-                    cell = <span style={{ color: 'rgb(var(--es-muted))', fontSize: 16, fontWeight: 700 }}>?</span>;
+                    cell = <span className="font-display text-lg font-semibold text-muted">?</span>;
                   } else if (round.status === 'correct') {
                     cell = <CheckIcon />;
                   } else {
@@ -338,34 +302,27 @@ const ProgressPage = () => {
                   }
 
                   return (
-                    <div key={roundNum} style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <div key={roundNum} className="flex flex-1 items-center justify-center">
                       {cell}
                     </div>
                   );
                 })}
 
-                <div style={{ width: 120, display: 'flex', justifyContent: 'flex-end' }}>
-                  <span style={{ fontSize: 9, padding: '2px 8px', background: statusBg, color: statusColor, border: `1px solid ${offline ? 'rgb(var(--es-muted))' : statusBg}` }}>
+                <div className="flex justify-end" style={{ width: 130 }}>
+                  <span className={`rounded-sm border px-2 py-0.5 font-display text-sm tracking-[0.03em] ${statusClass}`}>
                     {statusLabel}
                   </span>
                 </div>
               </div>
             );
           })}
-        </div>
+        </section>
 
-        {/* Event Log */}
-      <div className="p-6" style={{ background: 'rgb(var(--es-ground))', borderLeft: '1px solid rgb(var(--es-line) / 0.4)' }}>
-          <div className="flex items-center gap-3 mb-4">
-            <div style={{ width: 4, height: 16, background: 'rgb(var(--es-brand))' }} />
-            <span style={{ fontWeight: 700, fontSize: 12, letterSpacing: '1.2px', color: 'rgb(var(--es-ink))' }}>{t('host.progress.eventLog')}</span>
-          </div>
-          {events.length === 0 && (
-            <div style={{ color: '#555', fontSize: 11, letterSpacing: '1px' }}>
-              {t('host.progress.noEvents')}
-            </div>
-          )}
-          <div className="flex flex-col gap-4">
+        {/* Event Log: typed up as it happens. */}
+        <section className="es-well px-6 py-5">
+          <h2 className="es-title mb-4 text-2xl text-ink">{t('host.progress.eventLog')}</h2>
+          {events.length === 0 && <p className="text-muted">{t('host.progress.noEvents')}</p>}
+          <ol className="flex flex-col gap-2">
             {events.map((event) => {
               const highlight = HIGHLIGHTED_EVENTS.includes(event.type);
               const message = t(`host.progress.events.${event.type}`, {
@@ -373,17 +330,15 @@ const ProgressPage = () => {
                 n: event.roundNumber,
               });
               return (
-                <div key={event._id} className="flex items-start gap-4 pl-3 py-1" style={{ borderLeft: `1px solid ${highlight ? 'rgb(var(--es-brand))' : 'rgb(var(--es-line) / 0.6)'}` }}>
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: 'rgb(var(--es-muted))', whiteSpace: 'nowrap' }}>[ {formatClock(event.createdAt)} ]</span>
-                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11, color: highlight ? 'rgb(var(--es-ink))' : 'rgb(var(--es-muted))' }}>{message}</span>
-                </div>
+                <li key={event._id} className="flex items-start gap-4 text-sm leading-6">
+                  <span className="whitespace-nowrap tabular-nums text-dim">{formatClock(event.createdAt)}</span>
+                  <span className={highlight ? 'text-brand-bright' : 'text-muted'}>{message}</span>
+                </li>
               );
             })}
-          </div>
-        </div>
-
+          </ol>
+        </section>
       </div>
-
     </SidebarLayout>
   );
 };

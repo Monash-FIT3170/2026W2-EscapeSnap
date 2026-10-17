@@ -26,25 +26,21 @@ export function AwaitingGameCard({ inSession = false }) {
   const t = useT();
 
   return (
-    <section className="border border-line bg-panel px-5 py-4 text-center">
-      <div className="mx-auto flex h-12 w-12 items-center justify-center border border-brand bg-ground text-brand">
+    <section className="flex gap-4 px-1 pt-2">
+      <div className="mt-0.5 flex-shrink-0 text-brand-bright">
         {inSession ? <ClockIcon /> : <HourglassIcon />}
       </div>
-
-      <h3 className="mt-3 font-mono text-sm font-semibold uppercase tracking-[0.2em] text-ink">
-        {inSession ? t('mobile.lobby.gameInSession') : t('mobile.lobby.awaitingHost')}
-      </h3>
-
-      <p className="mx-auto mt-2 max-w-[34ch] font-mono text-xs leading-5 text-muted">
-        {inSession ? t('mobile.lobby.gameInSessionBody') : t('mobile.lobby.awaitingHostBody')}
-      </p>
-
-      <div className="mt-3 flex items-center justify-center gap-2">
-        <span className="h-1.5 w-1.5 rounded-full bg-brand animate-pulse" />
-        <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-dim">
-          {inSession ? t('mobile.lobby.active') : t('mobile.lobby.standby')}
-        </span>
-        <span className="h-1.5 w-1.5 rounded-full bg-brand animate-pulse" />
+      <div className="min-w-0">
+        <h3 className="flex items-center gap-2 text-xl font-semibold text-ink">
+          {inSession ? t('mobile.lobby.gameInSession') : t('mobile.lobby.awaitingHost')}
+          <span className="es-led" data-state="busy" aria-hidden="true" />
+          <span className="sr-only">
+            {inSession ? t('mobile.lobby.active') : t('mobile.lobby.standby')}
+          </span>
+        </h3>
+        <p className="mt-1 text-sm leading-6 text-muted">
+          {inSession ? t('mobile.lobby.gameInSessionBody') : t('mobile.lobby.awaitingHostBody')}
+        </p>
       </div>
     </section>
   );

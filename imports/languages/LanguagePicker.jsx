@@ -103,11 +103,11 @@ export function LanguagePicker({
       ) : (
         <button
           {...triggerProps}
-          className="group absolute inset-0 z-50 flex items-center justify-center overflow-hidden rounded-full border border-slate-700 bg-slate-950 shadow-lg shadow-black/50 transition-colors duration-200 will-change-transform hover:border-red-500 focus:border-red-500 focus:outline-none"
+          className="group absolute inset-0 z-50 flex items-center justify-center overflow-hidden rounded-full border border-line bg-ground shadow-lg shadow-black/50 transition-colors duration-200 will-change-transform hover:border-brand focus:border-brand focus:outline-none"
         >
           <span
             aria-hidden="true"
-            className="absolute inset-0 -translate-x-full bg-red-600 transition-transform duration-300 ease-out group-hover:translate-x-0 group-focus:translate-x-0"
+            className="absolute inset-0 -translate-x-full bg-brand transition-transform duration-300 ease-out group-hover:translate-x-0 group-focus:translate-x-0"
           />
           <span className="relative flex items-center justify-center">
             <Flag code={locale} size={flagSize} />
@@ -144,10 +144,10 @@ export function LanguagePicker({
               tabIndex={open ? 0 : -1}
               onClick={() => choose(code)}
               aria-label={LOCALES[code].label}
-              className={`relative flex h-full w-full items-center justify-center overflow-hidden rounded-full border bg-slate-950 shadow-lg shadow-black/50 transition-colors duration-200 will-change-transform focus:outline-none ${
+              className={`relative flex h-full w-full items-center justify-center overflow-hidden rounded-full border bg-ground shadow-lg shadow-black/50 transition-colors duration-200 will-change-transform focus:outline-none ${
                 flashing === code
-                  ? 'border-red-300'
-                  : 'border-slate-700 hover:border-red-500 focus:border-red-500'
+                  ? 'border-ink'
+                  : 'border-line hover:border-brand focus:border-brand'
               }`}
             >
               {/* The wave: a red panel that slides across the circle, clipped
@@ -156,8 +156,8 @@ export function LanguagePicker({
                 aria-hidden="true"
                 className={`absolute inset-0 transition-transform duration-300 ease-out ${
                   flashing === code
-                    ? 'translate-x-0 bg-red-500'
-                    : '-translate-x-full bg-red-600 group-hover:translate-x-0 group-focus-within:translate-x-0'
+                    ? 'translate-x-0 bg-brand-bright'
+                    : '-translate-x-full bg-brand group-hover:translate-x-0 group-focus-within:translate-x-0'
                 }`}
               />
               <span className="relative flex items-center justify-center">
@@ -169,10 +169,10 @@ export function LanguagePicker({
                 open — not on hover, which touch devices never deliver. */}
             <span
               aria-hidden="true"
-              className={`pointer-events-none absolute top-1/2 ${labelSide} -translate-y-1/2 overflow-hidden whitespace-nowrap rounded-full border bg-slate-950/95 px-3.5 py-1.5 font-mono text-xs tracking-wide text-white transition-[opacity,border-color] duration-200 ${
+              className={`pointer-events-none absolute top-1/2 ${labelSide} -translate-y-1/2 overflow-hidden whitespace-nowrap rounded-full border bg-ground/95 px-3.5 py-1.5 font-display text-sm tracking-wide text-ink transition-[opacity,border-color] duration-200 ${
                 flashing === code
-                  ? 'border-red-300'
-                  : 'border-slate-800 group-hover:border-red-500 group-focus-within:border-red-500'
+                  ? 'border-ink'
+                  : 'border-line group-hover:border-brand group-focus-within:border-brand'
               }`}
               style={{
                 opacity: open ? 1 : 0,
@@ -184,8 +184,8 @@ export function LanguagePicker({
                 aria-hidden="true"
                 className={`absolute inset-0 transition-transform duration-300 ease-out ${
                   flashing === code
-                    ? 'translate-x-0 bg-red-500'
-                    : '-translate-x-full bg-red-600 group-hover:translate-x-0 group-focus-within:translate-x-0'
+                    ? 'translate-x-0 bg-brand-bright'
+                    : '-translate-x-full bg-brand group-hover:translate-x-0 group-focus-within:translate-x-0'
                 }`}
               />
               <span className="relative">{LOCALES[code].label}</span>

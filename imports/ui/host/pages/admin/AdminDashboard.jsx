@@ -6,6 +6,7 @@ import { Players } from '/imports/api/players/PlayersCollection';
 import { Rounds } from '/imports/api/rounds/RoundsCollection';
 import { Matches } from '/imports/api/matches/MatchesCollection';
 import { remainingGameMs } from '/imports/lib/gameClock';
+import { RoomBar } from '/imports/ui/shared/components/room/RoomBar';
 
 // Operations page: every game that hasn't ended yet, for whoever is running
 // the event. Operator-facing only, so it isn't translated.
@@ -22,8 +23,8 @@ const COLORS = {
   text: 'rgb(var(--es-ink))',
   muted: 'rgb(var(--es-muted))',
   dim: 'rgb(var(--es-dim))',
-  line: 'rgb(var(--es-panel))',
-  accent: 'rgb(var(--es-brand))',
+  line: 'rgb(var(--es-line))',
+  accent: 'rgb(var(--es-brand-bright))',
   onAccent: 'rgb(var(--es-on-brand))',
   ok: 'rgb(var(--es-correct))',
   warn: 'rgb(var(--es-warn))',
@@ -101,17 +102,13 @@ function KeyForm({ error, onSubmit }) {
         e.preventDefault();
         if (value.trim()) onSubmit(value.trim());
       }}
-      className="w-full max-w-sm flex flex-col gap-4"
+      className="es-plate flex w-full max-w-sm flex-col gap-4 px-6 pb-6 pt-5"
     >
-      <p
-        className="text-xs tracking-widest uppercase"
-        style={{ color: COLORS.accent }}
-      >
+      <p className="es-label flex items-center gap-2">
+        <span className="es-led" data-state="ready" aria-hidden="true" />
         Restricted
       </p>
-      <h1 className="text-2xl font-bold tracking-widest uppercase">
-        Operations
-      </h1>
+      <h1 className="es-title text-5xl">Operations</h1>
       <input
         type="password"
         autoFocus
@@ -119,31 +116,14 @@ function KeyForm({ error, onSubmit }) {
         onChange={(e) => setValue(e.target.value)}
         placeholder="Admin key"
         aria-label="Admin key"
-        className="px-4 py-3 text-sm outline-none"
-        style={{
-          background: 'rgb(var(--es-panel))',
-          color: COLORS.text,
-          border: `1px solid ${COLORS.line}`,
-        }}
+        className="es-field"
       />
       {error && (
-        <p
-          role="alert"
-          className="text-xs tracking-widest"
-          style={{ color: COLORS.accent }}
-        >
+        <p role="alert" className="font-display text-base text-brand-bright">
           {error}
         </p>
       )}
-      <button
-        type="submit"
-        className="text-sm tracking-widest uppercase py-3 cursor-pointer"
-        style={{
-          background: COLORS.accent,
-          color: COLORS.onAccent,
-          border: 'none',
-        }}
-      >
+      <button type="submit" className="es-btn es-btn-primary">
         Unlock
       </button>
     </form>
@@ -152,17 +132,9 @@ function KeyForm({ error, onSubmit }) {
 
 function StatTile({ label, value, color = COLORS.text }) {
   return (
-    <div
-      className="flex flex-col gap-1 px-4 py-3"
-      style={{ border: `1px solid ${COLORS.line}` }}
-    >
-      <span
-        className="text-[10px] tracking-widest uppercase"
-        style={{ color: COLORS.muted }}
-      >
-        {label}
-      </span>
-      <span className="text-2xl font-bold tabular-nums" style={{ color }}>
+    <div className="es-plate flex flex-col gap-1 px-4 pb-3 pt-3">
+      <span className="es-label">{label}</span>
+      <span className="es-title text-4xl tabular-nums" style={{ color }}>
         {value}
       </span>
     </div>
@@ -172,7 +144,7 @@ function StatTile({ label, value, color = COLORS.text }) {
 function StatusBadge({ status }) {
   return (
     <span
-      className="text-[10px] tracking-widest uppercase px-2 py-0.5 whitespace-nowrap"
+      className="font-display text-sm tracking-[0.03em] px-2 py-0.5 whitespace-nowrap"
       style={{
         color: STATUS_COLORS[status],
         border: `1px solid ${STATUS_COLORS[status]}`,
@@ -209,12 +181,7 @@ function ConfirmButton({ label, confirmLabel, onConfirm, disabled }) {
         setArmed(false);
         onConfirm();
       }}
-      className="text-[10px] tracking-widest uppercase px-3 py-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-      style={{
-        color: armed ? COLORS.onAccent : COLORS.text,
-        background: armed ? COLORS.accent : 'transparent',
-        border: `1px solid ${COLORS.accent}`,
-      }}
+      className={`es-btn es-btn-sm !min-h-[36px] ${armed ? 'es-btn-primary' : 'es-btn-ghost'}`}
     >
       {armed ? confirmLabel : label}
     </button>
@@ -233,7 +200,7 @@ function RoundGrid({ game, players, rounds, adminKey, busy, run }) {
       <table className="w-full text-xs">
         <thead>
           <tr
-            className="text-[10px] tracking-widest uppercase"
+            className="font-display text-sm tracking-[0.03em]"
             style={{ color: COLORS.dim }}
           >
             <th className="text-left font-normal py-1 pr-3">Player</th>
@@ -363,14 +330,14 @@ function GameRow({ game, players, rounds, now, expanded, onToggle, adminKey }) {
           color: COLORS.text,
         }}
       >
-        <span className="font-mono font-bold tracking-widest">
+        <span className="es-lcd-text font-display text-lg tracking-[0.12em] tabular-nums">
           {game.joinCode}
         </span>
-        <span className="text-sm font-bold uppercase truncate">
+        <span className="text-sm font-display font-semibold tracking-[0.02em] uppercase truncate">
           {game.groupName}
           {warnings.length > 0 && (
             <span
-              className="ml-2 text-[10px] tracking-widest"
+              className="ml-2 font-display text-sm normal-case tracking-[0.02em]"
               style={{ color: COLORS.warn }}
             >
               ⚠ {warnings.join(' · ')}
@@ -378,7 +345,7 @@ function GameRow({ game, players, rounds, now, expanded, onToggle, adminKey }) {
           )}
         </span>
         <span
-          className="text-xs uppercase tracking-widest"
+          className="font-display text-sm tracking-[0.03em]"
           style={{ color: COLORS.muted }}
         >
           {game.playMode}
@@ -487,12 +454,9 @@ function GameRow({ game, players, rounds, now, expanded, onToggle, adminKey }) {
 
 function MatchCard({ match, games, playersByGame, now }) {
   return (
-    <div
-      className="flex flex-col"
-      style={{ border: `1px solid ${COLORS.line}` }}
-    >
+    <div className="es-plate flex flex-col overflow-hidden">
       <div
-        className="flex items-center justify-between px-4 py-2 text-[10px] tracking-widest uppercase"
+        className="flex items-center justify-between px-4 py-2 font-display text-sm tracking-[0.03em]"
         style={{
           borderBottom: `1px solid ${COLORS.line}`,
           color: COLORS.muted,
@@ -512,8 +476,8 @@ function MatchCard({ match, games, playersByGame, now }) {
             key={g._id}
             className="flex items-center gap-3 px-4 py-2 text-sm"
           >
-            <span className="font-mono font-bold">{g.joinCode}</span>
-            <span className="flex-1 font-bold uppercase truncate">
+            <span className="font-display font-semibold tabular-nums">{g.joinCode}</span>
+            <span className="flex-1 font-display font-semibold tracking-[0.02em] uppercase truncate">
               {g.groupName}
             </span>
             <StatusBadge status={g.status} />
@@ -643,19 +607,19 @@ function Dashboard({ adminKey, onAuthError, onLock }) {
       <div className="flex items-end justify-between gap-4 flex-wrap">
         <div>
           <p
-            className="text-xs tracking-widest mb-1"
+            className="font-display text-sm tracking-[0.03em] mb-1"
             style={{ color: COLORS.accent }}
           >
             LIVE · {new Date(now).toLocaleTimeString()}
           </p>
-          <h1 className="text-3xl font-bold tracking-widest uppercase">
+          <h1 className="es-title text-5xl">
             Operations
           </h1>
         </div>
         <button
           type="button"
           onClick={onLock}
-          className="text-[10px] tracking-widest uppercase px-3 py-1.5 cursor-pointer"
+          className="font-display text-sm tracking-[0.03em] px-3 py-1.5 cursor-pointer"
           style={{
             color: COLORS.muted,
             border: `1px solid ${COLORS.line}`,
@@ -688,7 +652,7 @@ function Dashboard({ adminKey, onAuthError, onLock }) {
       </div>
 
       {loading && (
-        <p className="text-xs tracking-widest" style={{ color: COLORS.muted }}>
+        <p className="font-display text-sm tracking-[0.03em]" style={{ color: COLORS.muted }}>
           LOADING...
         </p>
       )}
@@ -696,7 +660,7 @@ function Dashboard({ adminKey, onAuthError, onLock }) {
       {liveMatches.length > 0 && (
         <section className="flex flex-col gap-3">
           <h2
-            className="text-xs tracking-widest uppercase"
+            className="font-display text-sm tracking-[0.03em]"
             style={{ color: COLORS.muted }}
           >
             Team vs team ({liveMatches.length})
@@ -718,12 +682,12 @@ function Dashboard({ adminKey, onAuthError, onLock }) {
       {queue.length > 0 && (
         <section className="flex flex-col gap-3">
           <h2
-            className="text-xs tracking-widest uppercase"
+            className="font-display text-sm tracking-[0.03em]"
             style={{ color: COLORS.muted }}
           >
             Matchmaking queue ({queue.length})
           </h2>
-          <div style={{ border: `1px solid ${COLORS.line}` }}>
+          <div className="es-plate overflow-hidden">
             {queue.map((g) => {
               const waited = now - new Date(g.matchmakingSince).getTime();
               return (
@@ -731,8 +695,8 @@ function Dashboard({ adminKey, onAuthError, onLock }) {
                   key={g._id}
                   className="flex items-center gap-3 px-4 py-2 text-sm"
                 >
-                  <span className="font-mono font-bold">{g.joinCode}</span>
-                  <span className="flex-1 font-bold uppercase truncate">
+                  <span className="font-display font-semibold tabular-nums">{g.joinCode}</span>
+                  <span className="flex-1 font-display font-semibold tracking-[0.02em] uppercase truncate">
                     {g.groupName}
                   </span>
                   <span
@@ -759,7 +723,7 @@ function Dashboard({ adminKey, onAuthError, onLock }) {
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <h2
-            className="text-xs tracking-widest uppercase"
+            className="font-display text-sm tracking-[0.03em]"
             style={{ color: COLORS.muted }}
           >
             All live games ({filtered.length})
@@ -802,9 +766,9 @@ function Dashboard({ adminKey, onAuthError, onLock }) {
           </div>
         </div>
 
-        <div style={{ border: `1px solid ${COLORS.line}` }}>
+        <div className="es-plate overflow-hidden">
           <div
-            className="hidden md:grid grid-cols-[70px_1fr_80px_110px_80px_80px_80px] gap-x-4 px-4 py-2 text-[10px] tracking-widest uppercase"
+            className="hidden md:grid grid-cols-[70px_1fr_80px_110px_80px_80px_80px] gap-x-4 px-4 py-2 font-display text-sm tracking-[0.03em]"
             style={{
               color: COLORS.dim,
               borderBottom: `1px solid ${COLORS.line}`,
@@ -820,7 +784,7 @@ function Dashboard({ adminKey, onAuthError, onLock }) {
           </div>
           {filtered.length === 0 && !loading && (
             <p
-              className="px-4 py-6 text-xs tracking-widest"
+              className="px-4 py-6 font-display text-sm tracking-[0.03em]"
               style={{ color: COLORS.dim }}
             >
               NO GAMES MATCH
@@ -869,24 +833,10 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ background: COLORS.bg, color: COLORS.text }}
-    >
-      <header
-        className="px-4 sm:px-8 py-4 flex items-center justify-between"
-        style={{ borderBottom: `1px solid ${COLORS.line}` }}
-      >
-        <span className="font-bold text-xl tracking-widest uppercase">
-          ESCAPESNAP
-        </span>
-        <span
-          className="text-xs tracking-widest uppercase"
-          style={{ color: COLORS.muted }}
-        >
-          Admin
-        </span>
-      </header>
+    <div className="es-room flex flex-col">
+      <RoomBar>
+        <span className="font-display text-base tracking-[0.04em] text-muted">Admin</span>
+      </RoomBar>
       <main className="flex-1 px-4 sm:px-8 py-10 flex flex-col items-center">
         {adminKey ? (
           <Dashboard

@@ -2,17 +2,19 @@
    opacity modifiers (bg-ground/95). Exposed as colour utilities in main.html. */
 :root,
 [data-ui-theme='dossier'] {
-  --es-ground: 14 14 14;
-  --es-panel: 28 27 27;
-  --es-line: 53 53 52;
-  --es-ink: 229 226 225;
-  --es-muted: 170 137 132;
-  --es-dim: 85 85 85;
-  --es-brand: 139 0 0;
-  --es-brand-bright: 165 0 0;
-  --es-on-brand: 229 226 225;
-  --es-correct: 74 222 128;
-  --es-incorrect: 239 68 68;
+  /* The landing page's dark room (landingPage.css): pitch, concrete,
+     the wall's surface, bone text and the alarm red. */
+  --es-ground: 0 0 0;
+  --es-panel: 22 18 15;
+  --es-line: 59 52 46;
+  --es-ink: 232 223 207;
+  --es-muted: 188 177 162;
+  --es-dim: 153 142 130;
+  --es-brand: 211 42 29;
+  --es-brand-bright: 255 74 50;
+  --es-on-brand: 255 247 238;
+  --es-correct: 91 227 138;
+  --es-incorrect: 255 90 70;
   /* Waiting or at risk: riddles still loading, a team on its final riddle. */
   --es-warn: 252 211 77;
 }
@@ -26,7 +28,7 @@
   --es-line: 66 50 22;
   --es-ink: 255 224 170;
   --es-muted: 196 154 92;
-  --es-dim: 116 90 52;
+  --es-dim: 150 118 70;
   --es-brand: 255 176 0;
   --es-brand-bright: 255 198 64;
   --es-on-brand: 20 14 0;
@@ -40,7 +42,7 @@
   --es-line: 38 62 98;
   --es-ink: 220 232 245;
   --es-muted: 132 162 198;
-  --es-dim: 84 108 140;
+  --es-dim: 104 130 164;
   --es-brand: 14 165 233;
   --es-brand-bright: 56 189 248;
   --es-on-brand: 4 14 28;
@@ -53,13 +55,13 @@
   --es-line: 205 196 182;
   --es-ink: 32 28 26;
   --es-muted: 110 90 84;
-  --es-dim: 138 128 118;
+  --es-dim: 112 102 92;
   --es-brand: 165 20 20;
   --es-brand-bright: 190 30 30;
   --es-on-brand: 255 250 245;
-  --es-correct: 22 128 61;
+  --es-correct: 20 112 52;
   --es-incorrect: 200 30 30;
-  --es-warn: 161 98 7;
+  --es-warn: 140 84 6;
 }
 
 [data-ui-theme='contrast'] {

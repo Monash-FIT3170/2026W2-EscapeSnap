@@ -73,6 +73,16 @@ if (Meteor.isServer) {
         assert.notEqual(games[0].joinCode, games[1].joinCode);
       });
 
+      it("gives both teams the host's UI theme", async function () {
+        const matchId = await Meteor.callAsync('matches.createLocal', {
+          teamNames: ['Red', 'Blue'],
+          uiTheme: 'daylight',
+        });
+        const games = await Games.find({ matchId }).fetchAsync();
+
+        assert.isTrue(games.every((g) => g.uiTheme === 'daylight'));
+      });
+
       it('rejects two teams with the same name', async function () {
         await expectError(
           Meteor.callAsync('matches.createLocal', {

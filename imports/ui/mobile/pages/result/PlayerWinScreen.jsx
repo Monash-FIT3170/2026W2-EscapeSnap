@@ -7,20 +7,18 @@ import { useT } from '../../../../languages/LanguageProvider';
 export function PlayerWinScreen({ playerId, snapshot, loading, versusLine = null }) {
   const t = useT();
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-ground pb-[env(safe-area-inset-bottom)]">
-      <div className="flex flex-col items-center justify-center gap-5 px-6 pb-8 pt-[calc(2.5rem+env(safe-area-inset-top))] text-center">
-        <div className="bg-correct" style={{ width: 64, height: 3 }} />
-        <h1
-          className="font-black uppercase tracking-widest text-correct"
-          style={{ fontSize: 34, lineHeight: 1.2 }}
-        >
+    <div className="es-room flex min-h-[100dvh] flex-col overflow-x-hidden pb-[env(safe-area-inset-bottom)]">
+      <div className="flex flex-col items-center justify-center gap-6 px-6 pb-8 pt-[calc(3rem+env(safe-area-inset-top))] text-center">
+        {/* Stamped across the screen like the case file's ESCAPED stamp on the
+            landing page. */}
+        <h1 className="es-stamp !text-[2.4rem] !leading-[1.1] text-correct">
           {t('mobile.winScreen.missionLine1')}<br />{t('mobile.winScreen.missionLine2')}
         </h1>
-        <p className="font-mono text-xs leading-6 text-muted">
+        <p className="text-sm leading-6 text-muted">
           {t('mobile.winScreen.bodyLine1')}<br />{t('mobile.winScreen.bodyLine2')}
         </p>
         {versusLine && (
-          <p className="font-mono text-sm font-bold uppercase tracking-[0.15em]" style={{ color: 'rgb(var(--es-correct))' }}>
+          <p className="font-display text-lg font-semibold tracking-[0.04em] text-correct">
             {versusLine}
           </p>
         )}
