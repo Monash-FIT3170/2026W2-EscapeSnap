@@ -69,6 +69,7 @@ export const fr = {
       codeShort: 'Le code fait 4 chiffres. Encore {n}',
       checking: 'Vérification de la salle {code}…',
       found: 'Salle {code} trouvée. Ouverture…',
+      rejoin: 'Rejoindre ma partie',
     },
     tape: {
       a: "Défense d'entrer|2–4 joueurs|10–60 minutes|Sans téléchargement|Sans inscription|Un écran + des téléphones",

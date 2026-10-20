@@ -69,6 +69,7 @@ export const zh = {
       codeShort: '代码需要 4 位数字，还差 {n} 位',
       checking: '正在查找房间 {code}…',
       found: '已找到房间 {code}，正在进入…',
+      rejoin: '重新加入我的游戏',
     },
     tape: {
       a: '禁止入内|2–4 名玩家|10–60 分钟|无需下载|无需注册|一块屏幕 + 手机',

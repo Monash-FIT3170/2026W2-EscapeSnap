@@ -73,6 +73,7 @@ export const en = {
       codeShort: 'Code needs 4 digits. {n} more',
       checking: 'Checking room {code}…',
       found: 'Room {code} found. Opening…',
+      rejoin: 'Rejoin my game',
     },
     // '|' separates the phrases on each tape; keep the same count.
     tape: {
