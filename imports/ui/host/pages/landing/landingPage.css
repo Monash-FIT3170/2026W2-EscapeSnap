@@ -1122,6 +1122,9 @@
 .lp .lp-keypad .lp-btn {
   width: 100%;
 }
+.lp .lp-keypad .lp-kp-rejoin {
+  margin-top: 10px;
+}
 
 /* ---------- caution tape ---------- */
 .lp .lp-tapes {

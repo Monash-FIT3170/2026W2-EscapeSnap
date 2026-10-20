@@ -226,6 +226,11 @@ export default function JoinKeypad({ join, onJoined }) {
       <button type="submit" className="lp-btn lp-btn-primary">
         {t('landing.keypad.enter')}
       </button>
+      {/* A player who closed their tab mid-game can't join again by code once
+          the game has started; /player offers their saved game back. */}
+      <a className="lp-btn lp-btn-ghost lp-kp-rejoin" href="/player">
+        {t('landing.keypad.rejoin')}
+      </a>
     </form>
   );
 }

@@ -69,6 +69,7 @@ export const id = {
       codeShort: 'Kode harus 4 digit. Kurang {n}',
       checking: 'Memeriksa ruangan {code}…',
       found: 'Ruangan {code} ditemukan. Membuka…',
+      rejoin: 'Kembali ke permainanku',
     },
     tape: {
       a: 'Dilarang masuk|2–4 pemain|10–60 menit|Tanpa unduhan|Tanpa pendaftaran|Satu layar + ponsel',

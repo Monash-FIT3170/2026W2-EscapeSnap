@@ -69,6 +69,7 @@ export const es = {
       codeShort: 'El código necesita 4 dígitos. Faltan {n}',
       checking: 'Comprobando la sala {code}…',
       found: 'Sala {code} encontrada. Abriendo…',
+      rejoin: 'Volver a mi partida',
     },
     tape: {
       a: 'Prohibido el paso|2–4 jugadores|10–60 minutos|Sin descargas|Sin registros|Una pantalla + móviles',
